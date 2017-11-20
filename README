@@ -31,7 +31,7 @@ To plot the results after each run, type
 
 > python Plot.py
 
-test 3 and test4 have analytic solutions, they will be automatically
+test3 and test4 have analytic solutions, they will be automatically
 overplotted by Plot.py
 
 ------------------------------------------------------------------------
