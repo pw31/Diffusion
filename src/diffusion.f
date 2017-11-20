@@ -84,10 +84,10 @@
         if (bc_low==1) then
           influx = -nD*(d1l(1)*xx(1) + d1m(1)*xx(2) + d1r(1)*xx(3))
         else if (bc_low==2) then   
-          xx(1)  = (-influx/nD - d1m(1)*xx(2) - d1r(1)*xx(3))/d1l(1) 
+          xx(1) = (-influx/nD - d1m(1)*xx(2) - d1r(1)*xx(3))/d1l(1) 
         else if (bc_low==3) then   
-          influx = nHtot(1)*xx(1)*inrate*vin  
-          xx(1)  = (-influx/nD - d1m(1)*xx(2) - d1r(1)*xx(3))/d1l(1) 
+          xx(1) = -(d1m(1)*xx(2) + d1r(1)*xx(3))
+     >            /(d1l(1) + inrate*vin/Diff(1))
         endif  
         nD = nHtot(N)*Diff(N)  
         if (bc_high==1) then
@@ -96,7 +96,8 @@
           xx(N) = (-outflux/nD - d1l(N)*xx(N-2) - d1m(N)*xx(N-1))/d1r(N)
         else if (bc_high==3) then   
           outflux = nHtot(N)*xx(N)*outrate*vout  
-          xx(N) = (-outflux/nD - d1l(N)*xx(N-2) - d1m(N)*xx(N-1))/d1r(N)
+          xx(N) = -(d1l(N)*xx(N-2) + d1m(N)*xx(N-1))
+     >            /(d1r(N) + outrate*vout/Diff(N))
         endif   
         ntot = ntot + (influx - outflux)*dt
         
