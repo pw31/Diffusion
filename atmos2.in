@@ -1,0 +1,16 @@
+.false.  ! simple
+200      ! Npoints
+6.0      ! hmin
+12.5     ! hmax
+0.1      ! pconst
+10.0     ! vzconst
+1.8      ! beta
+5        ! init
+2        ! bc_low    
+1        ! bc_high    
+0.0      ! influx
+.false.  ! tindep
+.true.   ! implicit
+6        ! Nout
+1.E+6,1.E+7,1.E+8,1.E+10,3.E+10,1.E+11
+1.E+5    ! tfac
