@@ -1,9 +1,9 @@
 *~
 fort.*
 GIT.commands
-src16/*.o
-src16/*.mod
-src16/makefile
-src16/diffuse
-src16/*~
+src/*.o
+src/*.mod
+src/makefile
+src/diffuse
+src/*~
 out*.*
