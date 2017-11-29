@@ -11,11 +11,13 @@
 
       allocate(xx(N))
       tnull = 0.d0
-      if (init==1) then
+      if (init==0) then  
+        xx(:) = 0.d0        ! constant concentration
+      else if (init==1) then
         xx(:) = 1.d0        ! constant concentration
       else if (init==2) then
         xx(:) = 0.d0
-        xx(1) = 1.d0        ! inflow from below
+        xx(1) = 1.d0        ! =1 at lower boundary, else =0
       else if (init==3) then  
         !--- this one has a simple analytic solution ---
         nn = 1
@@ -34,7 +36,7 @@
         enddo  
       else if (init==5) then  
         xx(:) = 0.d0
-        xx(N) = 1.d0        ! inflow from above
+        xx(N) = 1.d0        ! =1 at upper boundary, else =0
       else
         print*,"*** init=",init," not recognised."
         stop

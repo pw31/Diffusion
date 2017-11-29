@@ -38,6 +38,7 @@ for i in range(0,999):
   #================== x over z plot ====================
   if (tunit=='s'): titel = 't = %5.3f s' % (tt)
   if (tunit=='yr'): titel = 't = %7.4f yr' % (tt/yr)
+  if (tt/yr>1.E+10): titel = 't-independent'
   plt.plot(zz,xx,lw=4,label=titel,c=colo[i])
   #--- analytic solution ---
   if (init==3):

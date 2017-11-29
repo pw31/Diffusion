@@ -406,14 +406,10 @@
         A(i,i+1) = A(i,i+1) - d1nD*d1r(i) - nD*d2r(i)
       enddo
 
-      !---------------------------------
-      ! *** (2) fill in source terms ***
-      !---------------------------------
-      rest(:) = 0.0
-
       !------------------------------
       ! ***  boundary conditions  ***
       !------------------------------
+      rest(:) = 0.0
       nD = nHtot(1)*Diff(1)  
       if (bc_low==1) then
         A(1,1)  = 1.d0
@@ -444,6 +440,11 @@
         A(N,N)   = d1r(N)*nD + nHtot(N)*outrate*vout
         rest(N)  = 0.d0
       endif   
+
+      !-----------------------------
+      ! *** (2) add source terms ***
+      !-----------------------------
+      !rest(N/3) = rest(N/3) + 1.0
 
       !----------------------------------
       ! *** solve the matrix equation ***
