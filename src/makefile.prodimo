@@ -19,7 +19,7 @@ LFLAGS    = $(FFLAGS)
 #INCLUDES  = 
 #LFLAGS    = $(FFLAGS)
 
-EXECS    = diffuse
+EXECS    = ../diffuse
 
 OBJECTS  = datamod.o \
            init_nature.o \

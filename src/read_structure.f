@@ -83,14 +83,14 @@ c      enddo
 *     -----------------------------------------
 *     ***  calculate Diffusion coefficient  ***
 *     -----------------------------------------
-      if (.false.) then
+      if (.true.) then
         conv = .true.
         do i=Nlayers,1,-1
           Hplay = bk*Tlay(i)/(glay(i)*mulay(i)*amu)
           if (Tlay(i)>Teff) Hp=Hplay
           if (conv.and.vconvlay(i).gt.0.d0) then
             Difflay(i) = vconvlay(i)*(mixLength*Hplay)  
-            write(*,1200) i,Hplay/km,vconvlay(i)/100.0
+            !write(*,1200) i,Hplay/km,vconvlay(i)/100.0
           else 
             if (conv) then
               pconv = play(i)
@@ -104,10 +104,6 @@ c      enddo
         enddo
 *       !--- limit log(Diff)-gradient to beta ---
         write(*,*) "Hp[km]=",Hp/km
-        write(*,*)
-        write(*,1110) "","z[km]","p[bar]","T[K]","Diff[cm2/s]","grad"
-        write(*,1100) Nlayers,zlay(Nlayers)/km,play(Nlayers)/bar,
-     >                Tlay(Nlayers),Difflay(Nlayers)
         do i=Nlayers-1,1,-1
           grad = DLOG(Difflay(i)/Difflay(i+1))/DLOG(play(i)/play(i+1))
           if (grad.gt.beta) then
