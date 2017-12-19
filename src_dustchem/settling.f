@@ -46,7 +46,7 @@
 
         !--- closure condition ---
         LL(0:3) = rhoLj(0:3,ip)/rho               ! [cm^j/g]
-        LL(4)   = CLOSURE(ip,LL(0),LL(1),LL(2),LL(3),verbose)
+        LL(4)   = CLOSURE(ip,LL(0),LL(1),LL(2),LL(3),0)
         rhoLj(1,ip) = rho*LL(1)
         rhoLj(2,ip) = rho*LL(2)
 

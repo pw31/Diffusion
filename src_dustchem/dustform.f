@@ -150,6 +150,6 @@
 !$omp end parallel      
 
       if (verbose==1) print'(" DUSTFORM: "I8,"  time=",1pE11.4,
-     >                "  Dt=",1pE11.4)',Npoints,time,deltat
+     >                "  Dt=",1pE11.4)',Npoints-1,time,deltat
 
       end
