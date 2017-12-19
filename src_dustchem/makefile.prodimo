@@ -5,21 +5,21 @@ F90LINKER    = ifort
 
 # for IFORT-Compiler
 #===================
-DEFS      = -D IFORT -diag-disable 8290,8291 
-#FFLAGS   = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -warn all
-FFLAGS    = -r8 -g -traceback -O3 -xHOST -prec-div -fp-model source
+DEFS      = -D IFORT -D CHECK_NAN -diag-disable 8290,8291 
+#FFLAGS   = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -warn all -fopenmp
+FFLAGS    = -r8 -g -traceback -O3 -xHOST -prec-div -fp-model source -fopenmp
 INCLUDES  = 
 LFLAGS    = $(FFLAGS)
 
 # for gfortran-Compiler
 #======================
 #DEFS      = 
-#FFLAGS    = -fdefault-real-8 -fdefault-double-8 -fbounds-check -fbacktrace -g 
-#FFLAGS    = -fdefault-real-8 -fdefault-double-8 -g -O5
+#FFLAGS    = -fdefault-real-8 -fdefault-double-8 -fbounds-check -fbacktrace -g -fopenmp
+#FFLAGS    = -fdefault-real-8 -fdefault-double-8 -g -O5 -fopenmp
 #INCLUDES  = 
 #LFLAGS    = $(FFLAGS)
 
-EXECS    = diffuse
+EXECS    = ../diffudrift
 
 OBJECTS  = datamod.o \
            init_nature.o \
@@ -30,13 +30,36 @@ OBJECTS  = datamod.o \
 	   init_dustchem.o \
            init_grid.o \
            initial_conditions.o \
+	   dustform.o \
+           dust_tstep.o \
+           dust_rhs.o \
+	   FCN.o \
+	   JACOBI.o \
+           limex_dense.o \
+	   limex_aux.o \
+	   limex.o \
 	   supersat.o \
-           dcoeffs.o \
-           diffusion.o \
+	   nucleation.o \
+	   class_nuc_C.o \
+	   class_nuc_KCL.o \
+           class_nuc_SiO.o \
+           class_nuc_TiO2.o \
+           growth.o \
+	   ggchem.o \
+           smchem8.o \
+           smchem16.o \
+           init_diffusion.o \
+	   diffusion.o \
+           settling.o \
+	   closure.o \
+           output.o \
+           eff_supersat.o \
+           is_nan.o \
 	   upper.o \
 	   stindex.o \
 	   gauss8.o \
 	   gauss16.o \
+           slatec_routines.o \
 	   linpack_q.o \
            main.o
 
@@ -52,7 +75,7 @@ realclean:
 	rm -f *.o *~ *.mod *__genmod.f90 $(EXECS)
 
 .f.o:
-	$(F90) $(FFLAGS) $(DEFS) -c $<
+	$(F90) $(FFLAGS) $(DEFS) -fpp -c $<
 .F.o:
 	$(F90) $(FFLAGS) $(DEFS) -c $<
 .f90.o:
