@@ -45,10 +45,8 @@ lognH = np.log10(nHtot)
 lp    = np.log10(press)
 pmin  = np.min(lp)
 pmax  = np.max(lp)
-delp  = (pmax-pmin)*0.25
-pmin  = -5.3
-pmax  = +2.1
-delp  = 0.0
+#pmin  = -5.3
+#pmax  = +2.1
 iii   = np.where((lp>pmin) & (lp<pmax))[0]
 Tmin  = np.min(Tg[iii])
 Tmax  = np.max(Tg[iii])
@@ -138,7 +136,8 @@ plt.ylim(ymax-15,ymax+1)
 plt.tick_params(axis='both', labelsize=15)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
-plt.legend(loc='upper right',fontsize=11,fancybox=True,handlelength=2.5)
+leg = plt.legend(loc='upper right',fontsize=11,fancybox=True,handlelength=2.5)
+leg.get_frame().set_alpha(0.7)
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
@@ -197,7 +196,7 @@ for i in range(5+NELEM+NMOLE+2*NDUST,5+NELEM+NMOLE+2*NDUST+NELEM,1):
   count = count+1
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\log\,\epsilon_{\rm gas}$',fontsize=20)
-plt.xlim(pmin,pmax+0.7*delp)
+plt.xlim(pmin,pmax)
 plt.ylim(ymax-20,0.3)
 plt.tick_params(axis='both', labelsize=15)
 plt.tick_params('both', length=6, width=1.5, which='major')
@@ -207,7 +206,8 @@ plt.tick_params('both', length=3, width=1, which='minor')
 #minorLocator = MultipleLocator(1)
 #ax.yaxis.set_minor_locator(minorLocator)
 sz = np.min([11,1+195.0/count])
-plt.legend(loc='upper left',fontsize=sz,fancybox=True)
+leg = plt.legend(loc='upper left',fontsize=sz,fancybox=True)
+leg.get_frame().set_alpha(0.7)
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
@@ -233,14 +233,15 @@ plt.title('condensates',fontsize=20)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\mathrm{log}_{10}\ n_\mathrm{solid}/n_\mathrm{\langle H\rangle}$',fontsize=20)
 #plt.xscale('log')
-plt.xlim(pmin,pmax+0.7*delp)
+plt.xlim(pmin,pmax)
 plt.ylim(ymax-8,ymax+0.3)
 plt.tick_params(axis='both', labelsize=14)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
 sz = np.min([11,1+195.0/count])
-plt.legend(loc='upper left',fontsize=11,fancybox=True,
-           handlelength=2.5,prop={'size':sz})
+leg = plt.legend(loc='upper left',fontsize=11,fancybox=True,
+                 handlelength=2.5,prop={'size':sz})
+leg.get_frame().set_alpha(0.7)
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
@@ -260,7 +261,7 @@ for i in range(5+NELEM+NMOLE,5+NELEM+NMOLE+NDUST,1):
 plt.title('effective supersaturation ratios',fontsize=20)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\mathrm{log}_{10}\ S$',fontsize=20)
-plt.xlim(pmin,pmax+1.5*delp)
+plt.xlim(pmin,pmax)
 plt.ylim(-10,10)
 plt.tick_params(axis='both', labelsize=14)
 plt.tick_params('both', length=6, width=1.5, which='major')
@@ -270,8 +271,9 @@ col = 1
 if (count>30): 
   sz = np.min([13,1+195.0/count*2])
   col = 2
-plt.legend(loc='lower left',fontsize=10,fancybox=True,
-           handlelength=3,prop={'size':sz},ncol=col)
+leg = plt.legend(loc='lower left',fontsize=10,fancybox=True,
+                 handlelength=3,prop={'size':sz},ncol=col)
+leg.get_frame().set_alpha(0.7)
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
@@ -303,7 +305,8 @@ plt.ylim(-6.2,0.2)
 plt.tick_params(axis='both', labelsize=14)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
-plt.legend(loc='lower right',fontsize=11,fancybox=True)
+leg = plt.legend(loc='lower right',fontsize=11,fancybox=True)
+leg.get_frame().set_alpha(0.7)
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
@@ -386,8 +389,9 @@ for i in range(0,30):
   if (count>30): 
     sz = np.min([9,1+195.0/count*2])
     col = 2
-  plt.legend(loc='lower right',fontsize=10,fancybox=True,
-             handlelength=3,prop={'size':sz},ncol=col)
+  leg = plt.legend(loc='lower right',fontsize=10,fancybox=True,
+                   handlelength=3,prop={'size':sz},ncol=col)
+  leg.get_frame().set_alpha(0.7)
   plt.tight_layout()
   plt.savefig(pp,format='pdf')
   plt.clf()
