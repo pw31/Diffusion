@@ -1,0 +1,9 @@
+
+> emacs mpeg_par
+
+> ppmtompeg mpeg_par
+
+> smplayer tmp.mpg
+> vlc --no-video-title-show --rate 0.5 --quiet --repeat tmp.mpg
+> totem tmp.mpg
+

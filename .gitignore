@@ -1,6 +1,6 @@
 *~
 fort.*
-fatal.*
+fatal*
 logfile*
 GIT.commands
 src/*.o

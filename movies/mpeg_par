@@ -1,0 +1,55 @@
+#PATTERN		IBBPBBPBBPBBPBB
+PATTERN		        IBBPBB
+
+OUTPUT 			tmp.mpg
+
+BASE_FILE_FORMAT	PNM
+
+INPUT_CONVERT		pngtopnm *
+
+GOP_SIZE		6
+
+SLICES_PER_FRAME	1
+
+INPUT_DIR	        ~/Diffusion/output_1800K_dustdiff_full
+
+INPUT
+eps_*.png [00001-00140]
+#dust_*.png [00001-00059]
+#dust_*.png [00060-00177+3]
+#dust_*.png [00180-00990+10]
+#dust_*.png [01000-42250+50]
+#eps_*.png [00001-01399+2]
+#eps_*.png [00001-00059]
+#eps_*.png [00060-00177+3]
+#eps_*.png [00180-00990+10]
+#eps_*.png [01000-42250+50]
+#nsolid_*.png [00001-00059]
+#nsolid_*.png [00060-00177+3]
+#nsolid_*.png [00180-00990+10]
+#nsolid_*.png [01000-42250+50]
+#`cat myfilelist`
+END_INPUT
+
+PIXEL			HALF
+
+RANGE			16
+
+PSEARCH_ALG		LOGARITHMIC
+
+BSEARCH_ALG		CROSS2
+
+IQSCALE			2
+PQSCALE			2
+BQSCALE			2
+
+FRAME_RATE 24
+
+FORCE_ENCODE_LAST_FRAME
+
+REFERENCE_FRAME		ORIGINAL
+
+
+
+
+
