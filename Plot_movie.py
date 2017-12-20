@@ -95,8 +95,9 @@ while (nnn<=last):
   plt.tick_params('both', length=6, width=1.5, which='major')
   plt.tick_params('both', length=3, width=1, which='minor')
   sz = np.min([11,1+195.0/count])
-  plt.legend(loc='lower right',fontsize=11,fancybox=True,
-             handlelength=2.5,prop={'size':sz})
+  leg = plt.legend(loc='lower right',fontsize=11,fancybox=True,
+                   handlelength=2.5,prop={'size':sz})
+  leg.get_frame().set_alpha(0.7)
   plt.tight_layout()
   ii = file.index('weather_')+8
   print file[ii:ii+5]
@@ -125,7 +126,8 @@ while (nnn<=last):
   plt.tick_params('both', length=6, width=1.5, which='major')
   plt.tick_params('both', length=3, width=1, which='minor')
   sz = np.min([11,1+195.0/count])
-  plt.legend(loc='lower right',fontsize=sz,fancybox=True)
+  leg = plt.legend(loc='lower right',fontsize=sz,fancybox=True)
+  leg.get_frame().set_alpha(0.7)
   plt.tight_layout()
   outfile = 'eps_'+no+'.png'
   fig.savefig(outfile)
@@ -150,7 +152,9 @@ while (nnn<=last):
   ax[0].tick_params(axis='both', labelsize=15)
   ax[0].tick_params('both', length=6, width=1.5, which='major')
   ax[0].tick_params('both', length=3, width=1, which='minor')
-  ax[0].legend(loc='upper right',fontsize=11,fancybox=True,handlelength=2.5)
+  leg = ax[0].legend(loc='upper right',fontsize=11,fancybox=True,
+                     handlelength=2.5)
+  leg.get_frame().set_alpha(0.7)
   #================ ... dust/gas mass ratio ... ===============
   ind = np.where(keyword=='dust/gas')[0][0]
   log10_dust_gas = dat[:,ind]
