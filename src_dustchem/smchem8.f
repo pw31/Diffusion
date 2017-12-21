@@ -73,6 +73,7 @@
       real*8 :: pbefore(nel),norm(nel)
       real*8 :: emax,pges,pwork
       logical :: from_merk,eact(nel),redo(nel),done(nel),affect,known
+      logical :: relevant(nml)
       logical :: ptake,isOK,IS_NAN
       character(len=5000) :: mols
       character(len=100) :: txt
@@ -309,6 +310,19 @@
           print*,eact(eseq(1:ido))
           print'("corr",99(1pE11.2))',pcorr(enew,act_to_all(1:Nact))
         endif
+        do i=1,nml
+          affect = .false. 
+          known  = .true.
+          do j=1,m_kind(0,i)
+            e = m_kind(j,i) 
+            if (.not.done(e)) then
+              known = .false.
+              exit
+            endif
+            if (eact(e)) affect=.true.
+          enddo  
+          relevant(i) = (known.and.affect)
+        enddo  
         qual  = 9.d+99
         dp(:) = 0.d0
         fak   = 1.d0
@@ -333,44 +347,33 @@
               pmono1(i) = scale(i) / (anmono(i)*kT)
             enddo
             do i=1,nml
-              affect = .false. 
-              known  = .true.
+              if (.not.relevant(i)) cycle
+              pmol = g(i)
               do j=1,m_kind(0,i)
-                e = m_kind(j,i) 
-                if (.not.done(e)) then
-                  known = .false.
-                  exit
+                pat = anmono(m_kind(j,i))*kT
+                if (m_anz(j,i).gt.0) then
+                  do kk=1,m_anz(j,i)
+                    pmol = pmol*pat
+                  enddo
+                else
+                  do kk=1,-m_anz(j,i)
+                    pmol = pmol/pat
+                  enddo
                 endif
-                if (eact(e)) affect=.true.
-              enddo  
-              if (known.and.affect) then
-                pmol = g(i)
-                do j=1,m_kind(0,i)
-                  pat = anmono(m_kind(j,i))*kT
-                  if (m_anz(j,i).gt.0) then
-                    do kk=1,m_anz(j,i)
-                      pmol = pmol*pat
-                    enddo
-                  else
-                    do kk=1,-m_anz(j,i)
-                      pmol = pmol/pat
-                    enddo
-                  endif
-                enddo
-                do j=1,m_kind(0,i)
-                  m1 = m_kind(j,i)
-                  if (.not.eact(m1)) cycle
-                  m1 = all_to_act(m1)
-                  term   = m_anz(j,i) * pmol
-                  FF(m1) = FF(m1) - term
-                  do l=1,m_kind(0,i)
-                    m2 = m_kind(l,i)
-                    if (.not.eact(m2)) cycle
-                    jj = all_to_act(m2)
-                    DF(m1,jj) = DF(m1,jj) - m_anz(l,i)*term*pmono1(m2)
-                  enddo	    
-                enddo
-              endif  
+              enddo
+              do j=1,m_kind(0,i)
+                m1 = m_kind(j,i)
+                if (.not.eact(m1)) cycle
+                m1 = all_to_act(m1)
+                term   = m_anz(j,i) * pmol
+                FF(m1) = FF(m1) - term
+                do l=1,m_kind(0,i)
+                  m2 = m_kind(l,i)
+                  if (.not.eact(m2)) cycle
+                  jj = all_to_act(m2)
+                  DF(m1,jj) = DF(m1,jj) - m_anz(l,i)*term*pmono1(m2)
+                enddo	    
+              enddo
             enddo
             !--- determine new quality ---
             qual = 0.d0
