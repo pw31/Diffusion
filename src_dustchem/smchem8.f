@@ -212,7 +212,7 @@
         ! store coeff for Sum_l coeff(l) p^l = pges 
         !-------------------------------------------
         coeff(:) = 0.d0   
-        mols = ''
+        if (verbose>0) mols = ''
         do i=1,nml
           affect = .false. 
           known  = .true. 
@@ -239,7 +239,7 @@
           enddo  
           if (.not.affect) cycle  
           if (.not.known) cycle
-          mols = trim(mols)//" "//cmol(i)
+          if (verbose>0) mols = trim(mols)//" "//cmol(i)
           coeff(l) = coeff(l) + l*pmol
           !------------------------------------
           ! for initial guess, consider this 
@@ -590,11 +590,11 @@
         limit = 1.d0                                   ! limit step, keep direction
         converge(it) = 0.d0
         Nconv = 0
-        txt = ""
+        if (verbose>0) txt = ""
         do i=1,nel
           if (.not.eact(i)) then
             Nconv = Nconv+1 
-            txt = trim(txt)//" "//catm(i)
+            if (verbose>0) txt = trim(txt)//" "//catm(i)
           else 
             ii = all_to_act(i) 
             delp = -dp(ii)/(anmono(i)*kT)              ! relative change dx/x
@@ -602,7 +602,7 @@
             converge(it) = MAX(converge(it),ABS(delp))
             if (ABS(delp)<finish) then
               Nconv = Nconv+1 
-              txt = trim(txt)//" "//catm(i)
+              if (verbose>0) txt = trim(txt)//" "//catm(i)
             endif  
             if (1.d0+delp>fak) then
               limit = min(limit,(fak-1.d0)/delp)       ! such that xnew=xold*fac 
