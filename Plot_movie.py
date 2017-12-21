@@ -49,10 +49,8 @@ while (nnn<=last):
   lp    = np.log10(press)
   pmin  = np.min(lp)
   pmax  = np.max(lp)
-  delp  = (pmax-pmin)*0.25
-  pmin  = -5.0
-  pmax  = 1.0
-  delp  = 0.0
+  #pmin  = -5.0
+  #pmax  = 1.0
   iii   = np.where((lp>pmin) & (lp<pmax))[0]
   Tmin  = np.min(Tg[iii])
   Tmax  = np.max(Tg[iii])
@@ -89,7 +87,7 @@ while (nnn<=last):
   plt.title(out,fontsize=15)
   plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
   plt.ylabel(r'$\mathrm{log}_{10}\ n_\mathrm{solid}/n_\mathrm{\langle H\rangle}$',fontsize=20)
-  plt.xlim(pmin,pmax+0.7*delp)
+  plt.xlim(pmin,pmax)
   plt.ylim(-16,-3)
   plt.tick_params(axis='both', labelsize=14)
   plt.tick_params('both', length=6, width=1.5, which='major')

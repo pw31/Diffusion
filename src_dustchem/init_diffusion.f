@@ -14,7 +14,7 @@
       real*8 :: df,h1,h2
       real*8 :: D,nD,d1nD,dt,err
       real*8,allocatable,dimension(:) :: hl,hr,f0,f1,f2
-      logical :: test=.false.,check=.true.
+      logical :: test=.false.,check=.false.
 
       allocate(hl(2:N),hr(1:N-1))
       allocate(d1l(1:N),d1m(1:N),d1r(1:N))

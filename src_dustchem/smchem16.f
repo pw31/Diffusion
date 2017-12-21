@@ -81,7 +81,6 @@
 !$omp threadprivate(TiC,amerk,ansave,badness,pcorr,pkey)
 *-----------------------------------------------------------------------      
 
-      ilauf = ilauf+1
       ifatal = 0
       if (.not.allocated(amerk)) then
         allocate(badness(nel),pcorr(nel,nel),pkey(nel),
@@ -729,6 +728,7 @@
             endif  
           enddo
 !$omp critical(fort99)
+          ilauf = ilauf+1
           if (ilauf==1) write(99,'(A9,A10,A4,99(A10))') 
      >          'Tg','n<H>','it',catm(1:nel)
           write(99,'(0pF9.3,1pE10.3,I4,99(1pE10.3))') 
