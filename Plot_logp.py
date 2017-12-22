@@ -317,6 +317,7 @@ allist = [' ',' ',' ',' ','Si',' ','Na','Cl','Ca','Ti',' ','Al','Mg','Fe','Li','
 exlist = [' He ',' Cl CL Ca CA Cr CR Co Cu CU ',' ',' Na NA Ni NI ',' ',' Si SI Sr SR ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' Fe FE ',' ',' ',' ',' ',' ',' ',' ',' ',' Br BR ',' ',' ',' ',' ',' ']
 titels = ['hydrogen','carbon','oxygen','nitrogen','silicon','sulphur','sodium','chlorine','calcium','titanium','potassium','aluminum','magnesium','iron','lithium','fluorine','phosphorus','nickel','manganese','chromium','zinc','zirconium','rubidium','copper','boron','bromine','vanadium','strontium','tungston','charge carriers']
 limits = [2,5,2.5,6,6,5,6,4,7,8,6,6,6,6,7,6,6,6,6,6,6,6,6,6,6,6,6,6,6,5]   
+plotted = np.zeros(5+NELEM+NMOLE, dtype=np.int)
 for i in range(0,30):
   fig,ax = plt.subplots()
   el = ellist[i]
@@ -365,6 +366,7 @@ for i in range(0,30):
       print molname,abu
       plt.plot(lp,yy,c=colo[count],ls=styl[count],lw=widt[count],label=molname)
       count = count + 1
+      plotted[mol] = 1
   plt.title(titel,fontsize=20)
   plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
   plt.ylabel(r'$\mathrm{log}_{10}\ n_\mathrm{mol}/n_\mathrm{\langle H\rangle}$',fontsize=20)
@@ -396,6 +398,15 @@ for i in range(0,30):
   plt.savefig(pp,format='pdf')
   plt.clf()
 
+print 'having not plotted these molecules ...'
+Nnot = 0
+out = ' '
+for mol in range(4,5+NELEM+NMOLE,1):
+  if (plotted[mol]==0): 
+    out = out + keyword[mol] + ' '
+    Nnot = Nnot+1
+print NMOLE," molecules,  ",Nnot," unimportant, namely ..."
+print out
 
 pp.close()
 print '... written output to weather.pdf.'

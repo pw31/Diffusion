@@ -13,7 +13,7 @@
       integer :: loop,i,ii,j,iel,e,smax,ret
       character(len=2) :: cel(40),elnam
       character(len=20) :: molname,upper,leer='                    '
-      character(len=200) :: line,filename
+      character(len=200) :: line,filename,frmt
       logical :: found,charged
       real*8 :: fiterr
 
@@ -214,6 +214,33 @@
       !close(1)
       !stop
 
+      open(unit=1,file='dispol_selection.dat')
+      write(1,'(I5,"  selected molecules")') NMOLE
+      do i=1,NMOLE
+        if (m_kind(0,i)==1) then 
+          frmt = '(A20,I3,1(A3),1(I3))'
+        else if (m_kind(0,i)==2) then 
+          frmt = '(A20,I3,2(A3),2(I3))'
+        else if (m_kind(0,i)==3) then 
+          frmt = '(A20,I3,3(A3),3(I3))'
+        else if (m_kind(0,i)==4) then 
+          frmt = '(A20,I3,4(A3),4(I3))'
+        else if (m_kind(0,i)==5) then 
+          frmt = '(A20,I3,5(A3),5(I3))'
+        else
+          stop
+        endif  
+        write(1,frmt) cmol(i),m_kind(0,i),
+     &            (catm(m_kind(j,i)),j=1,m_kind(0,i)),
+     &            (m_anz(j,i),j=1,m_kind(0,i))
+        if (fit(i)==6) then
+          write(1,'(I2,99(1pE14.6))') fit(i),a(i,0:7)
+        else
+          write(1,'(I2,99(1pE14.6))') fit(i),a(i,0:4)
+        endif
+      enddo  
+      close(1)
+
       print*,NMOLE,' species'
       print*,NELM,' elements'
       print*
@@ -224,6 +251,8 @@
         print'(1x,99(A4))',(trim(cmol(elion(j))),j=1,el-1),'  ',
      >                     (trim(cmol(elion(j))),j=el+1,NELM)
       endif  
+      stop
+
  3000 format(I4," & ",A12," & (",I1,") & ",I1," & ",
      &       5(1pE12.5," & "),"$\pm$",0pF4.2,"\\")
  3010 format(I4," & ",A12," & (",I1,") & ",I1," & ",
