@@ -34,7 +34,7 @@
       real,allocatable :: d1l(:),d1m(:),d1r(:)  ! first derivatives
       real,allocatable :: d2l(:),d2m(:),d2r(:)  ! second derivatives
       real,allocatable :: BB(:,:)               ! implicit diffusion matrix
-      real,allocatable :: xlower(:),xupper(:)
+      real,allocatable :: xlower(:),xupper(:)   ! boudary values
       real :: dt_diff_ex,dt_diff_im
       end
 
@@ -50,6 +50,9 @@
       real,allocatable :: nHeps(:,:)  ! element abundance [cm-3]
       real,allocatable :: rhoLj(:,:)  ! dust moments [cm^(j-3)]
       real,allocatable :: rhoL3(:,:)  ! dust volumes [cm^3/cm^3]
+      real,allocatable :: mols(:,:)   ! molecular particle densities
+      real,allocatable :: atms(:,:)   ! atomic particle densities
+      real,allocatable :: elec(:)     ! electron particle densities
       end
 
 ************************************************************************
@@ -165,5 +168,6 @@
       integer,parameter :: Br=35,Kr=36,Rb=37,Sr=38,Y=39,Zr=40,W=41
       integer*8 :: chemcall=0,chemiter=0,itransform=0,ieqcond=0
       integer*8 :: Fcall=0,Jcall=0
-!$omp threadprivate(nel,nat,nion,nmol,Jst,chi,ipoint)
+      logical,allocatable :: inactive(:)
+!$omp threadprivate(nel,nat,nion,nmol,Jst,chi,ipoint,inactive)
       end

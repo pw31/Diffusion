@@ -24,7 +24,7 @@
      >                    NewFastLevel,nml=>NMOLE,nel=>NELM,cmol,catm,
      >                    m_kind,m_anz,charge,elion,el,
      >                    th1,th2,th3,th4,TT1,TT2,TT3
-      use EXCHANGE,ONLY: chemcall,chemiter
+      use EXCHANGE,ONLY: chemcall,chemiter,inactive
       implicit none
 *-----------------------------------------------------------------------
 *  Dimensionierung fuer die Molekuel- und Atom Felder. Hier ist auf
@@ -52,10 +52,11 @@
 *  ist, die in die Dissoziationspolynome eingesetzt werden darf.
       real*8,parameter :: tdispol=300.d0
 *-----------------------------------------------------------------------
-      integer stindex,info,ipvt(nel),Nconv,switch,ido,iredo
-      integer Nact,all_to_act(nel),act_to_all(nel),switchoff(nel)
-      integer e,i,j,j1,ii,jj,kk,l,it,m1,m2,piter,ifatal,ipull,pullmax
-      integer Nseq,imin,imax,enew,eseq(nel)
+      integer :: stindex,info,ipvt(nel),Nconv,switch,ido,iredo
+      integer :: Nact,all_to_act(nel),act_to_all(nel),switchoff(nel)
+      integer :: e,i,j,j1,ii,jj,kk,l,it,m1,m2,piter,ifatal,ipull,pullmax
+      integer :: Nseq,imin,imax,enew,eseq(nel)
+      integer :: nml_act,i_act,iact(nml),imost
       integer,parameter :: itmax=200,Ncmax=16
       real*8,parameter :: finish=1.d-12
       real*8 :: qual0,qual
@@ -71,7 +72,7 @@
       real*8 :: converge(0:500),delp,nold,null(nel),nsave(nel)
       real*8 :: soll,haben,abw,sum
       real*8 :: pbefore(nel),norm(nel)
-      real*8 :: emax,pges,pwork
+      real*8 :: emax,pges,pwork,dnelec,demax
       logical :: from_merk,eact(nel),redo(nel),done(nel),affect,known
       logical :: relevant(nml)
       logical :: ptake,isOK,IS_NAN
@@ -95,6 +96,13 @@
         pkey    = 0
       endif
 
+      nml_act = 0
+      do i=1,nml
+        if (inactive(i)) cycle
+        nml_act = nml_act + 1
+        iact(nml_act) = i
+      enddo
+  
 *-----------------------------------------------------------------------
 *     ! zu niedrige Temperaturen abfangen und
 *     ! Variable fuer die Dissoziationskonstanten berechnen
@@ -118,7 +126,8 @@
 * --------------------------------------------------------------------------
 *     ! compute equilibrium constants
 *     ===============================
-      do i=1,nml
+      do i_act=1,nml_act
+        i = iact(i_act) 
         if (i.ne.TiC) g(i)=gk(i)       ! compute all equil.constants
       enddo  
 
@@ -158,19 +167,29 @@
  100  continue
       from_merk = .false.
       if (charge) then
-        nelek = 0.Q0 
+        nelek = 0.d0 
+        demax = 0.d0
+        imost = 0
         do i=1,nel
           if (i==el) cycle 
+          if (inactive(elion(i))) cycle
           ng = anHges * eps(i)
           Sa = g(elion(i))*kT1
-          nelek = nelek + ng/(0.5d0 + SQRT(0.25d0 + ng/Sa))
+          dnelec = ng/(0.5d0 + SQRT(0.25d0 + ng/Sa))
+          !print*,trim(cmol(elion(i))),dnelec
+          nelek = nelek + dnelec
+          if (dnelec>demax) then
+            demax = dnelec
+            imost = i
+          endif  
         enddo
         anmono(el) = nelek
         pel = nelek*kT
         !peest = pel
         !pel = pecorr*pel
         !anmono(el) = pecorr*anmono(el) 
-        if (verbose>1) print'(" estimate pel=",1pE10.3)',pel
+        if (verbose>1) print'(" estimate pel=",1pE10.3," most = ",A2)',
+     &                      pel,catm(imost)
       endif  
 
 *-----------------------------------------------------------------------
@@ -193,6 +212,7 @@
           norm(e) = eps(e)
           if (e==el) norm(e)=anmono(el)/anHges
           if (norm(e)<emax.or.(ido==1.and.e==el)) cycle
+          !if (e==el.and.(.not.done(imost))) cycle
           emax = norm(e)
           enew = e
         enddo 
@@ -207,6 +227,7 @@
         if (enew.ne.pkey(ido)) ptake=.false.
         done(enew) = .true.
         eseq(ido) = enew               ! add to hirachical sequence 
+        pkey(ido) = enew
         pges = eps(enew)*anHges*kT
         pwork = pges
         !-------------------------------------------
@@ -214,7 +235,8 @@
         !-------------------------------------------
         coeff(:) = 0.d0   
         if (verbose>0) mols = ''
-        do i=1,nml
+        do i_act=1,nml_act
+          i = iact(i_act) 
           affect = .false. 
           known  = .true. 
           pmol = g(i)
@@ -254,6 +276,7 @@
         if (verbose>1) print*,trim(mols)
         if (enew==el) then
           pel = SQRT(-coeff(-1)/(1.Q0+coeff(+1)))     ! 0 = pel - a/pel + b*pel
+          if (verbose>1) print*,'pel=',anmono(el)*kT,pel
           anmono(el) = pel*kT1
         else   
           !----------------------------------------------
@@ -310,7 +333,9 @@
           print*,eact(eseq(1:ido))
           print'("corr",99(1pE11.2))',pcorr(enew,act_to_all(1:Nact))
         endif
-        do i=1,nml
+        if (Nact==1) cycle
+        do i_act=1,nml_act
+          i = iact(i_act)
           affect = .false. 
           known  = .true.
           do j=1,m_kind(0,i)
@@ -346,7 +371,8 @@
               DF(ii,ii) = -scale(i)
               pmono1(i) = scale(i) / (anmono(i)*kT)
             enddo
-            do i=1,nml
+            do i_act=1,nml_act
+              i = iact(i_act) 
               if (.not.relevant(i)) cycle
               pmol = g(i)
               do j=1,m_kind(0,i)
@@ -378,7 +404,7 @@
             !--- determine new quality ---
             qual = 0.d0
             do ii=1,Nact
-              i = act_to_all(ii)           
+              i = act_to_all(ii)
               qual = qual + (FF(ii)/(anHges*norm(i)*kT))**2
             enddo  
             if (qual<qual0) exit
@@ -391,10 +417,21 @@
           if (it>1.and.qual<1.d-4) exit
           !--- determine new NR-vector ---
           call GAUSS8(nel,Nact,DF,dp,FF)
+          if (it==20) then
+            do i=1,Nact
+              print'(99(1pE14.5))',DF(i,1:Nact),dp(i),FF(i)
+            enddo
+          endif  
           do ii=1,Nact
             i = act_to_all(ii) 
             dp(ii) = dp(ii)*scale(i)
           enddo
+          if (it==20) then
+            do i=1,Nact
+              print*,null(i)*kT,scale(act_to_all(i)),dp(i)
+            enddo
+            stop
+          endif  
           null = anmono
           !--- limit step physically, keep direction ---
           fak = 1.d0
@@ -422,7 +459,6 @@
           goto 1000
         endif  
         !--- save ratio after/before for next run ---
-        pkey(ido) = enew
         pcorr(enew,:) = 1.Q0
         do ii=1,Nact
           i = act_to_all(ii)
@@ -437,7 +473,8 @@
 *     =======================
       if (charge) then
         coeff(:) = 0.d0
-        do i=1,nml
+        do i_act=1,nml_act
+          i = iact(i_act) 
           pmol = g(i)
           l=0
           do j=1,m_kind(0,i)
@@ -474,7 +511,9 @@
       if ( alle ) then
         ! alle Molekuele mitrechnen
 *       ===========================
-        do i=1,nml
+        anmol = 0.d0 
+        do i_act=1,nml_act
+          i = iact(i_act) 
           if (g(i)>1.d+300) then
             print'("huge kp",A12,0pF11.3,1pE12.3E4)',cmol(i),Tg,g(i)
             stop
@@ -495,8 +534,8 @@
           anmol(i) = pmol*kT1
         enddo
         if (verbose>1) then
-          imin = MINLOC(g(1:nml),1) 
-          imax = MAXLOC(g(1:nml),1) 
+          imin = MINLOC(g(iact(1:nml_act)),1)
+          imax = MAXLOC(g(iact(1:nml_act)),1) 
           print'("min kp: ",A12,1pE12.3E4)',cmol(imin),g(imin)
           print'("max kp: ",A12,1pE12.3E4)',cmol(imax),g(imax)
         endif  
@@ -525,7 +564,8 @@
           DF(ii,ii) = -scale(i)
           pmono1(i) = scale(i) / (anmono(i)*kT)
         enddo	
-        do i=1,nml
+        do i_act=1,nml_act
+          i = iact(i_act) 
           pmol = g(i)
           do j=1,m_kind(0,i)
             pat = anmono(m_kind(j,i))*kT
@@ -698,7 +738,8 @@
           if (e==0) exit
           redo(e) = .true.
           coeff(:) = 0.d0
-          do i=1,nml
+          do i_act=1,nml_act
+            i = iact(i_act) 
             pmol = g(i)
             l=0
             do j=1,m_kind(0,i)
@@ -769,7 +810,9 @@
 *     ! final anmol determination
 *     ===========================
       amerk = anmono/anHges
-      do i=1,nml
+      anmol = 0.d0
+      do i_act=1,nml_act
+        i = iact(i_act) 
         pmol = g(i)
         do j=1,m_kind(0,i)
           pat = anmono(m_kind(j,i))*kT
@@ -793,7 +836,8 @@
         do i=1,nel
           nges(i) = anmono(i)
         enddo
-        do i=1,nml
+        do i_act=1,nml_act
+          i = iact(i_act) 
           do j=1,m_kind(0,i)
             j1 = m_kind(j,i)
             nges(j1) = nges(j1) + m_anz(j,i)*anmol(i)
@@ -810,7 +854,8 @@
               print'(A12,1pE14.7)',catm(e),anmono(e)/(eps(e)*anHges)
             endif  
             sum = anmono(e)/(eps(e)*anHges)
-            do i=1,nml
+            do i_act=1,nml_act
+              i = iact(i_act) 
               do j=1,m_kind(0,i)
                 j1 = m_kind(j,i)
                 cc = m_anz(j,i)*anmol(i)/(eps(e)*anHges)

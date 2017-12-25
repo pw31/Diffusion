@@ -4,14 +4,17 @@
       use NATURE,ONLY: bk,amu,km,bar
       use GRID,ONLY: Npoints,zz
       use READMODEL,ONLY: Nlayers,zlay,Tlay,play,rholay,glay,Difflay
-      use STRUCT,ONLY: Diff,rho,nHtot,Temp,press,mu
+      use STRUCT,ONLY: Diff,rho,nHtot,Temp,press,mu,mols,atms,elec
+      use CHEMISTRY,ONLY: NMOLE
+      use ELEMENTS,ONLY: NELEM
       use PARAMETERS,ONLY: Hp,pmin,pmax
       implicit none
       integer :: i,j
       real :: fac1,fac2,hmin,hmax
 
       allocate(zz(Npoints),Diff(Npoints),rho(Npoints),nHtot(Npoints),
-     >         Temp(Npoints),press(Npoints),mu(Npoints))
+     >         Temp(Npoints),press(Npoints),mu(Npoints),
+     >         mols(NMOLE,Npoints),atms(NELEM,Npoints),elec(Npoints))
 
       hmin = 0.0
       hmax = 0.0

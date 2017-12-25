@@ -15,7 +15,8 @@
       use SPECIES,ONLY: NSPECIES,spnam,spnr,spmass,keysp
       use REACTIONS,ONLY: NREAC,neduct,nprod,reac_sp,reac_nu,stick
       use DUST_DATA,ONLY: NDUST,dust_vol,dust_nam
-      use EXCHANGE,ONLY: nel,nat,nion,nmol,chi
+      use STRUCT,ONLY: mols,atms,elec
+      use EXCHANGE,ONLY: ipoint,nel,nat,nion,nmol,chi,inactive
       implicit none      
       real*8,intent(IN) :: nH,T,bmix(NDUST)
       real(kind=qp),intent(IN):: eps(NDUST)
@@ -29,7 +30,11 @@
 *     --------------------------------------
 *     ***  calculate particle densities  ***
 *     --------------------------------------
+      inactive = .false.
       call GGCHEM(nH,T,eps,.false.,0)
+      !nmol(:) = mols(:,ipoint)
+      !nat(:) = atms(:,ipoint)
+      !nel = elec(ipoint)
       do i=1,NSPECIES
         j = spnr(i)
         if (j.gt.1000) then

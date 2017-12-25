@@ -24,7 +24,7 @@
      >                    NewFastLevel,nml=>NMOLE,nel=>NELM,cmol,catm,
      >                    m_kind,m_anz,charge,elion,el,
      >                    th1,th2,th3,th4,fit,TT1,TT2,TT3
-      use EXCHANGE,ONLY: chemcall,chemiter,ipoint
+      use EXCHANGE,ONLY: chemcall,chemiter,ipoint,inactive
       implicit none
 *-----------------------------------------------------------------------
 *  Dimensionierung fuer die Molekuel- und Atom Felder. Hier ist auf
@@ -116,6 +116,7 @@
 *     ! compute equilibrium constants
 *     ===============================
       do i=1,nml
+        if (inactive(i)) cycle 
         if (i.ne.TiC) g(i)=gk(i)       ! compute all equil.constants
       enddo  
 
@@ -158,6 +159,7 @@
         nelek = 0.Q0 
         do i=1,nel
           if (i==el) cycle 
+          if (inactive(elion(i))) cycle
           ng = anHges * eps(i)
           Sa = g(elion(i))*kT1
           nelek = nelek + ng/(0.5d0 + SQRT(0.25d0 + ng/Sa))
@@ -205,6 +207,7 @@
         coeff(:) = 0.Q0          
         mols = ''
         do i=1,nml
+          if (inactive(i)) cycle 
           affect = .false. 
           known  = .true. 
           pmol = g(i)
@@ -303,6 +306,7 @@
           print'("corr",99(1pE11.2))',pcorr(enew,act_to_all(1:Nact))
         endif
         do i=1,nml
+          if (inactive(i)) cycle 
           affect = .false. 
           known  = .true.
           do j=1,m_kind(0,i)
@@ -339,6 +343,7 @@
               pmono1(i) = scale(i) / (anmono(i)*kT)
             enddo
             do i=1,nml
+              if (inactive(i)) cycle 
               if (.not.relevant(i)) cycle 
               pmol = g(i)
               do j=1,m_kind(0,i)
@@ -430,6 +435,7 @@
       if (charge) then
         coeff(:) = 0.Q0
         do i=1,nml
+          if (inactive(i)) cycle 
           pmol = g(i)
           l=0
           do j=1,m_kind(0,i)
@@ -466,7 +472,9 @@
       if ( alle ) then
         ! alle Molekuele mitrechnen
 *       ===========================
+        anmol = 0.Q0 
         do i=1,nml
+          if (inactive(i)) cycle 
           if (verbose>1.and.g(i)>1.Q+300) then
             print'("huge kp",A12,1pE12.3E4,I2)',cmol(i),g(i),fit(i)
           else if (g(i)>exp(1.1Q+4)) then
@@ -522,6 +530,7 @@
           pmono1(i) = scale(i) / (anmono(i)*kT)
         enddo	
         do i=1,nml
+          if (inactive(i)) cycle 
           pmol = g(i)
           do j=1,m_kind(0,i)
             pat = anmono(m_kind(j,i))*kT
@@ -674,6 +683,7 @@
           redo(e) = .true.
           coeff(:) = 0.Q0
           do i=1,nml
+            if (inactive(i)) cycle 
             pmol = g(i)
             l=0
             do j=1,m_kind(0,i)
@@ -744,7 +754,9 @@
 *     ! final anmol determination
 *     ===========================
       amerk = anmono/anHges
+      anmol = 0.Q0
       do i=1,nml
+        if (inactive(i)) cycle 
         pmol = g(i)
         do j=1,m_kind(0,i)
           pat = anmono(m_kind(j,i))*kT
@@ -769,6 +781,7 @@
           nges(i) = anmono(i)
         enddo
         do i=1,nml
+          if (inactive(i)) cycle 
           do j=1,m_kind(0,i)
             j1 = m_kind(j,i)
             nges(j1) = nges(j1) + m_anz(j,i)*anmol(i)
@@ -786,6 +799,7 @@
             endif  
             sum = anmono(e)/(eps(e)*anHges)
             do i=1,nml
+              if (inactive(i)) cycle 
               do j=1,m_kind(0,i)
                 j1 = m_kind(j,i)
                 cc = m_anz(j,i)*anmol(i)/(eps(e)*anHges)

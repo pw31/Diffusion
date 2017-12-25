@@ -5,13 +5,13 @@
       use NATURE,ONLY: bk,bar,amu,mel,pi,mic
       use CHEMISTRY,ONLY: NELM,NMOLE,elnum,cmol,catm,el,charge,molmass
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_mass,dust_Vol
-      use EXCHANGE,ONLY: nel,nat,nion,nmol,Jst,chi
+      use EXCHANGE,ONLY: ipoint,nel,nat,nion,nmol,Jst,chi
       use GRID,ONLY: Npoints,zz
       use STRUCT,ONLY: Temp,press,rho,nHtot,Diff,nHeps,rhoLj,rhoL3
       use NUCLEATION,ONLY: NNUC,nuc,nuc_nam
       use ELEMENTS,ONLY: NELEM,NEPS,elnr,elnam,eps0,mass,muH
       implicit none
-      integer,intent(inout) :: num
+      integer,intent(in) :: num
       real*8,intent(in) :: time,dt
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST),out(NDUST)
@@ -50,7 +50,6 @@
       enddo
       NOUT = NELM
       if (charge) NOUT=NOUT-1
-      num = num+1
       write(cout,'(I5.5)') num
       open(unit=70,file=trim(model_name)//'/weather_'//cout//'.dat',
      &     status='replace')
@@ -70,6 +69,7 @@
 
       amax = 0.d0
       do ip=1,Npoints
+        ipoint = ip
 
         !--- temperature and density ---
         nH = nHtot(ip)
@@ -95,7 +95,7 @@
         do i=1,NEPS
           e = elnr(i) 
           eps(e) = nHeps(i,ip)/nH
-        enddo          
+        enddo         
         !call GGCHEM(nH,Tg,eps,.false.,0)
         !call SUPERSAT(Tg,nat,nmol,Sat)
         call EFF_SUPERSAT(nH,Tg,eps,bmix,Sat,effSat)

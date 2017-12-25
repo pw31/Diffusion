@@ -234,9 +234,9 @@
      &            (catm(m_kind(j,i)),j=1,m_kind(0,i)),
      &            (m_anz(j,i),j=1,m_kind(0,i))
         if (fit(i)==6) then
-          write(1,'(I2,99(1pE14.6))') fit(i),a(i,0:7)
+          write(1,'(I2,99(1pE16.8))') fit(i),a(i,0:7)
         else
-          write(1,'(I2,99(1pE14.6))') fit(i),a(i,0:4)
+          write(1,'(I2,99(1pE16.8))') fit(i),a(i,0:4)
         endif
       enddo  
       close(1)
@@ -251,7 +251,6 @@
         print'(1x,99(A4))',(trim(cmol(elion(j))),j=1,el-1),'  ',
      >                     (trim(cmol(elion(j))),j=el+1,NELM)
       endif  
-      stop
 
  3000 format(I4," & ",A12," & (",I1,") & ",I1," & ",
      &       5(1pE12.5," & "),"$\pm$",0pF4.2,"\\")

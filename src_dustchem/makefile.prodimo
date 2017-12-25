@@ -6,7 +6,7 @@ F90LINKER    = ifort
 # for IFORT-Compiler
 #===================
 DEFS      = -D IFORT -D CHECK_NAN -diag-disable 8290,8291 
-#FFLAGS   = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -warn all -fopenmp
+#FFLAGS    = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -fopenmp
 FFLAGS    = -r8 -g -traceback -O3 -xHOST -prec-div -fp-model source -fopenmp
 INCLUDES  = 
 LFLAGS    = $(FFLAGS)
@@ -45,6 +45,7 @@ OBJECTS  = datamod.o \
            class_nuc_SiO.o \
            class_nuc_TiO2.o \
            growth.o \
+	   active_molecules.o \
 	   ggchem.o \
            smchem8.o \
            smchem16.o \

@@ -12,7 +12,7 @@
       use CHEMISTRY,ONLY: NewBackIt,NewFullIt,NewBackFac,dispol_file
       use GRID,ONLY: Npoints
       implicit none
-      integer :: i,iarg,iline
+      integer :: i,iarg,iline,dispol_set
       character(len=200) :: ParamFile,line
 
       !-------------------------
@@ -69,6 +69,7 @@
       call getarg(1,ParamFile)
       print*,"reading "//trim(ParamFile)//" ..."
       open(unit=1,file=ParamFile,status='old')
+      dispol_set = 0
       iline = 0
       do 
         read(1,'(A200)',end=100) line
@@ -148,6 +149,22 @@
         else if (index(line,"! Nl")>0) then   
           read(line,*) Nl
           Vl = 3.d-23*Nl
+        else if (index(line,"! dispol_file2")>0) then 
+          i = index(line,"!")
+          read(line(1:i-1),*)  dispol_file(2)
+          dispol_set = 2
+        else if (index(line,"! dispol_file3")>0) then 
+          i = index(line,"!")
+          read(line(1:i-1),*)  dispol_file(3)
+          dispol_set = 3
+        else if (index(line,"! dispol_file4")>0) then 
+          i = index(line,"!")
+          read(line(1:i-1),*)  dispol_file(4)
+          dispol_set = 4
+        else if (index(line,"! dispol_file")>0) then 
+          i = index(line,"!")
+          read(line(1:i-1),*)  dispol_file(1)
+          dispol_set = 1
         else
           print*,"*** syntax error in "//trim(ParamFile)//":"
           print*,trim(line)
@@ -155,5 +172,9 @@
         endif  
       enddo  
  100  continue
+      if (dispol_set>0.and.dispol_set<4) dispol_file(4)=""
+      if (dispol_set>0.and.dispol_set<3) dispol_file(3)=""
+      if (dispol_set>0.and.dispol_set<2) dispol_file(2)=""
+
       print*,"... output directory will be "//trim(model_name)
       end

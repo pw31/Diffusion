@@ -2,13 +2,13 @@
       SUBROUTINE DUSTFORM(time,deltat,verbose)
 ************************************************************************
       use GRID,ONLY: Npoints
-      use STRUCT,ONLY: nHtot,Temp,nHeps,rhoLj,rhoL3
+      use STRUCT,ONLY: nHtot,Temp,nHeps,rhoLj,rhoL3,mols,atms,elec
       use ELEMENTS,ONLY: NEPS,elnam,elcode
       use CHEMISTRY,ONLY: NMOLE
       use DUST_DATA,ONLY: NDUST,dust_Vol,dust_nam,
      >                    dust_nel,dust_el,dust_nu
       use NUCLEATION,ONLY: NNUC
-      use EXCHANGE,ONLY: ipoint,Jst,chi,nmol
+      use EXCHANGE,ONLY: ipoint,Jst,chi,nmol,inactive,nmol,nat,nel
       implicit none
       integer,intent(in) :: verbose
       real*8,intent(in) :: time,deltat
@@ -30,23 +30,25 @@
 !$omp& default(none)
 !$omp& shared(NN,NNUC,NDUST,NPOINTS,NEPS,NMOLE,CR,dust_Vol,verbose)
 !$omp& shared(rhoLj,rhoL3,nHtot,nHeps,Temp,time,deltat,elcode,elnam)
-!$omp& shared(dust_nam,dust_nel,dust_el,dust_nu)
+!$omp& shared(dust_nam,dust_nel,dust_el,dust_nu,mols,atms,elec)
 !$omp& private(i,j,ip,yy,FF,has_dust,has_rate,evap,char1)
 !$omp& private(tt,dt,corr,y0,y1,y2,y3,bb,cc,epsd,ifail)
 !$omp& private(el,nHeldust,stoich)
       allocate(yy(NN),FF(NN))
       if (.not.allocated(nmol)) then
-        allocate(nmol(NMOLE),Jst(NNUC),chi(NDUST))
+        allocate(nmol(NMOLE),Jst(NNUC),chi(NDUST),inactive(NMOLE))
       endif
 
 !$omp do schedule(dynamic,1)
       do ip=2,Npoints-1        ! ip=1 and Npoints will be overrules by
                                ! diffusion boundary conditions anyway
         ipoint = ip 
-        yy(1:4) = rhoLj(0:3,ipoint)            ! rho*Lj    (j=0,1,2,3)
-        yy(5:4+NDUST) = rhoL3(1:NDUST,ipoint)  ! rho*L3^s  (s=1...NDUST)
-        yy(5+NDUST:NN) = nHeps(1:NEPS,ipoint)  ! element abundances
-        epsd = rhoLj(3,ipoint)/dust_Vol(1)/nHtot(ipoint)
+        yy(1:4) = rhoLj(0:3,ip)                ! rho*Lj    (j=0,1,2,3)
+        yy(5:4+NDUST) = rhoL3(1:NDUST,ip)      ! rho*L3^s  (s=1...NDUST)
+        yy(5+NDUST:NN) = nHeps(1:NEPS,ip)      ! element abundances
+        epsd = rhoLj(3,ip)/dust_Vol(1)/nHtot(ip)
+
+        call ACTIVE_MOLECULES(nHtot(ip),Temp(ip),nHeps(:,ip),verbose)
 
         tt = 0.d0
         call DUST_RHS(NN,tt,yy,FF,.false.,ifail) 
@@ -80,9 +82,9 @@
           !print'(" FF=",99(1pE9.2))',FF
           print'(I4," n<H>=",1pE9.2,"  T=",0pF8.2,
      >         "  has_dust=",L1,"  has_rate=",L1,"  epsd=",1pE9.2)',
-     >         ipoint,nHtot(ipoint),Temp(ipoint),has_dust,has_rate,epsd
+     >         ip,nHtot(ip),Temp(ip),has_dust,has_rate,epsd
         endif
-        if (verbose==1) write(*,'(TL10," DUSTFORM: ",I8,A,$)') ipoint,CR
+        if (verbose==1) write(*,'(TL10," DUSTFORM: ",I8,A,$)') ip,CR
 !$omp end critical(output)
 
         if (has_dust.or.has_rate) then 
@@ -113,22 +115,22 @@
 
  100    continue
 !$omp critical(update)
-        nHeps(1:NEPS,ipoint) = yy(5+NDUST:NN)        ! element abundances
+        nHeps(1:NEPS,ip) = yy(5+NDUST:NN)            ! element abundances
         if (evap) then
           if (has_dust.and.verbose>1) print*," all dust evaporated"
           do i=1,NDUST
-            nHeldust = rhoL3(i,ipoint)/dust_Vol(i)
-            !print*,dust_nam(i),nHeldust/nHtot(ipoint)
+            nHeldust = rhoL3(i,ip)/dust_Vol(i)
+            !print*,dust_nam(i),nHeldust/nHtot(ip)
             do j=1,dust_nel(i)            
               el = dust_el(i,j)
               stoich = dust_nu(i,j)
               !print*,elnam(el),stoich
               el = elcode(el)
-              nHeps(el,ipoint) = nHeps(el,ipoint) + nHeldust*stoich
+              nHeps(el,ip) = nHeps(el,ip) + nHeldust*stoich
             enddo
           enddo  
-          rhoLj(0:3,ipoint) = 0.d0                   ! rho*Lj    (j=0,1,2,3)
-          rhoL3(1:NDUST,ipoint) = 0.d0               ! rho*L3^s  (s=1...NDUST)
+          rhoLj(0:3,ip) = 0.d0                       ! rho*Lj    (j=0,1,2,3)
+          rhoL3(1:NDUST,ip) = 0.d0                   ! rho*L3^s  (s=1...NDUST)
         else  
           corr = 0.d0 
           do i=5,4+NDUST
@@ -140,9 +142,12 @@
             corr = 1.d0
           endif  
           !print*,"corr=",corr
-          rhoLj(0:3,ipoint) = yy(1:4)                ! rho*Lj    (j=0,1,2,3)
-          rhoL3(1:NDUST,ipoint) = yy(5:4+NDUST)*corr ! rho*L3^s  (s=1...NDUST)
+          rhoLj(0:3,ip) = yy(1:4)                    ! rho*Lj    (j=0,1,2,3)
+          rhoL3(1:NDUST,ip) = yy(5:4+NDUST)*corr     ! rho*L3^s  (s=1...NDUST)
         endif  
+        !mols(:,ip) = nmol(:)
+        !atms(:,ip) = nat(:)
+        !elec(ip) = nel
         if ((has_dust.or.has_rate).and.verbose>1) read(*,'(A1)') char1
 !$omp end critical(update)
 
