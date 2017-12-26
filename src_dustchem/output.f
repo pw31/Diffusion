@@ -22,7 +22,7 @@
       character(len=200) :: line,filename
       character(len=20) :: name,short_name(NDUST)
       character(len=1) :: char
-      character(len=6) :: cout
+      character(len=8) :: cout
       logical :: hasW,ex
       integer :: verbose=0
 
@@ -50,7 +50,7 @@
       enddo
       NOUT = NELM
       if (charge) NOUT=NOUT-1
-      write(cout,'(I6.6)') num
+      write(cout,'(I8.8)') num
       open(unit=70,file=trim(model_name)//'/weather_'//cout//'.dat',
      &     status='replace')
       write(70,*) 't=',time
