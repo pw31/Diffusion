@@ -9,7 +9,7 @@
 ************************************************************************
       module PARAMETERS
 ************************************************************************
-      real :: logg,Teff,vzconst,pconst,beta,Hp,hmin,hmax,tnull,tend
+      real :: logg,Teff,vzconst,pconst,beta,Hp,pmin,pmax,tnull,tend
       real :: influx,outflux,inrate,outrate,vin,vout
       real :: tfac,outtime(50)
       integer :: bc_low,bc_high,init,Nout
@@ -19,6 +19,7 @@
 ************************************************************************
       module READMODEL
 ************************************************************************
+      character(len=200) :: struc_file
       integer :: Nlayers
       real,dimension(1000) :: Rlay,Tlay,play,rholay,glay
       real,dimension(1000) :: zlay,mulay,vconvlay,Difflay

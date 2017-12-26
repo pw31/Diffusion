@@ -2,7 +2,7 @@
       subroutine DCOEFFS
 ************************************************************************
       use GRID,ONLY: N=>Npoints,zz,d1l,d1m,d1r,d2l,d2m,d2r
-      use PARAMETERS,ONLY: Hp,hmin,hmax
+      use PARAMETERS,ONLY: Hp
       implicit none
       integer :: i
       real*8 :: k,df,h1,h2
@@ -49,7 +49,7 @@
 
       if (test) then
         !--- test derivatives ---
-        k = 3.0/(Hp*(hmax-hmin))
+        k = 3.0/Hp
         do i=1,N
           f0(i) = sin(k*zz(i))        ! test function
           f1(i) = cos(k*zz(i))*k        

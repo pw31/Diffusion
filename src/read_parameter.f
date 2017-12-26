@@ -2,20 +2,22 @@
       subroutine READ_PARAMETER
 ************************************************************************
       use NATURE,ONLY: bar
-      use PARAMETERS,ONLY: logg,Teff,vzconst,pconst,beta,Hp,hmin,hmax,
+      use PARAMETERS,ONLY: logg,Teff,vzconst,pconst,beta,Hp,pmin,pmax,
      >                     bc_low,bc_high,init,implicit,tindep,simple,
      >                     influx,outflux,inrate,outrate,vin,vout,
      >                     Nout,outtime,tfac
+      use READMODEL,ONLY: struc_file
       use GRID,ONLY: Npoints
       implicit none
-      integer :: iarg,iline
+      integer :: i,iarg,iline
       character(len=200) :: ParamFile,line
 
       !-------------------------
       ! ***  default values  ***
       !-------------------------
-      hmin = 0.0
-      hmax = 1.0
+      struc_file = '2Drift_1800.data'
+      pmin = 1.d-8*bar
+      pmax = 100.0*bar
       Npoints = 100
       pconst  = 0.1*bar  ! 100 mbar
       vzconst = 10.0     ! 10 cm/s
@@ -57,10 +59,13 @@
         print*,trim(line)
         if (index(line,"! Npoints")>0) then   
           read(line,*) Npoints
-        else if (index(line,"! hmin")>0) then   
-          read(line,*) hmin
-        else if (index(line,"! hmax")>0) then   
-          read(line,*) hmax
+        else if (index(line,"! struc_file")>0) then
+          i = index(line,' ')
+          struc_file = line(1:i-1)
+        else if (index(line,"! pmin")>0) then   
+          read(line,*) pmin
+        else if (index(line,"! pmax")>0) then   
+          read(line,*) pmax
         else if (index(line,"! vzconst")>0) then   
           read(line,*) vzconst
         else if (index(line,"! pconst")>0) then   

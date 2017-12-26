@@ -4,7 +4,7 @@
       use NATURE,ONLY: bar,bk,amu,km,pi
       use PARAMETERS,ONLY: Teff,logg,Hp,vzconst,pconst,beta
       use READMODEL,ONLY: Rlay,Tlay,play,rholay,glay,vconvlay,
-     >                    zlay,mulay,Difflay,Nlayers
+     >                    zlay,mulay,Difflay,Nlayers,struc_file
       implicit none
       integer :: elementCount,i
       real :: mixLength,Hplay,pconv,grad,ngas,lmean,Dmicro,Kn,vth,vz
@@ -12,10 +12,10 @@
       logical :: conv
 
       write(*,*) 
-      write(*,*) "reading PHOENIX structure ..."
-      write(*,*) "============================="
+      write(*,*) "reading PHOENIX structure "//trim(struc_file)//" ..."
+      write(*,*) "========================================="
 
-      open(42, file='2Drift.data', status='old')
+      open(42, file=struc_file, status='old')
       do i=1,5 
          read(42,*) 
       enddo

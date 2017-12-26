@@ -22,11 +22,15 @@
       dt   = 1.E-3*dt_diff_ex
       call INITIAL_CONDITIONS(nout,time,dt)
       next = nout
-      if (next>=100)   next=next+1
-      if (next>=300)   next=next+3
-      if (next>=1000)  next=next+5
-      if (next>=3000)  next=next+10
+      if (next>=100) next=next+1
+      if (next>=300) next=next+3
+      if (next>=1000) next=next+5
+      if (next>=3000) next=next+10
       if (next>=10000) next=next+30
+      if (next>=30000) next=next+50
+      if (next>=100000) next=next+100
+      if (next>=300000) next=next+300
+      if (next>=1000000) next=next+1000
       do 
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
@@ -39,11 +43,15 @@
         if (nout>next) then
           call OUTPUT(nout,time,dt)
           next = nout
-          if (next>=100)   next=next+1
-          if (next>=300)   next=next+3
-          if (next>=1000)  next=next+5
-          if (next>=3000)  next=next+10
+          if (next>=100) next=next+1
+          if (next>=300) next=next+3
+          if (next>=1000) next=next+5
+          if (next>=3000) next=next+10
           if (next>=10000) next=next+30
+          if (next>=30000) next=next+50
+          if (next>=100000) next=next+100
+          if (next>=300000) next=next+300
+          if (next>=1000000) next=next+1000
         endif  
         if (time>tsim) exit
       enddo  

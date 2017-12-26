@@ -3,7 +3,7 @@
 ************************************************************************
       use GRID,ONLY: Npoints,zz
       use STRUCT,ONLY: Diff,nHtot
-      use PARAMETERS,ONLY: Hp,hmin,hmax
+      use PARAMETERS,ONLY: Hp
       implicit none
       integer :: i
 
@@ -12,7 +12,7 @@
       !-----------------------------
       allocate(zz(Npoints),Diff(Npoints),nHtot(Npoints))
       do i=1,Npoints
-        zz(i) = Hp*(hmin+(hmax-hmin)*(REAL(i-1)/REAL(Npoints-1))**1.0)
+        zz(i) = Hp*(REAL(i-1)/REAL(Npoints-1))**1.0
         nHtot(i) = 1.0                   ! density
         !nHtot(i) = 100.0*exp(-zz(i)/Hp)
         Diff(i)  = 1.0                   ! diffusion coefficient
@@ -28,17 +28,24 @@
       use GRID,ONLY: Npoints,zz
       use READMODEL,ONLY: Nlayers,zlay,Tlay,play,rholay,glay,Difflay
       use STRUCT,ONLY: Diff,rho,nHtot,T,press,mu
-      use PARAMETERS,ONLY: Hp,hmin,hmax
+      use PARAMETERS,ONLY: Hp,pmin,pmax
       implicit none
       integer :: i,j
-      real :: fac1,fac2
+      real :: fac1,fac2,hmin,hmax
 
       allocate(zz(Npoints),Diff(Npoints),rho(Npoints),nHtot(Npoints),
      >         T(Npoints),press(Npoints),mu(Npoints))
 
+      hmin = 0.0
+      hmax = 0.0
+      do j=1,Nlayers
+        !print*,j,zlay(j),play(j)/bar 
+        if (play(j)>pmin*bar.and.hmax==0.0) hmax=zlay(j) 
+        if (play(j)>pmax*bar.and.hmin==0.0) hmin=zlay(j) 
+      enddo   
       write(*,*) Hp,hmin,hmax
       do i=1,Npoints
-        zz(i) = Hp*(hmin+(hmax-hmin)*(REAL(i-1)/REAL(Npoints-1))**1.0)
+        zz(i) = hmin+(hmax-hmin)*(REAL(i-1)/REAL(Npoints-1))**1.0
       enddo
   
       write(*,*)
