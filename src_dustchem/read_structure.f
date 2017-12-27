@@ -6,8 +6,9 @@
       use READMODEL,ONLY: Rlay,Tlay,play,rholay,glay,vconvlay,
      >                    zlay,mulay,Difflay,Nlayers
       implicit none
-      integer :: elementCount,i
+      integer :: elementCount,i,j
       real :: mixLength,Hplay,pconv,grad,ngas,lmean,Dmicro,Kn,vth,vz
+      real :: dum
       integer,dimension(1000) :: flag_conv,Z
       logical :: conv
 
@@ -17,51 +18,70 @@
 
       open(42,file=struc_file,status='old')
       do i=1,5 
-         read(42,*) 
+        read(42,*) 
       enddo
       read(42,100) Teff, logg, mixLength   
       write(*,1000) Teff, logg, mixLength
       read(42,*)
       read(42,*)
-      read(42,200) Nlayers
+      read(42,*) Nlayers
       write(*,*) "Nlayers", Nlayers
       read(42,*)
       read(42,*)
-      read(42,200) elementCount
+      read(42,*) elementCount
       read(42,*)
       read(42,*)
       read(42,210) (Z(i), i=1,elementCount)
 c     write(*,*) (Z(i), i=1,  elementCount)
       read(42,*)
       read(42,*)
-      read(42,300) (Rlay(i),i=1,Nlayers)
-c     write(*,*) "nach Rlay"
-      read(42,*)
-      read(42,*)
-      read(42,300) (Tlay(i),i=1,Nlayers)
-c     write(*,*) "nach Tlay"
-      read(42,*)
-      read(42,*)
-      read(42,300) (play(i),i=1,Nlayers)
-c     write(*,*) "nach play"
-      read(42,*)
-      read(42,*)
-      read(42,300) (rholay(i),i=1,Nlayers)
-c     write(*,*) "nach rholay"
-      read(42,*)
-      read(42,*)
-      read(42,300) (glay(i),i=1,Nlayers)
-c     write(*,*) "nach glay"
-      read(42,*)
-      read(42,*)
-      read(42,300) (vconvlay(i),i=1,Nlayers)
-c     write(*,*) "nach vconvlay"
-      read(42,*)
-      read(42,*)
-      read(42,'(8(l2, 1x))') (flag_conv(i),i=1,Nlayers)
-      read(42,*)
-      read(42,*)
-      read(42,300) (mulay(i),i=1,Nlayers)
+      if (index(struc_file,"2Drift")>0) then
+        read(42,300) (Rlay(i),i=1,Nlayers)
+c       write(*,*) "nach Rlay"
+        read(42,*)
+        read(42,*)
+        read(42,300) (Tlay(i),i=1,Nlayers)
+c       write(*,*) "nach Tlay"
+        read(42,*)
+        read(42,*)
+        read(42,300) (play(i),i=1,Nlayers)
+c       write(*,*) "nach play"
+        read(42,*)
+        read(42,*)
+        read(42,300) (rholay(i),i=1,Nlayers)
+c       write(*,*) "nach rholay"
+        read(42,*)
+        read(42,*)
+        read(42,300) (glay(i),i=1,Nlayers)
+c       write(*,*) "nach glay"
+        read(42,*)
+        read(42,*)
+        read(42,300) (vconvlay(i),i=1,Nlayers)
+c       write(*,*) "nach vconvlay"
+        read(42,*)
+        read(42,*)
+        read(42,'(8(l2, 1x))') (flag_conv(i),i=1,Nlayers)
+        read(42,*)
+        read(42,*)
+        read(42,300) (mulay(i),i=1,Nlayers)
+      else if (index(struc_file,"AMES")>0) then
+        do i=1,Nlayers
+          read(42,3) j, dum, Tlay(i), play(i), dum, rholay(i), mulay(i),
+     &                Rlay(i), zlay(i), dum
+          glay(i) = 10.d0**logg
+        enddo
+        read(42,*)
+        read(42,*)
+        do i=1,Nlayers
+          Rlay(i) = Rlay(1) - zlay(i)
+          read(42,4) j, dum,dum,dum,dum,dum,dum,dum,dum,vconvlay(i),
+     &               dum,dum,dum,dum,dum 
+          flag_conv(i) = (vconvlay(i)>0.d0)
+        enddo 
+      else
+        print*,"*** unknown struc_file=",trim(struc_file)
+        stop
+      endif  
       read(42,*)
       read(42,*)
 c      read(42,300) (epsPhoenix(i), i=1,elementCount)
@@ -139,6 +159,9 @@ c      enddo
       enddo  
 
       RETURN
+    3 format(2X, I2, 2X, 1D10.3, 2x, f10.4, 3(2X, 1D10.3), 2x, f6.3,
+     >       3(2X, 1PE10.3))
+    4 format(3X, I2, 13(1X, 1D8.3), 1x, I2)
   100 format(f12.3, 1x, f12.3, 1x, f12.3)
   200 format(i5)
   210 format(8(i5, 1x))

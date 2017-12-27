@@ -1,24 +1,26 @@
 ***********************************************************************
       SUBROUTINE OUTPUT(num,time,dt)
 ***********************************************************************
-      use PARAMETERS,ONLY: model_name
+      use PARAMETERS,ONLY: model_name,logg
       use NATURE,ONLY: bk,bar,amu,mel,pi,mic
       use CHEMISTRY,ONLY: NELM,NMOLE,elnum,cmol,catm,el,charge,molmass
-      use DUST_DATA,ONLY: NDUST,dust_nam,dust_mass,dust_Vol
+      use DUST_DATA,ONLY: NDUST,dust_nam,dust_mass,dust_Vol,
+     &                    dust_nel,dust_el,dust_nu,dust_rho
       use EXCHANGE,ONLY: ipoint,nel,nat,nion,nmol,Jst,chi
-      use GRID,ONLY: Npoints,zz
+      use GRID,ONLY: Npoints,zz,d1l,d1m,d1r
       use STRUCT,ONLY: Temp,press,rho,nHtot,Diff,nHeps,rhoLj,rhoL3
       use NUCLEATION,ONLY: NNUC,nuc,nuc_nam
-      use ELEMENTS,ONLY: NELEM,NEPS,elnr,elnam,eps0,mass,muH
+      use ELEMENTS,ONLY: NELEM,NEPS,elnr,elcode,elnam,eps0,mass,muH
       implicit none
       integer,intent(in) :: num
       real*8,intent(in) :: time,dt
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST),out(NDUST)
-      real*8 :: pp,Tg,nH,nges,kT,mu,sumn,sumnm
-      real*8 :: rhog,dustV,rhod,amean,amax
+      real*8 :: pp,Tg,nH,nges,kT,mu,sumn,sumnm,stoich
+      real*8 :: rhog,dustV,rhod,amean,amax,g,xi,cT,nD,d1eps
       real*8 :: rhoL(0:3),Nst(NNUC),bmix(NDUST),effSat(NDUST)
-      integer :: i,j,ip,e,NOUT
+      real*8 :: jup(NEPS),jdown(NEPS),LL(0:4),CLOSURE
+      integer :: i,j,ip,dk,e,NOUT
       character(len=200) :: line,filename
       character(len=20) :: name,short_name(NDUST)
       character(len=1) :: char
@@ -67,6 +69,8 @@
      &               ('Jstar('//trim(nuc_nam(j))//')',j=1,NNUC),
      &               ('Nstar('//trim(nuc_nam(j))//')',j=1,NNUC)
 
+      g  = 10.d0**logg
+      xi = DSQRT(pi)/2.d0 * (3.d0/(4.d0*pi))**(1.d0/3.d0) * g
       amax = 0.d0
       do ip=1,Npoints
         ipoint = ip
@@ -78,9 +82,6 @@
 
         !--- dust densities and volume mixing ratios ---
         rhoL(0:3) = rhoLj(0:3,ip)
-        do j=1,NDUST
-          eldust(j) = rhoL3(j,ip)/dust_Vol(j)/nH
-        enddo 
         if (rhoL(0)>0.d0) then
           !amean  = (3.d0/(4.d0*pi))**(1.d0/3.d0) * rhoL(1)/rhoL(0)
           amean   = (3.d0/(4.d0*pi)*rhoL(3)/rhoL(0))**(1.d0/3.d0)
@@ -89,6 +90,11 @@
           amean   = 0.d0
           bmix(:) = 1.d0
         endif  
+        rhod = 0.0
+        do j=1,NDUST
+          eldust(j) = rhoL3(j,ip)/dust_Vol(j)/nH
+          rhod = rhod + bmix(j)*dust_rho(j)
+        enddo 
 
         !--- compute chemistry, supersaturation, nucleation ---
         eps = eps0
@@ -118,6 +124,37 @@
         mu = sumnm/sumn
         pp = sumn*bk*Tg
         
+        !--- compute element fluxes ---
+        !jup(:) = 0.d0
+        !jdown(:) = 0.d0
+        !if (ip>1.and.ip<Npoints) then
+        !  nD = nHtot(ip)*Diff(ip)
+        !  do e=1,NEPS
+        !    d1eps = d1l(ip)*nHeps(e,ip-1)/nHtot(ip-1)
+     >  !          + d1m(ip)*nHeps(e,ip)  /nHtot(ip)
+     >  !          + d1r(ip)*nHeps(e,ip+1)/nHtot(ip+1)
+        !    jup(e) = -nD*d1eps
+        !  enddo  
+        !  LL(0:3) = rhoLj(0:3,ip)/rhog
+        !  if (LL(0)>0.d0) then
+        !    LL(4) = CLOSURE(ip,LL(0),LL(1),LL(2),LL(3),0)
+        !    do dk=1,NDUST
+        !      do j=1,dust_nel(dk) 
+        !        e = elcode(dust_el(dk,j)) 
+        !        stoich = dust_nu(dk,j) 
+        !        !print*,dust_nam(dk),elnr(e),elnam(elnr(e)),stoich
+        !        jdown(e) = jdown(e) + stoich*bmix(dk)/dust_Vol(dk)
+        !      enddo
+        !    enddo
+        !    cT    = DSQRT(2.d0*bk*Tg/mu)
+        !    jdown = xi*rhod/cT*LL(4)*jdown
+        !    do e=1,NEPS
+        !      print'(I4,A3,2(1pE10.3))',ip,elnam(elnr(e)),
+     &  !                                jup(e),jdown(e)
+        !    enddo
+        !  endif  
+        !endif  
+
         !--- compute dust/gas mass ratio ---
         rhog  = nH*muH
         rhod  = 0.0

@@ -166,7 +166,7 @@ fig,ax = plt.subplots()
 ind = np.where(keyword=='<a>[mic]')[0][0]
 amean = dat[:,ind]
 ymax = np.max(amean)
-if (ymax>-10):
+if (ymax>0):
   plt.plot(lp,amean,lw=4)
   plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
   plt.ylabel(r'$\langle a\rangle\ \mathrm{[\mu m]}$',fontsize=20)

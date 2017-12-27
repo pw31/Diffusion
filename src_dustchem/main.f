@@ -31,7 +31,7 @@
       if (next>=100000) next=next+100
       if (next>=300000) next=next+300
       if (next>=1000000) next=next+1000
-      do 
+      do
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
         call DIFFUSION(time,0.5*dt,verbose)
@@ -40,7 +40,7 @@
         call DUSTFORM(time,dt,verbose)
         time = time+dt
         nout = nout + 1
-        if (nout>next) then
+        if (nout>next.or..true.) then
           call OUTPUT(nout,time,dt)
           next = nout
           if (next>=100) next=next+1
