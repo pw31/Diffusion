@@ -2,6 +2,7 @@
       SUBROUTINE  DUST_TSTEP(NN,yy,FF,tt,dt0,deltat,verbose,evap)
 ************************************************************************
       use NATURE,ONLY: pi,mic
+      use PARAMETERS,ONLY: evap_model
       use EXCHANGE,ONLY: Fcall,Jcall,Jst,chi,ipoint
       use DUST_DATA,ONLY: NDUST
       use ELEMENTS,ONLY: NEPS,eps0,elnr,elnam
@@ -49,12 +50,17 @@
       ropt(1)  = deltat  ! maximum allowed stepsize 
       ropt(2)  = 0.0     ! maximal distance of dense outputs (if iopt(13)=3)
       ropt(3)  = 0.0     ! upper limit for t (if iopt(17)=1)
-      do i=1,NN
-        ipos(i) = 1       ! prevent YY(i)<0 if ipos(i)=1
-        atol(i) = 1.d-299 ! absolute tolerance
-        rtol(i) = tol     ! relative tolerance
-      enddo
-
+      atol(:) = 1.d-299  ! absolute tolerance
+      rtol(:) = tol      ! relative tolerance
+      if (evap_model==1) then
+        ipos(:) = 1      ! prevent YY(i)<0 if ipos(i)=1
+      else   
+        ipos(:) = 0
+        ipos(1:4) = 1
+        ipos(5+NDUST:NN) = 1
+        atol(5:4+NDUST) = 1.d-40
+      endif
+  
       Fcall = 0
       Jcall = 0
       dt = MIN(dt0,1.E-3*deltat)
@@ -76,7 +82,7 @@
         dtold = dt
 #ifdef CHECK_NAN
         do i=1,NN
-          if (yy(i)<0.d0.or.IS_NAN(yy(i))) then
+          if ((yy(i)<0.d0.and.ipos(i)==1).or.IS_NAN(yy(i))) then
             print*,"*** before limex",ipoint,yy 
             stop
           endif
@@ -88,7 +94,7 @@
         
 #ifdef CHECK_NAN
         do i=1,NN
-          if (yy(i)<0.d0.or.IS_NAN(yy(i))) then
+          if ((yy(i)<0.d0.and.ipos(i)==1).or.IS_NAN(yy(i))) then
             print*,"*** after limex",ipoint,t0,t1,t2
             print*,yold
             print*,yy 

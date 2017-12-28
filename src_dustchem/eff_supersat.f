@@ -10,6 +10,7 @@
 *****                                                           *****
 *********************************************************************
       use NATURE,ONLY: pi,bk
+      use PARAMETERS,ONLY: evap_model
       use ELEMENTS,ONLY:  NELEM,qp
       use CHEMISTRY,ONLY: NMOLE
       use SPECIES,ONLY: NSPECIES,spnam,spnr,spmass,keysp
@@ -67,15 +68,21 @@
           if (keysp(sp)) then
 	    stoi = 1.d0/DBLE(reac_nu(r,j,1))        ! ratio of stoichiom. coeffs
 	    rat1 = stick(r)*nsp(sp)*vrel(sp)*stoi   ! surface reac/cm^2/s
+	    if (rat1.lt.rate) rate=rat1             ! minimum is key 
             rsum = rsum + 1.Q0/rat1**2
             msum = msum + (stoi*dustnu)/rat1**2
           endif
         enddo
         mr = msum/rsum
         Sr = Sat(dustnr)**mr                        ! reaction supersat.ratio
-        eq_fak = bmix(dustnr)/Sr                    ! factor for evap-rate
-        sum1(dustnr) = sum1(dustnr) + dustnu * rate * eq_fak
-        sum2(dustnr) = sum2(dustnr) + dustnu * rate
+        if (evap_model==1) then
+          eq_fak = bmix(dustnr)/Sr                  ! factor for evap-rate
+          sum1(dustnr) = sum1(dustnr) + dustnu*rate*eq_fak
+          sum2(dustnr) = sum2(dustnr) + dustnu*rate
+        else
+          sum1(dustnr) = sum1(dustnr) + dustnu*rate/Sr
+          sum2(dustnr) = sum2(dustnr) + dustnu*rate
+        endif  
       enddo
 *
 *     ----------------------------------------------------
@@ -83,13 +90,9 @@
 *     ----------------------------------------------------
       do i=1,NDUST
         effSat(i) = sum2(i)/sum1(i)
-c       if (sum2(i)-sum1(i).ne.0.d0) then 
-c         effSat(i) = 1.d0/(1.d0-sum1(i)/sum2(i))
-c         effSat(i) = sum2(i)/(sum2(i)-sum1(i))
-c       else
-c         effSat(i) = Sat(i)
-c       endif  
-        !print*,dust_nam(i),REAL(Sat(i)),effSat(i)
+        !if (trim(dust_nam(i))=='Na2S[s]') then
+        !  print*,dust_nam(i),REAL(Sat(i)),effSat(i)
+        !endif  
       enddo
 
       RETURN 

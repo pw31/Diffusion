@@ -3,9 +3,9 @@
 ************************************************************************
       use NATURE,ONLY: bar
       use PARAMETERS,ONLY: elements_select,model_name,dustchem_file,
-     >                     struc_file,
+     >                     struc_file,Tfast,tsim,verbose,
      >                     logg,Teff,vzconst,pconst,beta,Hp,
-     >                     pmin,pmax,Nl,Vl,Tfast,tsim,verbose,
+     >                     pmin,pmax,Nl,Vl,evap_model,
      >                     bc_low,bc_high,init,implicit,tindep,
      >                     influx,outflux,inrate,outrate,vin,vout,
      >                     abund_pick,Nout,outtime,tfac,dust_diffuse
@@ -37,6 +37,7 @@
       beta       = 1.5
       Nl         = 1000.0
       Vl         = 3.d-23*Nl
+      evap_model = 1
       Npoints    = 100
       pconst     = 0.1*bar  ! 100 mbar
       vzconst    = 10.0     ! 10 cm/s
@@ -149,6 +150,8 @@
         else if (index(line,"! Nl")>0) then   
           read(line,*) Nl
           Vl = 3.d-23*Nl
+        else if (index(line,"! evap_model")>0) then   
+          read(line,*) evap_model
         else if (index(line,"! dispol_file2")>0) then 
           i = index(line,"!")
           read(line(1:i-1),*)  dispol_file(2)

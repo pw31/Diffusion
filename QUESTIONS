@@ -1,0 +1,23 @@
+
+1) how does old static_weather compare to weather?
+
+2) influence of Teff
+
+3) influence of logg
+
+4) influence of beta
+
+5) are there permanent weather cycles?
+
+6) do we get secondary cloud layers (Na2S, KCl) ?
+
+7) other important dust kinds?
+
+8) How long do we need to compute a single model -> stationary?
+   Compare init=0 to init=1 models!
+   Same answer as diffuse atmos1.in?
+
+9) how important is dust diffusion?
+   - upward diffusion of seed particles?
+
+

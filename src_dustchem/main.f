@@ -31,7 +31,7 @@
       if (next>=100000) next=next+100
       if (next>=300000) next=next+300
       if (next>=1000000) next=next+1000
-      do
+      do 
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
         call DIFFUSION(time,0.5*dt,verbose)
@@ -40,7 +40,7 @@
         call DUSTFORM(time,dt,verbose)
         time = time+dt
         nout = nout + 1
-        if (nout>next.or..true.) then
+        if (nout>next) then
           call OUTPUT(nout,time,dt)
           next = nout
           if (next>=100) next=next+1
@@ -57,8 +57,8 @@
       enddo  
 
       print*
-      print'("         smchem calls = ",I8)',chemcall
-      print'("      iterations/call = ",0pF8.2)',
+      print'("         smchem calls = ",I12)',chemcall
+      print'("      iterations/call = ",0pF12.3)',
      >                     REAL(chemiter)/REAL(chemcall)
 
       end

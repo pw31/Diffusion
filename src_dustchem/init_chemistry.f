@@ -214,32 +214,32 @@
       !close(1)
       !stop
 
-      open(unit=1,file='dispol_selection.dat')
-      write(1,'(I5,"  selected molecules")') NMOLE
-      do i=1,NMOLE
-        if (m_kind(0,i)==1) then 
-          frmt = '(A20,I3,1(A3),1(I3))'
-        else if (m_kind(0,i)==2) then 
-          frmt = '(A20,I3,2(A3),2(I3))'
-        else if (m_kind(0,i)==3) then 
-          frmt = '(A20,I3,3(A3),3(I3))'
-        else if (m_kind(0,i)==4) then 
-          frmt = '(A20,I3,4(A3),4(I3))'
-        else if (m_kind(0,i)==5) then 
-          frmt = '(A20,I3,5(A3),5(I3))'
-        else
-          stop
-        endif  
-        write(1,frmt) cmol(i),m_kind(0,i),
-     &            (catm(m_kind(j,i)),j=1,m_kind(0,i)),
-     &            (m_anz(j,i),j=1,m_kind(0,i))
-        if (fit(i)==6) then
-          write(1,'(I2,99(1pE16.8))') fit(i),a(i,0:7)
-        else
-          write(1,'(I2,99(1pE16.8))') fit(i),a(i,0:4)
-        endif
-      enddo  
-      close(1)
+      !open(unit=1,file='dispol_selection.dat')
+      !write(1,'(I5,"  selected molecules")') NMOLE
+      !do i=1,NMOLE
+      !  if (m_kind(0,i)==1) then 
+      !    frmt = '(A20,I3,1(A3),1(I3))'
+      !  else if (m_kind(0,i)==2) then 
+      !    frmt = '(A20,I3,2(A3),2(I3))'
+      !  else if (m_kind(0,i)==3) then 
+      !    frmt = '(A20,I3,3(A3),3(I3))'
+      !  else if (m_kind(0,i)==4) then 
+      !    frmt = '(A20,I3,4(A3),4(I3))'
+      !  else if (m_kind(0,i)==5) then 
+      !    frmt = '(A20,I3,5(A3),5(I3))'
+      !  else
+      !    stop
+      !  endif  
+      !  write(1,frmt) cmol(i),m_kind(0,i),
+     &!            (catm(m_kind(j,i)),j=1,m_kind(0,i)),
+     &!            (m_anz(j,i),j=1,m_kind(0,i))
+      !  if (fit(i)==6) then
+      !    write(1,'(I2,99(1pE16.8))') fit(i),a(i,0:7)
+      !  else
+      !    write(1,'(I2,99(1pE16.8))') fit(i),a(i,0:4)
+      !  endif
+      !enddo  
+      !close(1)
 
       print*,NMOLE,' species'
       print*,NELM,' elements'

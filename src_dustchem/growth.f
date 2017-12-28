@@ -2,6 +2,7 @@
       SUBROUTINE GROWTH(T,Sat,bmix,nat,nmol,chinet,chi,cr)
 *********************************************************************
       use NATURE,ONLY: bk,pi,km
+      use PARAMETERS,ONLY: evap_model
       use ELEMENTS,ONLY:  NELEM,qp
       use CHEMISTRY,ONLY: NMOLE
       use SPECIES,ONLY: NSPECIES,spnam,spnr,spmass,keysp
@@ -70,7 +71,12 @@
         ! ***  reaction upersaturation ratio and book-keeping  ***
         !---------------------------------------------------------
         Sr = Sat(dustnr)**mr                        ! reaction supersat.ratio
-        eq_fak = 1.d0 - bmix(dustnr)/Sr             ! equilibrium factor 
+        if (evap_model==1) then
+          eq_fak = 1.d0 - bmix(dustnr)/Sr           ! equilibrium factor 
+        else  
+          eq_fak = 1.d0 - 1.d0/Sr
+          if (Sr<1.d0) eq_fak=eq_fak*bmix(dustnr)
+        endif  
         cr(r)  = Afak * dustnu * rate * eq_fak      ! net rate [cm-2 s-1]
         dchi   = cr(r) * dust_vol(dustnr)           ! volume increase [cm/s]
         chinet = chinet + dchi
