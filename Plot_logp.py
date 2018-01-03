@@ -214,10 +214,10 @@ plt.clf()
 
 #================== solid particle densities ===================
 solids = []
-smean = []
 ymax = -100.0
 fig,ax = plt.subplots()
 count = 0
+nsolid = np.zeros(NPOINT)
 for i in range(5+NELEM+NMOLE,5+NELEM+NMOLE+NDUST,1):
   solid = keyword[i]
   solid = solid[1:]
@@ -226,6 +226,7 @@ for i in range(5+NELEM+NMOLE,5+NELEM+NMOLE+NDUST,1):
   if (np.size(ind) == 0): continue
   ind = ind[0]
   yy = dat[:,ind]               # log10 nsolid/n<H>
+  nsolid = nsolid + 10**dat[:,ind]
   ymax = np.max([ymax,np.max(yy[iii])])
   plt.plot(lp[iii],yy[iii],c=colo[count],ls=styl[count],lw=widt[count],label=solid)
   count = count + 1
@@ -240,6 +241,36 @@ plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
 sz = np.min([11,1+195.0/count])
 leg = plt.legend(loc='upper left',fontsize=11,fancybox=True,
+                 handlelength=2.5,prop={'size':sz})
+leg.get_frame().set_alpha(0.7)
+plt.tight_layout()
+plt.savefig(pp,format='pdf')
+plt.clf()
+
+#================== solid composition ===================
+ipos = np.where(nsolid>1.E-99)
+fig,ax = plt.subplots()
+count = 0
+for i in range(5+NELEM+NMOLE,5+NELEM+NMOLE+NDUST,1):
+  solid = keyword[i]
+  solid = solid[1:]
+  ind = np.where(keyword == 'n'+solid)[0]
+  if (np.size(ind) == 0): continue
+  ind = ind[0]
+  yy = 10**dat[:,ind]/nsolid               # log10 nsolid/ntotsolid
+  plt.plot(lp[ipos],yy[ipos],c=colo[count],ls=styl[count],lw=widt[count],label=solid)
+  count = count + 1
+plt.title('condensates',fontsize=20)
+plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
+plt.ylabel(r'$\mathrm{log}_{10}\ b_\mathrm{mix}$',fontsize=20)
+plt.yscale('log')
+plt.xlim(pmin,pmax)
+plt.ylim(10**(-10.0),10**(0.3))
+plt.tick_params(axis='both', labelsize=14)
+plt.tick_params('both', length=6, width=1.5, which='major')
+plt.tick_params('both', length=3, width=1, which='minor')
+sz = np.min([11,1+195.0/count])
+leg = plt.legend(loc='lower left',fontsize=11,fancybox=True,
                  handlelength=2.5,prop={'size':sz})
 leg.get_frame().set_alpha(0.7)
 plt.tight_layout()
