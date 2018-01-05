@@ -423,7 +423,7 @@ for i in range(0,30):
   if (count>30): 
     sz = np.min([9,1+195.0/count*2])
     col = 2
-  leg = plt.legend(loc='lower right',fontsize=10,fancybox=True,
+  leg = plt.legend(loc='lower left',fontsize=10,fancybox=True,
                    handlelength=3,prop={'size':sz},ncol=col)
   leg.get_frame().set_alpha(0.7)
   plt.tight_layout()

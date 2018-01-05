@@ -97,9 +97,10 @@ while (nnn<=last):
                    handlelength=2.5,prop={'size':sz})
   leg.get_frame().set_alpha(0.7)
   plt.tight_layout()
-  ii = file.index('weather_')+8
-  print file[ii:ii+5]
-  no = file[ii:ii+5]
+  i1 = file.index('weather_')+8
+  i2 = file.index('.dat')
+  print file[i1:i2]
+  no = file[i1:i2]
   outfile = 'nsolid_'+no+'.png'
   fig.savefig(outfile)
   plt.clf()

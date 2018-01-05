@@ -3,9 +3,10 @@
 ************************************************************************
       use NATURE,ONLY: pi,mic
       use PARAMETERS,ONLY: evap_model
-      use EXCHANGE,ONLY: Fcall,Jcall,Jst,chi,ipoint
       use DUST_DATA,ONLY: NDUST
       use ELEMENTS,ONLY: NEPS,eps0,elnr,elnam
+      use STRUCT,ONLY: nHtot
+      use EXCHANGE,ONLY: Fcall,Jcall,Jst,chi,ipoint,Mg
       implicit none
       integer,intent(in)  :: NN,verbose
       real*8,intent(inout):: yy(NN),FF(NN),tt
@@ -13,7 +14,7 @@
       logical,intent(out) :: evap
       real*8  :: yold(NN)
       real*8  :: dt,t0,t1,t2,delt,dtold,rstep,bmix
-      real*8  :: amean0,amean,tol=1.d-4
+      real*8  :: amean0,amean,Vref,epsref,L3ref,tol=1.d-4
       integer :: i,it,ierr,nstep,nFcall,nJcall,nJac
       logical :: IS_NAN
 
@@ -54,11 +55,13 @@
       rtol(:) = tol      ! relative tolerance
       if (evap_model==1) then
         ipos(:) = 1      ! prevent YY(i)<0 if ipos(i)=1
-      else   
-        ipos(:) = 0
-        ipos(1:4) = 1
-        ipos(5+NDUST:NN) = 1
-        atol(5:4+NDUST) = 1.d-40
+      else 
+        Vref = 7.d-23                       ! typical monomer volume [cm3]
+        epsref = eps0(Mg)                   ! typical condensed part. conc.
+        L3ref = nHtot(ipoint)*epsref*Vref   ! rhoL3 [cm^3/cm^3]
+        ipos(:) = 1
+        ipos(5:4+NDUST) = 0
+        atol(5:4+NDUST) = L3ref*1.d-10
       endif
   
       Fcall = 0
