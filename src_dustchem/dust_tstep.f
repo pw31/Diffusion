@@ -14,7 +14,7 @@
       logical,intent(out) :: evap
       real*8  :: yold(NN)
       real*8  :: dt,t0,t1,t2,delt,dtold,rstep,bmix
-      real*8  :: amean0,amean,Vref,epsref,L3ref,tol=1.d-4
+      real*8  :: amean0,amean,Vref,epsref,rL3ref,rhoL3,tol=1.d-4
       integer :: i,it,ierr,nstep,nFcall,nJcall,nJac
       logical :: IS_NAN
 
@@ -58,10 +58,11 @@
       else 
         Vref = 7.d-23                       ! typical monomer volume [cm3]
         epsref = eps0(Mg)                   ! typical condensed part. conc.
-        L3ref = nHtot(ipoint)*epsref*Vref   ! rhoL3 [cm^3/cm^3]
+        rL3ref = nHtot(ipoint)*epsref*Vref  ! reference rhoL3 [cm^3/cm^3]
+        rhoL3  = yy(4)                      ! actual rhoL3
         ipos(:) = 1
         ipos(5:4+NDUST) = 0
-        atol(5:4+NDUST) = L3ref*1.d-10
+        atol(5:4+NDUST) = MIN(rL3ref*1.d-10,rhoL3*1.d-3)
       endif
   
       Fcall = 0
