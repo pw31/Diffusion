@@ -143,6 +143,7 @@
         enddo
       enddo
 
+      goto 999
       write(*,*) '--- nucleation species ---'
       read(12,1000) zeile
       read(12,1000) zeile
@@ -310,6 +311,7 @@
           endif  
         enddo    
       enddo
+ 999  continue
       close(12)
 
       Tcorr(:) = -1.d0

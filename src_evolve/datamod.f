@@ -19,43 +19,6 @@
       end
 
 ************************************************************************
-      module READMODEL
-************************************************************************
-      integer :: Nlayers
-      real,dimension(1000) :: Rlay,Tlay,play,rholay,glay
-      real,dimension(1000) :: zlay,mulay,vconvlay,Difflay
-      end
-
-************************************************************************
-      module GRID
-************************************************************************
-      integer :: Npoints                        ! number of gridpoints
-      real,allocatable :: zz(:)                 ! vertical gridpoints
-      real,allocatable :: d1l(:),d1m(:),d1r(:)  ! first derivatives
-      real,allocatable :: d2l(:),d2m(:),d2r(:)  ! second derivatives
-      real,allocatable :: BB(:,:)               ! implicit diffusion matrix
-      real,allocatable :: xlower(:),xupper(:)   ! boudary values
-      real :: dt_diff_ex,dt_diff_im
-      end
-
-************************************************************************
-      module STRUCT
-************************************************************************
-      real,allocatable :: Diff(:)     ! diffusion coefficient [cm2/s]
-      real,allocatable :: rho(:)      ! mass density [g/cm3]
-      real,allocatable :: nHtot(:)    ! total H nuclei density [1/cm3]
-      real,allocatable :: Temp(:)     ! temperature [K]
-      real,allocatable :: press(:)    ! pressure [dyn/cm2]
-      real,allocatable :: mu(:)       ! mean molecular weight [g]
-      real,allocatable :: nHeps(:,:)  ! element abundance [cm-3]
-      real,allocatable :: rhoLj(:,:)  ! dust moments [cm^(j-3)]
-      real,allocatable :: rhoL3(:,:)  ! dust volumes [cm^3/cm^3]
-      real,allocatable :: mols(:,:)   ! molecular particle densities
-      real,allocatable :: atms(:,:)   ! atomic particle densities
-      real,allocatable :: elec(:)     ! electron particle densities
-      end
-
-************************************************************************
       module ELEMENTS
 ************************************************************************
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
@@ -72,7 +35,7 @@
       module DUST_DATA
 ************************************************************************
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
-      integer,parameter :: NDUSTmax=200       ! max number of condensed species
+      integer,parameter :: NDUSTmax=1000      ! max number of condensed species
       integer :: NDUST                        ! number of condensed species      
       character(len=20) :: dust_nam(NDUSTmax) ! names of dust species
       real*8  :: dust_rho(NDUSTmax)           ! dust material densities
@@ -147,6 +110,47 @@
       integer,allocatable :: neduct(:),nprod(:)
       integer,allocatable :: reac_sp(:,:,:),reac_nu(:,:,:)
       real,allocatable :: stick(:)
+      end
+
+************************************************************************
+      module READMODEL
+************************************************************************
+      integer :: Nlayers
+      real,dimension(1000) :: Rlay,Tlay,play,rholay,glay
+      real,dimension(1000) :: zlay,mulay,vconvlay,Difflay
+      end
+
+************************************************************************
+      module GRID
+************************************************************************
+      integer :: Npoints                        ! number of gridpoints
+      real,allocatable :: zz(:)                 ! vertical gridpoints
+      real,allocatable :: d1l(:),d1m(:),d1r(:)  ! first derivatives
+      real,allocatable :: d2l(:),d2m(:),d2r(:)  ! second derivatives
+      real,allocatable :: BB(:,:)               ! implicit diffusion matrix
+      real,allocatable :: xlower(:),xupper(:)   ! boudary values
+      real :: dt_diff_ex,dt_diff_im
+      end
+
+************************************************************************
+      module STRUCT
+************************************************************************
+      use DUST_DATA,ONLY: NDUSTmax
+      integer,parameter :: qp = selected_real_kind ( 33, 4931 )
+      real,allocatable :: Diff(:)     ! diffusion coefficient [cm2/s]
+      real,allocatable :: rho(:)      ! mass density [g/cm3]
+      real,allocatable :: nHtot(:)    ! total H nuclei density [1/cm3]
+      real,allocatable :: Temp(:)     ! temperature [K]
+      real,allocatable :: press(:)    ! pressure [dyn/cm2]
+      real,allocatable :: mu(:)       ! mean molecular weight [g]
+      real,allocatable :: nHeps(:,:)  ! element abundances [cm-3]
+      real,allocatable :: rhoLj(:,:)  ! dust moments [cm^(j-3)]
+      real,allocatable :: rhoL3(:,:)  ! dust volumes [cm^3/cm^3]
+      real,allocatable :: mols(:,:)   ! molecular particle densities
+      real,allocatable :: atms(:,:)   ! atomic particle densities
+      real,allocatable :: elec(:)     ! electron particle densities
+      real :: crust_depth             ! spatial depth of crust 
+      real(kind=qp) :: crust_beta(NDUSTmax)  ! condensed volume mixing ratios
       end
 
 ************************************************************************

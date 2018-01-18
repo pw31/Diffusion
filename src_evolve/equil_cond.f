@@ -31,7 +31,7 @@
       real*8,intent(in) :: T                    ! temperature [K]
       real(kind=qp),intent(out) :: eps(NELEM)   ! gas element abundances
       real(kind=qp),intent(out) :: Sat(NDUST)   ! saturation ratio
-      real(kind=qp),intent(out) :: ddust(NDUST) ! density of solid units [cm-3]
+      real(kind=qp),intent(out) :: ddust(NDUST) ! density of solid units/nHtot
       integer,intent(inout) :: verbose
       real(kind=qp),dimension(NELEM) :: eps00,epsread,check,FF,Fsav,dx
       real(kind=qp),dimension(NELEM) :: eps_save,vec,xstep,Iabund,work
@@ -261,6 +261,7 @@
       do i=1,NDUST
         do j=1,dust_nel(i)
           el = dust_el(i,j)
+          print*,dust_nam(i),el,dust_nu(i,j)
           check(el) = check(el) + ddust(i)*dust_nu(i,j)    
         enddo
       enddo
