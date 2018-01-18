@@ -35,7 +35,7 @@
       module DUST_DATA
 ************************************************************************
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
-      integer,parameter :: NDUSTmax=1000      ! max number of condensed species
+      integer,parameter :: NDUSTmax=500       ! max number of condensed species
       integer :: NDUST                        ! number of condensed species      
       character(len=20) :: dust_nam(NDUSTmax) ! names of dust species
       real*8  :: dust_rho(NDUSTmax)           ! dust material densities
@@ -135,6 +135,7 @@
 ************************************************************************
       module STRUCT
 ************************************************************************
+      use ELEMENTS,ONLY: NELEM
       use DUST_DATA,ONLY: NDUSTmax
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real,allocatable :: Diff(:)     ! diffusion coefficient [cm2/s]
@@ -151,6 +152,8 @@
       real,allocatable :: elec(:)     ! electron particle densities
       real :: crust_depth             ! spatial depth of crust 
       real(kind=qp) :: crust_beta(NDUSTmax)  ! condensed volume mixing ratios
+      real(kind=qp) :: crust_eps(NELEM)      ! eps of crust
+      real(kind=qp) :: crust_gaseps(NELEM)   ! eps in gas over crust
       end
 
 ************************************************************************

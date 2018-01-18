@@ -261,7 +261,6 @@
       do i=1,NDUST
         do j=1,dust_nel(i)
           el = dust_el(i,j)
-          print*,dust_nam(i),el,dust_nu(i,j)
           check(el) = check(el) + ddust(i)*dust_nu(i,j)    
         enddo
       enddo
