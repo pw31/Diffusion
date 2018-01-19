@@ -7,7 +7,7 @@
       use SPECIES,ONLY: NSPECIES,spnr
       implicit none
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
-      real*8,intent(in) :: nH,Tg,nHeps(NEPS)
+      real*8,intent(in) :: nH,Tg,nHeps(NELEM)
       integer,intent(in) :: verbose
       real(kind=qp) :: eps(NELEM),thres(NELM)
       integer :: i,j,e,sp,Nact
@@ -15,9 +15,8 @@
       inactive(:) = .false.
       !return
       eps = eps0
-      do i=1,NEPS
-        e = elnr(i) 
-        eps(e) = nHeps(i)/nH        ! element abundances
+      do i=1,NELEM
+        eps(e) = nHeps(e)/nH        ! element abundances
       enddo  
       call GGCHEM(nH,Tg,eps,.false.,0)
 

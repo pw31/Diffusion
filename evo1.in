@@ -10,8 +10,7 @@ DustChem_ALL.dat        ! dustchem_file
 101      ! Npoints
 1.E-6    ! pmin
 1.0      ! pmax
-1        ! init
-1        ! bc_low    
+-1        ! init
 2        ! bc_high    
 0.0      ! outflux
 2        ! verbose

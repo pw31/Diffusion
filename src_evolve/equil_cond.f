@@ -21,7 +21,7 @@
       use PARAMETERS,ONLY: Tfast,useDatabase
       use ELEMENTS,ONLY: NELEM,eps0,elnam,elcode
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_nu,dust_el
-      use CHEMISTRY,ONLY: NewFastLevel
+      use CHEMISTRY,ONLY: NELM,NewFastLevel,elnum,iel=>el
       use CONVERSION,ONLY: Nind,Ndep,Iindex,Dindex,is_dust,conv
       use EXCHANGE,ONLY: Fe,Mg,Si,Al,Ca,Ti,C,O,S,Na,Cl,H,Li,Mn,W,Ni,Cr,
      >                   Kalium=>K,Zr,V,itransform,ieqcond,ieqconditer
@@ -228,7 +228,7 @@
       !--------------------------------------------
       ! ***  load initial state from database?  ***
       !--------------------------------------------
-      call GET_DATA(nHtot,T,epsread,ddustread,qread,iread,act_read)
+      call GET_DATA(nHtot,T,epsread,ddustread,qread,iread,act_read,0)
       Nact = 0
       if (qread.lt.0.5.and.useDatabase) then
         eps    = epsread
@@ -265,16 +265,19 @@
         enddo
       enddo
       worst = 0.Q0
-      do i=1,NELEM
-        worst = MAX(worst,ABS(1.Q0-check(i)/eps0(i)))
+      do i=1,NELM
+        if (i==iel) cycle 
+        el = elnum(i) 
+        worst = MAX(worst,ABS(1.Q0-check(el)/eps0(el)))
       enddo
       eps00 = check
       if (verbose>0) then
         write(*,*) "element conservation error 1:",worst
         write(*,*) "initial gas fractions ..."
-        do i=1,NELEM
-          if (elcode(i)==0) cycle
-          print'(3x,A2,2(1pE15.6))',elnam(i),eps(i),eps(i)/eps00(i)
+        do i=1,NELM
+          if (i==iel) cycle 
+          el = elnum(i) 
+          print'(3x,A2,2(1pE15.6))',elnam(el),eps(el),eps(el)/eps00(el)
         enddo
       endif  
       if (worst>1.Q-8) stop "*** worst>1.Q-8 in equil_cond"
@@ -1220,8 +1223,10 @@
           enddo
         enddo
         worst = 0.d0
-        do i=1,NELEM
-          worst = MAX(worst,ABS(1.Q0-check(i)/eps00(i)))
+        do i=1,NELM
+          if (i==iel) cycle
+          el = elnum(i)
+          worst = MAX(worst,ABS(1.Q0-check(el)/eps00(el)))
         enddo
         if (verbose>1.or.worst>1.Q-8) write(*,*) 
      >     "element conservation error 2:",worst
@@ -1251,7 +1256,8 @@
       ! ***  save result to database  ***
       !----------------------------------
       if (qual<1.Q-10.and.useDatabase) then
-        call PUT_DATA(nHtot,T,eps,ddust,qread,iread,active)
+       !call PUT_DATA(nHtot,T,eps,ddust,qread,iread,active)
+        call PUT_DATA(nHtot,T,eps,ddust,1.E-4,iread,active)  ! replace
       endif  
       ieqcond = ieqcond + 1
       ieqconditer = ieqconditer + it
@@ -1266,6 +1272,7 @@
       use DUST_DATA,ONLY: NDUST,dust_nel,dust_nu,dust_el,dust_nam
       use EXCHANGE,ONLY: nel,nat,nion,nmol
       use CONVERSION,ONLY: Ndep,Nind,Dindex,Iindex,is_dust,conv
+      use CHEMISTRY,ONLY: NELM,elnum,iel=>el
       implicit none
       integer,parameter  :: qp = selected_real_kind ( 33, 4931 )
       real*8,intent(in)  :: nHtot,T
@@ -1293,7 +1300,9 @@
         eps1(el) = eps1(el) + dx
       enddo
 
-      do el=1,NELEM
+      do i=1,NELM
+        if (i==iel) cycle
+        el = elnum(i) 
         if (eps1(el).le.0.Q0) then
           write(*,*) "*** negative el.abund. SUPER",elnam(el),eps1(el)
           stop

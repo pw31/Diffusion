@@ -1,13 +1,13 @@
 
       program DiffuDrift
 
-      use PARAMETERS,ONLY: init,tsim
+      use PARAMETERS,ONLY: tsim,verbose
       use GRID,ONLY: dt_diff_ex
       use EXCHANGE,ONLY: chemcall,chemiter,ieqcond,ieqconditer,
      >                   itransform
       use DATABASE,ONLY: NLAST
       implicit none
-      real*8  :: time,dt,Tg,nHges,p,delta_z
+      real*8  :: time,dt
       integer :: it,nout,next
 
       call INIT_NATURE
@@ -23,9 +23,24 @@
 
       nout = 0
       time = 0.d0
-      dt   = 1.E-3*dt_diff_ex
+      dt   = dt_diff_ex
       call INITIAL_CONDITIONS(nout,time,dt)
       next = nout
+
+      do it=1,1
+        print* 
+        print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
+        call DIFFUSION(time,dt,verbose)
+        call UPDATE_CRUST
+        time = time+dt
+        nout = nout + 1
+        if (nout>next) then
+          call OUTPUT(nout,time,dt)
+          next = nout
+        endif  
+        if (time>tsim) exit
+      enddo  
+      call OUTPUT(nout,time,dt)
 
       print*
       print'("         smchem calls = ",I8)',chemcall

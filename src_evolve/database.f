@@ -104,7 +104,7 @@
       
       if (qbest<1.d-8) then
         return 
-      else if (qbest<1.d-3) then
+      else if (ibest>0.and.qbest<1.d-3) then
         i = ibest
         write(*,'(" ... replacing database entry (",I6,
      >          ") nH,T=",2(1pE15.7))') i,nH,T
@@ -134,17 +134,19 @@
 
 
 **********************************************************************
-      subroutine GET_DATA(nH,T,eps,ddust,qbest,ibest,active)
+      subroutine GET_DATA(nH,T,eps,ddust,qbest,ibest,active,verbose)
 **********************************************************************
       use ELEMENTS,ONLY: NELEM,NEPS,eps0,elnam,elnr
       use dust_data,ONLY: NDUST,dust_nel,dust_nu,dust_el,dust_nam
       use DATABASE,ONLY: qp,NDAT,NMODI,NPICK1,NPICK2,DMAX,dbase
+      use CHEMISTRY,ONLY: NELM,elnum,iel=>el
       implicit none
       real*8,intent(in) :: nH,T
       real*8,intent(out) :: qbest
       integer,intent(out) :: ibest
       real(kind=qp),intent(inout) :: eps(NELEM),ddust(NDUST)
       logical,intent(out) :: active(0:NDUST)
+      integer,intent(in) :: verbose
       real*8 :: ln,lT,lnread,lTread,qual,pot,rsort(NEPS)
       real(kind=qp) :: check(NELEM),error,errmax,corr,emain,del
       real(kind=qp) :: stoich(NEPS,NEPS),xx(NEPS),rest(NEPS),tmp
@@ -235,7 +237,9 @@
             enddo
           enddo
           errmax = -1.Q0
-          do el=1,NELEM
+          do i=1,NELM
+            if (i==iel) cycle
+            el = elnum(i)
             error = ABS(1.Q0-check(el)/eps0(el))
             if (error.gt.errmax) then
               errmax = error
@@ -327,16 +331,20 @@
           el = ibuf(b) 
           j = jmain(el)
           rest(b) = check(el)
-          write(frmt,'("(A2,2x,",I2,"(I2),A16,2(1pE13.6))")') Nbuf
-          write(*,frmt) elnam(el),INT(stoich(b,1:Nbuf)),
-     &           trim(dust_nam(j)),REAL(ddust(j)),REAL(rest(b))
+          if (verbose>1) then
+            write(frmt,'("(A2,2x,",I2,"(I2),A16,2(1pE13.6))")') Nbuf
+            write(*,frmt) elnam(el),INT(stoich(b,1:Nbuf)),
+     &                    trim(dust_nam(j)),ddust(j),rest(b)
+          endif  
         enddo  
         call GAUSS16( NEPS, Nbuf, stoich, xx, rest)
         do b=1,Nbuf
           el = ibuf(b)
           j = jmain(el)
           ddust(j) = xx(b)
-          print'(A3,A16,1pE13.6)',elnam(el),trim(dust_nam(j)),ddust(j)
+          if (verbose>1) then
+            print'(A3,A16,1pE13.6)',elnam(el),trim(dust_nam(j)),ddust(j)
+          endif  
           if (xx(b)<0.Q0) then
             print*,"*** negative dust abundance in database.f"
             ddust(j) = 0.Q0
@@ -357,7 +365,9 @@
           el = isort(i)
           if (jmain(el)==0) then
             tmp = eps0(el)-check(el)
-            print*,elnam(el)//" gas",REAL(tmp)
+            if (verbose>1) then
+              print*,elnam(el)//" gas",REAL(tmp)
+            endif  
             if (tmp<0.Q0) then
               print*,"*** negative element abundance in database.f" 
               qbest = 9.d+99
@@ -385,7 +395,9 @@
           enddo
         enddo
         errmax = -1.Q0
-        do el=1,NELEM
+        do i=1,NELM
+          if (i==iel) cycle 
+          el = elnum(i) 
           error = ABS(1.Q0-check(el)/eps0(el))
           if (error.gt.errmax) then
             errmax = error

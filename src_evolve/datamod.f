@@ -151,9 +151,10 @@
       real,allocatable :: atms(:,:)   ! atomic particle densities
       real,allocatable :: elec(:)     ! electron particle densities
       real :: crust_depth             ! spatial depth of crust 
-      real(kind=qp) :: crust_beta(NDUSTmax)  ! condensed volume mixing ratios
-      real(kind=qp) :: crust_eps(NELEM)      ! eps of crust
-      real(kind=qp) :: crust_gaseps(NELEM)   ! eps in gas over crust
+      real(kind=qp) :: crust_beta(NDUSTmax)  ! crust volume composition
+      real(kind=qp) :: crust_Ncond(NDUSTmax) ! condensed col.dens. in crust
+      real(kind=qp) :: crust_Neps(NELEM)     ! element col.dens. in crust
+      real(kind=qp) :: crust_gaseps(NELEM)   ! element abund. in gas over crust
       end
 
 ************************************************************************

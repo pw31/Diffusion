@@ -16,6 +16,9 @@ src_evolve/*.o
 src_evolve/*.mod
 src_evolve/makefile
 src_evolve/*~
+diffuse
 diffudrift
-out*
+diffuevo
+out.*
+output*
 movies/*.mpg
