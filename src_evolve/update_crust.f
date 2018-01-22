@@ -18,12 +18,12 @@
       real*8  :: Tg,nH,dz
       real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST)
       real(kind=qp) :: sum_beta,Natmos,Ncrust,NtotH,crust_Vol
-      integer :: i,j,el,verbose=2
+      integer :: i,j,el,verb,verbose=2
 
       if (verbose>1) then
         print*
-        print*,"entering DIFFUSION ..."
-        print*,"======================"
+        print*,"entering UPDATE_CRUST ..."
+        print*,"========================="
       endif  
 
       Tg = Temp(1)
@@ -39,7 +39,7 @@
         eps0(el) = (Natmos+Ncrust)/NtotH
       enddo  
       inactive = .false.
-      call EQUIL_COND(nH,Tg,eps,Sat,eldust,verbose)
+      call EQUIL_COND(nH,Tg,eps,Sat,eldust,verb)
 
       if (verbose>1) then
         do i=1,NELM
@@ -48,7 +48,6 @@
           print'(A3,2(1pE16.7))',elnam(el),eps0(el),eps(el) 
         enddo
       endif  
-      stop
 
       crust_gaseps(:) = eps(:)            ! element abund. over crust
       crust_Ncond(:) = 0.Q0               ! crust material column densities
@@ -64,6 +63,9 @@
         enddo
       enddo  
       crust_depth = crust_Vol             ! thickness of crust
+      if (verbose>1) then
+        print*,"crust depth[cm] = ",crust_depth
+      endif  
 
       crust_beta(:) = 0.Q0                ! crust volume composition
       sum_beta = 0.Q0

@@ -18,7 +18,7 @@
       call READ_STRUCTURE
       call INIT_ELEMENTS2
       call INIT_GRID
-      call INIT_DIFFUSION
+      call INIT_TIMESTEP
       call INIT_CRUST
 
       nout = 0

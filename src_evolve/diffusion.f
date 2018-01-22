@@ -2,7 +2,7 @@
       subroutine DIFFUSION(time,deltat,verbose)
 ************************************************************************
       use PARAMETERS,ONLY: implicit
-      use GRID,ONLY: xlower,xupper,dt_diff_im
+      use GRID,ONLY: xlower,xupper,dt_diff_ex
       use STRUCT,ONLY: crust_gaseps      
       use ELEMENTS,ONLY: NELEM
       implicit none
@@ -11,14 +11,19 @@
 
       xlower = crust_gaseps
 
-      if (verbose>1) then
-        print*
-        print*,"entering DIFFUSION ..."
-        print*,"======================"
-      endif  
-      if (implicit.and.deltat>dt_diff_im) then
+      if (implicit.and.deltat>100*dt_diff_ex) then
+        if (verbose>1) then
+          print*
+          print*,"entering IMPLICIT DIFFUSION ..."
+          print*,"==============================="
+        endif  
         call DIFFUSION_IMPLICIT(time,deltat,verbose)
       else
+        if (verbose>1) then
+          print*
+          print*,"entering EXPLICIT DIFFUSION ..."
+          print*,"==============================="
+        endif  
         call DIFFUSION_EXPLICIT(time,deltat,verbose)
       endif
       end
@@ -150,7 +155,7 @@
       subroutine DIFFUSION_IMPLICIT(time0,deltat,verbose)
 ************************************************************************
       use GRID,ONLY: N=>Npoints,zz,d1l,d1m,d1r,d2l,d2m,d2r,
-     >               BB,dt_diff_im,xlower,xupper
+     >               dt_diff_im,xlower,xupper
       use PARAMETERS,ONLY: tfac,bc_low,bc_high,
      >                     influx,outflux,inrate,outrate,vin,vout,
      >                     dust_diffuse
@@ -163,12 +168,15 @@
       integer,intent(in) :: verbose
       integer :: i,j,it,e,el,Nstep
       real*8,dimension(N) :: xx,xnew,rest
+      real*8,dimension(N,N) :: BB_1,BB_2,BB
       real*8 :: nD,time,dt
       character :: CR = CHAR(13)
 
-      Nstep = deltat/dt_diff_im
+      Nstep = 100
       time  = 0.d0
       dt    = deltat/Nstep
+      call INIT_DIFFUSION(N,1,dt,BB_1)  ! for bc_low=1
+      call INIT_DIFFUSION(N,2,dt,BB_2)  ! for bc_low=2
       
       do it=1,Nstep
 
@@ -182,23 +190,22 @@
           !------------------------------
           rest = xx
           nD = nHtot(1)*Diff(1)  
-          if (crust_Neps(el)>0.Q0) then   
-            xx(1)   = xlower(el)              ! const concentration bound.cond.
-            influx  = -nD
-     >              *(d1l(1)*xx(1) + d1m(1)*xx(2) + d1r(1)*xx(3))
+          if (crust_Neps(el)>0.Q0) then       ! fixed conc. bound.cond.
+            rest(1) = xlower(el)
+            bc_low = 1
+            BB = BB_1
           else                              
+            bc_low = 2
             influx  = 0.d0                    ! zero flux bound.cond.
             rest(1) = -influx/nD/d1l(1) 
+            BB = BB_2
           endif
           nD = nHtot(N)*Diff(N)  
           if (bc_high==1) then
-            xx(N)   = xupper(el) 
-            outflux = -nD
-     >              *(d1l(N)*xx(N-2) + d1m(N)*xx(N-1) + d1r(N)*xx(N)) 
+            rest(N) = xupper(el) 
           else if (bc_high==2) then
             rest(N) = -outflux/nD/d1r(N)           
           else if (bc_high==3) then
-            outflux = outrate*nHtot(N)*xx(N)*vout 
             rest(N) = 0.d0
           endif
 
@@ -211,11 +218,26 @@
               xnew(i) = xnew(i) + BB(i,j)*rest(j)
             enddo  
           enddo  
+          xx(:) = xnew(:)
           nHeps(el,:) = nHtot(:)*xnew(:)
 
           !----------------------------------------
           ! ***  update crust column densities  ***
           !----------------------------------------
+          nD = nHtot(1)*Diff(1)  
+          if (crust_Neps(el)>0.Q0) then
+            influx = -nD*(d1l(1)*xx(1) + d1m(1)*xx(2) + d1r(1)*xx(3))
+          else                              
+            influx = 0.d0           
+          endif
+          !nD = nHtot(N)*Diff(N)  
+          !if (bc_high==1) then
+          !  outflux = -nD*(d1l(N)*xx(N-2) + d1m(N)*xx(N-1) + d1r(N)*xx(N)) 
+          !else if (bc_high==2) then
+          !else if (bc_high==3) then
+          !  outflux = outrate*nHtot(N)*xx(N)*vout 
+          !endif
+
           if (crust_Neps(el)>0.Q0) then   
             print*,elnam(el),REAL(crust_Neps(el)),influx*dt
             crust_Neps(el) = crust_Neps(el) - influx*dt

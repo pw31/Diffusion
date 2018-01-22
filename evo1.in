@@ -1,19 +1,19 @@
 H He C N O Na Mg Si Fe Ni Ca Al Ti S Cl K el
 
-2Drift_1500.data        ! struc_file
+2Drift_1400.data        ! struc_file
 DustChem_ALL.dat        ! dustchem_file
 3.E+7                   ! tsim
 0.8                     ! beta
 
-2        ! evap_model
-.false.  ! implicit
 101      ! Npoints
-1.E-6    ! pmin
+1.E-7    ! pmin
 1.0      ! pmax
--1        ! init
+2        ! init
 2        ! bc_high    
 0.0      ! outflux
 2        ! verbose
+.true.   ! implicit
+100.0    ! tfac
 
 800.0    ! Tfast
 .true.   ! NewFullIt

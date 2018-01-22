@@ -29,7 +29,9 @@ OBJECTS  = datamod.o \
            init_chemistry.o \
 	   init_dustchem.o \
            init_grid.o \
+	   init_timestep.o \
 	   init_crust.o \
+	   update_crust.o \
            initial_conditions.o \
 	   supersat.o \
 	   active_molecules.o \
@@ -37,6 +39,8 @@ OBJECTS  = datamod.o \
            smchem8.o \
            smchem16.o \
 	   equil_cond.o \
+	   pressure.o \
+	   output.o \
 	   database.o \
            init_diffusion.o \
 	   diffusion.o \
