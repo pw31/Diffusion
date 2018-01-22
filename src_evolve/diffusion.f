@@ -2,7 +2,7 @@
       subroutine DIFFUSION(time,deltat,verbose)
 ************************************************************************
       use PARAMETERS,ONLY: implicit
-      use GRID,ONLY: xlower,xupper,dt_diff_ex
+      use GRID,ONLY: xlower,xupper,dt_diff_im
       use STRUCT,ONLY: crust_gaseps      
       use ELEMENTS,ONLY: NELEM
       implicit none
@@ -16,7 +16,7 @@
         print*,"entering DIFFUSION ..."
         print*,"======================"
       endif  
-      if (implicit.and.deltat>dt_diff_ex) then
+      if (implicit.and.deltat>dt_diff_im) then
         call DIFFUSION_IMPLICIT(time,deltat,verbose)
       else
         call DIFFUSION_EXPLICIT(time,deltat,verbose)
@@ -82,11 +82,11 @@
           !------------------------------
           nD = nHtot(1)*Diff(1)  
           if (crust_Neps(el)>0.Q0) then   
-            xx(1) = xlower(el)              ! const concentration bound.cond.
+            xx(1) = xlower(el)              ! constant concentration
             influx = -nD
      >             *(d1l(1)*xx(1) + d1m(1)*xx(2) + d1r(1)*xx(3))
           else                              
-            influx = 0.d0                   ! zero flux bound.cond.
+            influx = 0.d0                   ! zero flux 
             xx(1) = (-influx/nD - d1m(1)*xx(2) - d1r(1)*xx(3))
      >             /d1l(1) 
           endif  
@@ -107,11 +107,13 @@
           !----------------------------------------
           ! ***  update crust column densities  ***
           !----------------------------------------
-          print*,elnam(el),REAL(crust_Neps(el)),influx*dt
-          crust_Neps(el) = crust_Neps(el) - influx*dt
-          if (crust_Neps(el)<0.Q0) then
-            print*,elnam(el),"negative crust column density"
-            stop
+          if (crust_Neps(el)>0.Q0) then   
+            print*,elnam(el),REAL(crust_Neps(el)),influx*dt
+            crust_Neps(el) = crust_Neps(el) - influx*dt
+            if (crust_Neps(el)<0.Q0) then
+              print*,elnam(el),"negative crust column density"
+              stop
+            endif  
           endif  
 
           !------------------------------------------
@@ -154,6 +156,7 @@
      >                     dust_diffuse
       use STRUCT,ONLY: Diff,nHtot,nHeps,crust_Neps
       use DUST_DATA,ONLY: NDUST
+      use ELEMENTS,ONLY: elnam
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el
       implicit none
       real*8,intent(IN) :: time0,deltat
@@ -213,11 +216,13 @@
           !----------------------------------------
           ! ***  update crust column densities  ***
           !----------------------------------------
-          print*,elnam(el),REAL(crust_Neps(el)),influx*dt
-          crust_Neps(el) = crust_Neps(el) - influx*dt
-          if (crust_Neps(el)<0.Q0) then
-            print*,elnam(el),"negative crust column density"
-            stop
+          if (crust_Neps(el)>0.Q0) then   
+            print*,elnam(el),REAL(crust_Neps(el)),influx*dt
+            crust_Neps(el) = crust_Neps(el) - influx*dt
+            if (crust_Neps(el)<0.Q0) then
+              print*,elnam(el),"negative crust column density"
+              stop
+            endif  
           endif  
 
         enddo  

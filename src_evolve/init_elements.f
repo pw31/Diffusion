@@ -6,14 +6,15 @@
 *****                                                            *****
 **********************************************************************
       use PARAMETERS,ONLY: abund_pick
-      use ELEMENTS,ONLY: NELEM,eps=>eps0,mass,elnam
+      use ELEMENTS,ONLY: NELEM,eps=>eps0,eps_solar,eps_meteor,
+     >                   mass,elnam
       use NATURE,ONLY: amu
       use EXCHANGE,ONLY: H,He,Li,Be,B,C,N,O,F,Ne,Na,Mg,Al,Si,P,S,Cl,
      >                   Ar,K,Ca,Sc,Ti,V,Cr,Mn,Fe,Co,Ni,Cu,Zn,Ga,Ge,
      >                   As,Se,Br,Kr,Rb,Sr,Y,Zr,W
       implicit none
       integer :: i,nr
-      real*8 :: m,abund(74,4)
+      real*8 :: m,abund(80,4)
       character(len=2) :: el
       character(len=20) :: elname
       character(len=10) :: source(4)
@@ -155,35 +156,28 @@
       do i=1,NELEM
         eps(i) = 10.Q0 ** (eps(i)-12.Q0)
       enddo
+      eps_solar = eps
   
-*     ------------------------------------
-*     ***  read abundances from file?  ***      
-*     ------------------------------------
-      if (abund_pick.ne.3) then
-        source = (/'EarthCrust','Ocean     ','Solar     ','Meteorites'/)
-        write(*,*)
-        write(*,*) "replacing from file Abundances.dat ("
-     &             //trim(source(abund_pick))//") ..."
-        open(1,file='data/Abundances.dat',status='old')
-        do i=1,5
-          read(1,'(A200)') line
-        enddo  
-        do i=1,74
-          read(1,*) nr,elname,el,m,abund(nr,1:4)
-          if (nr<=40) then
-            mass(nr)  = m*amu
-            elnam(nr) = el
-            eps(nr)   = MAX(1.e-99,abund(nr,abund_pick)
-     &                            /abund(1,abund_pick))
-          else if (trim(el)=='W') then
-            mass(W)  = m*amu
-            elnam(W) = el
-            eps(W)   = MAX(1.e-99,abund(nr,abund_pick)
-     &                           /abund(1,abund_pick))
-          endif  
-        enddo  
-        close(1)
-      endif  
+*     ---------------------------------------------
+*     ***  read meteorite abundances from file  ***      
+*     ---------------------------------------------
+      open(1,file='data/Abundances.dat',status='old')
+      do i=1,5
+        read(1,'(A200)') line
+      enddo  
+      do i=1,74
+        read(1,*) nr,elname,el,m,abund(nr,1:4)
+        if (nr<=40) then
+          !mass(nr)  = m*amu
+          !elnam(nr) = el
+          eps_meteor(nr) = MAX(1.e-50,abund(nr,4)/abund(1,4))
+        else if (trim(el)=='W') then
+          !mass(W)  = m*amu
+          !elnam(W) = el
+          eps_meteor(W)  = MAX(1.e-50,abund(nr,4)/abund(1,4))
+        endif  
+      enddo  
+      close(1)
       end
 
 **********************************************************************

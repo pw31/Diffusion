@@ -7,25 +7,34 @@
 !-------------------------------------------------------------------------
       use NATURE,ONLY: km
       use GRID,ONLY: zz
-      use STRUCT,ONLY: Temp,nHtot,crust_depth,crust_beta,crust_Ncond,
-     >                 crust_Neps,crust_gaseps
-      use ELEMENTS,ONLY: eps0,elnam
+      use STRUCT,ONLY: Temp,nHtot,press,crust_depth,crust_beta,
+     >                 crust_Ncond,crust_Neps,crust_gaseps
+      use ELEMENTS,ONLY: eps0,eps_solar,eps_meteor,elnam
       use CHEMISTRY,ONLY: NELEM,NELM,NMOLE,elnum,iel=>el
       use DUST_DATA,ONLY: NDUST,dust_vol,dust_nam,
      >                    dust_nel,dust_el,dust_nu
       use EXCHANGE,ONLY: inactive,nmol,chi
       implicit none
       integer,parameter  :: qp = selected_real_kind ( 33, 4931 )
-      real*8  :: Tg,nH,dz
+      real*8  :: Tg,nH,p,dz,PRESSURE
       real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST)
       real(kind=qp) :: sum_beta,fac
-      integer :: i,j,el,verbose=0
+      integer :: i,j,el,it,verbose=0
 
       allocate(nmol(NMOLE),chi(NDUST),inactive(NMOLE))
       Tg = Temp(1)
       nH = nHtot(1)
+      eps0 = eps_meteor
+      eps0 = eps_solar
       inactive = .false.
-      call EQUIL_COND(nH,Tg,eps,Sat,eldust,verbose)
+      do it=1,99
+        call EQUIL_COND(nH,Tg,eps,Sat,eldust,verbose)
+        p = PRESSURE(Tg)
+        print'(" iter=",I2," press=",2(1pE10.3))',it,p,press(1)
+        fac = press(1)/p
+        eps0 = eps0*fac
+        if (ABS(1.d0-fac).lt.1.E-6) exit
+      enddo  
 
       crust_gaseps = 0.Q0                      ! element abund. over crust
       do i=1,NELM
@@ -44,11 +53,10 @@
       enddo  
       crust_beta = crust_beta/sum_beta
 
-      crust_Ncond(:) = 0.Q0                       ! condensed col.des. in crust
-      crust_Neps(:)  = 0.Q0                       ! element col.dens. in crust
-      crust_depth = 1.d0*km                       ! initial thickness of crust
+      crust_Ncond(:) = 0.Q0                    ! condensed col.des. in crust
+      crust_Neps(:)  = 0.Q0                    ! element col.dens. in crust
+      crust_depth = 1.d0*km                    ! initial thickness of crust
       crust_depth = 1.E-6
-      crust_depth = 1.0
       do i=1,NDUST         
         if (eldust(i).le.0.Q0) cycle 
         crust_Ncond(i) = crust_depth*crust_beta(i)/dust_vol(i)

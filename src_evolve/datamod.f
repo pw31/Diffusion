@@ -25,6 +25,8 @@
       integer,parameter :: NELEM=41           ! number of elements (up to Zr + W)
       integer :: NEPS                         ! number of affected elements
       character(len=2) :: elnam(NELEM)        ! names of elements
+      real(kind=qp) :: eps_solar(NELEM)       ! solar element abundances
+      real(kind=qp) :: eps_meteor(NELEM)      ! meteroritic element abundances
       real(kind=qp) :: eps0(NELEM)            ! element abundances
       integer :: elnr(NELEM),elcode(NELEM)    ! element cross-indices
       real*8 :: mass(NELEM)                   ! element masses

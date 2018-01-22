@@ -7,7 +7,7 @@
       use STRUCT,ONLY: nHtot,nHeps,crust_depth,
      >                 crust_beta,crust_Ncond,crust_Neps,crust_gaseps
       use DUST_DATA,ONLY: NDUST
-      use ELEMENTS,ONLY: NELEM,eps0
+      use ELEMENTS,ONLY: NELEM,eps_solar
       implicit none
       integer,intent(out) :: nout
       real*8,intent(out) :: time,dt
@@ -38,7 +38,7 @@
 
         do i=1,N
           if (init==2) then  
-            nHeps(:,i) = nHtot(i)*eps0(:)          ! solar abundances  
+            nHeps(:,i) = nHtot(i)*eps_solar(:)     ! solar abundances  
           else if (init==1) then
             nHeps(:,i) = nHtot(i)*crust_gaseps(:)  ! gas abundances over crust
           else if (init==0) then
@@ -48,8 +48,10 @@
             stop
           endif  
         enddo
+        nHeps(:,1) = nHtot(1)*crust_gaseps(:)
         print*
         print*,"start from init =",init
+        
       endif  
 
       xlower(:) = nHeps(:,1)/nHtot(1)

@@ -51,6 +51,7 @@
      &     status='replace')
       write(70,*) 't=',time
       write(70,*) NOUT,NMOLE,NDUST,Npoints
+      write(70,*) crust_depth
       do i=1,NDUST
         write(70,3000) trim(short_name(i)),crust_Ncond(i),crust_beta(i) 
       enddo  

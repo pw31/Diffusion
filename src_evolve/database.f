@@ -280,11 +280,11 @@
         !--- 2. identify main reservoirs ---
         used = .false.
         Nbuf = 0
+        jmain = 0
         do i=1,NEPS
           el = isort(i)
           check(el) = eps(el)
           emain = eps(el)
-          jmain(el) = 0
           do j=1,NDUST
             if (ddust(j)==0.Q0) cycle
             do k=1,dust_nel(j)
@@ -361,8 +361,9 @@
             check(el) = check(el) + ddust(i)*dust_nu(i,j)    
           enddo
         enddo
-        do i=1,NEPS
-          el = isort(i)
+        do i=1,NELM
+          if (i==iel) cycle
+          el = elnum(i) 
           if (jmain(el)==0) then
             tmp = eps0(el)-check(el)
             if (verbose>1) then
@@ -399,6 +400,7 @@
           if (i==iel) cycle 
           el = elnum(i) 
           error = ABS(1.Q0-check(el)/eps0(el))
+          !print*,elnam(el),REAL(check(el)),REAL(eps0(el))
           if (error.gt.errmax) then
             errmax = error
             elworst = el
@@ -406,6 +408,7 @@
         enddo  
         !print*,"check ",elnam(elworst),errmax
         if (errmax>1.Q-10) then
+          print*,elnam(elworst),check(elworst),eps0(elworst)
           print*,"*** element conservation violation in database.f"
           stop
         endif  

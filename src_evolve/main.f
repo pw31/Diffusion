@@ -23,11 +23,12 @@
 
       nout = 0
       time = 0.d0
-      dt   = dt_diff_ex
+      dt   = 1.E-3*dt_diff_ex
       call INITIAL_CONDITIONS(nout,time,dt)
+      call OUTPUT(nout,time,dt)
       next = nout
 
-      do it=1,1
+      do it=1,30
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
         call DIFFUSION(time,dt,verbose)
@@ -37,6 +38,7 @@
         if (nout>next) then
           call OUTPUT(nout,time,dt)
           next = nout
+          dt = 2.0*dt
         endif  
         if (time>tsim) exit
       enddo  
