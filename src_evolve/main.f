@@ -28,7 +28,7 @@
       call OUTPUT(nout,time,dt)
       next = nout
 
-      do it=1,30
+      do it=1,100
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
         call DIFFUSION(time,dt,verbose)

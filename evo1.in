@@ -2,7 +2,7 @@ H He C N O Na Mg Si Fe Ni Ca Al Ti S Cl K el
 
 2Drift_1400.data        ! struc_file
 DustChem_ALL.dat        ! dustchem_file
-3.E+7                   ! tsim
+3.E+9                   ! tsim
 0.8                     ! beta
 
 101      ! Npoints

@@ -25,7 +25,7 @@
       Tg = Temp(1)
       nH = nHtot(1)
       eps0 = eps_meteor
-      eps0 = eps_solar
+      !eps0 = eps_solar
       inactive = .false.
       do it=1,99
         call EQUIL_COND(nH,Tg,eps,Sat,eldust,verbose)
@@ -55,8 +55,9 @@
 
       crust_Ncond(:) = 0.Q0                    ! condensed col.des. in crust
       crust_Neps(:)  = 0.Q0                    ! element col.dens. in crust
-      crust_depth = 1.d0*km                    ! initial thickness of crust
-      crust_depth = 1.E-6
+      !crust_depth = 1.d0*km                   ! initial thickness of crust
+      !crust_depth = 1.E-2
+      crust_depth = 1.e-99                     ! initial thickness of crust
       do i=1,NDUST         
         if (eldust(i).le.0.Q0) cycle 
         crust_Ncond(i) = crust_depth*crust_beta(i)/dust_vol(i)

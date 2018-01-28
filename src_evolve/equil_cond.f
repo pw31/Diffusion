@@ -270,16 +270,17 @@
         el = elnum(i) 
         worst = MAX(worst,ABS(1.Q0-check(el)/eps0(el)))
       enddo
-      eps00 = check
-      if (verbose>0) then
+      !eps00 = check
+      eps00 = eps0
+      !if (verbose>=0) then
         write(*,*) "element conservation error 1:",worst
         write(*,*) "initial gas fractions ..."
         do i=1,NELM
           if (i==iel) cycle 
           el = elnum(i) 
-          print'(3x,A2,2(1pE15.6))',elnam(el),eps(el),eps(el)/eps00(el)
+          print'(A3,2(1pE16.7))',elnam(el),eps0(el),eps(el)
         enddo
-      endif  
+      !endif  
       if (worst>1.Q-8) stop "*** worst>1.Q-8 in equil_cond"
 
       !----------------------------------------------------------

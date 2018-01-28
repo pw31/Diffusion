@@ -397,6 +397,7 @@
         endif
       enddo  
       if (Ncheck==0) return
+      return   ! temporary acceleration!
 
       !-------------------------------
       ! ***  check melting points  ***
