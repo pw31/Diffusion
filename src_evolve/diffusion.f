@@ -12,10 +12,11 @@
       real*8,intent(in) :: time,deltat
       integer,intent(in) :: verbose
       real(kind=qp) :: eps(NELEM),Sat(NDUST)
-      real*8 :: nH,Tg,flux,fmin,dz,first_eps,second_eps
-      logical :: evaporates(NDUST),limiting(NELEM)
-      integer :: s,i,el,emin
+      real*8 :: nH,Tg,flux,fmin,dz,bsum
+      real*8 :: branch(NELEM,10)
+      integer :: s,i,j,el,el2,emin
       integer :: Nlim(NELEM),Dlim(NELEM,10)
+      logical :: evaporates(NDUST),limiting(NELEM)
 
       xlower = crust_gaseps
 
@@ -54,6 +55,24 @@
         Nlim(emin) = Nlim(emin)+1
         Dlim(emin,Nlim(emin)) = s
       enddo
+      do el=1,NELEM
+        if (Nlim(el).le.1) cycle
+        bsum = 0.d0
+        do i=1,Nlim(el)
+          branch(el,i) = 1.d0
+          s = Dlim(el,i)
+          do j=1,dust_nel(s)
+            el2 = dust_el(s,j)
+            if (el2==el) cycle
+            branch(el,i) = MIN(branch(el,i),
+     >                         crust_gaseps(el2)/dust_nu(s,j))
+          enddo
+          bsum = bsum + branch(el,i)
+        enddo
+        branch(el,:) = branch(el,:)/bsum
+        print*,elnam(el),": ",dust_nam(Dlim(el,1:Nlim(el)))
+        print*,branch(el,1:Nlim(el))
+      enddo 
 
       if (implicit.and.deltat>100*dt_diff_ex) then
         if (verbose>1) then
@@ -61,21 +80,23 @@
           print*,"entering IMPLICIT DIFFUSION ..."
           print*,"==============================="
         endif  
-        call DIFFUSION_IMPLICIT(time,deltat,limiting,Nlim,Dlim,verbose)
+        call DIFFUSION_IMPLICIT(time,deltat,limiting,Nlim,Dlim,
+     >                          branch,verbose)
       else
         if (verbose>1) then
           print*
           print*,"entering EXPLICIT DIFFUSION ..."
           print*,"==============================="
         endif  
-        call DIFFUSION_EXPLICIT(time,deltat,limiting,Nlim,Dlim,verbose)
+        call DIFFUSION_EXPLICIT(time,deltat,limiting,Nlim,Dlim,
+     >                          branch,verbose)
       endif
       end
 
 
 ************************************************************************
       subroutine DIFFUSION_EXPLICIT(time0,deltat,limiting,Nlim,Dlim,
-     >                              verbose)
+     >                              branch,verbose)
 ************************************************************************
       use NATURE,ONLY: pi
       use GRID,ONLY: N=>Npoints,zz,d1l,d1m,d1r,d2l,d2m,d2r,dt_diff_ex,
@@ -87,7 +108,7 @@
       use ELEMENTS,ONLY: NELEM,elnam
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el
       implicit none
-      real*8,intent(IN) :: time0,deltat
+      real*8,intent(in) :: time0,deltat,branch(NELEM,10)
       logical,intent(in) :: limiting(NELEM)
       integer,intent(in) :: Nlim(NELEM),Dlim(NELEM,10),verbose
       integer :: i,it,e,el,round
@@ -110,7 +131,7 @@
             ! ***  from the influxes of the limiting elements and  ***
             ! ***  the stoichiometry of the crust                  ***
             !---------------------------------------------------------
-            call INFLUXES(influx,limiting,Nlim,Dlim) 
+            call INFLUXES(influx,limiting,Nlim,Dlim,branch) 
           endif
    
           do e=1,NELM
@@ -220,7 +241,7 @@
 
 ************************************************************************
       subroutine DIFFUSION_IMPLICIT(time0,deltat,limiting,Nlim,Dlim,
-     >                              verbose)
+     >                              branch,verbose)
 ************************************************************************
       use GRID,ONLY: N=>Npoints,zz,d1l,d1m,d1r,d2l,d2m,d2r,
      >               dt_diff_im,xlower,xupper
@@ -232,7 +253,7 @@
       use ELEMENTS,ONLY: NELEM,elnam
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el
       implicit none
-      real*8,intent(IN) :: time0,deltat
+      real*8,intent(IN) :: time0,deltat,branch(NELEM,10)
       logical,intent(in) :: limiting(NELEM)
       integer,intent(in) :: Nlim(NELEM),Dlim(NELEM,10),verbose
       integer :: i,j,it,e,el,Nstep,round
@@ -258,7 +279,7 @@
             ! ***  from the influxes of the limiting elements and  ***
             ! ***  the stoichiometry of the crust                  ***
             !---------------------------------------------------------
-            call INFLUXES(influx,limiting,Nlim,Dlim) 
+            call INFLUXES(influx,limiting,Nlim,Dlim,branch) 
           endif
 
           do e=1,NELM
@@ -350,7 +371,7 @@
 
 
 ************************************************************************
-      SUBROUTINE INFLUXES(influx,limiting,Nlim,Dlim) 
+      SUBROUTINE INFLUXES(influx,limiting,Nlim,Dlim,branch) 
 ************************************************************************
       use STRUCT,ONLY: Diff,nHtot,nHeps,crust_Neps,crust_Ncond
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
@@ -360,8 +381,9 @@
       real*8,intent(inout) :: influx(NELEM)
       logical,intent(in) :: limiting(NELEM)
       integer,intent(in) :: Nlim(NELEM),Dlim(NELEM,10)
+      real*8,intent(in) :: branch(NELEM,10)
       integer :: i,j,k,e,el,el2,el3,s,Neq1,Neq2,ii,jj,NEXTRA
-      integer :: extra_nel(NDUST),extra_Ns(NDUST),extra_s(NDUST)
+      integer :: extra_nel(NDUST),extra_Ns(NDUST),extra_s(NDUST,20)
       real*8 :: AA(NELM,NELM),sol(NELM),rhs(NELM)
       real*8 :: dNcond(NDUST),check(NELEM)     
       real*8 :: qual
@@ -385,7 +407,7 @@
           extra_nam(NEXTRA) = trim(extra_nam(NEXTRA))
      >                        //"-"//trim(dust_nam(s))
           extra_Ns(NEXTRA) = extra_Ns(NEXTRA)+1
-          extra_s(NEXTRA) = s
+          extra_s(NEXTRA,i) = s
           do j=1,dust_nel(s)
             el2 = dust_el(s,j)
             found = .false.
@@ -397,12 +419,13 @@
               endif
             enddo
             if (found) then
-              extra_nu(NEXTRA,k) = extra_nu(NEXTRA,k)+dust_nu(s,j)
+              extra_nu(NEXTRA,k) = extra_nu(NEXTRA,k)
+     >                           + branch(el,i)*dust_nu(s,j)
             else
-              extra_nel(NEXTRA) = extra_nel(NEXTRA)+1
+              extra_nel(NEXTRA)  = extra_nel(NEXTRA)+1
               k = extra_nel(NEXTRA)
               extra_el(NEXTRA,k) = el2
-              extra_nu(NEXTRA,k) = dust_nu(s,j)
+              extra_nu(NEXTRA,k) = branch(el,i)*dust_nu(s,j)
             endif
           enddo
         enddo
@@ -411,9 +434,10 @@
         print*,trim(extra_nam(i))
         do j=1,extra_nel(i)
           el = extra_el(i,j)
-          print*,elnam(el),int(extra_nu(i,j))
+          print*,elnam(el),extra_nu(i,j)
         enddo  
       enddo
+      stop
 
       !--------------------------------------------
       ! ***  fill in equation system            ***
