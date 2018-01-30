@@ -1,0 +1,363 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx,natbib,amsmath}
+
+\setlength{\textheight}{24.5cm}
+\setlength{\textwidth}{16.5cm}
+\setlength{\topmargin}{-14mm}
+\setlength{\evensidemargin}{-2mm}
+\setlength{\oddsidemargin}{-2mm}
+\setlength{\headsep}{4mm}
+
+\def\nH{n_{\langle\rm H\rangle}}
+\def\Vl{V_{\ell}}
+\def\Nl{N_{\ell}}
+\def\rhod{\rho_{\rm d}}
+\def\ek{\epsilon_k}
+\def\pdiff#1#2{\frac{\partial #1}{\partial #2}}
+\def\rhogr{\rho_{\rm gr}}
+\def\Dd{D_{\!d}}
+
+\def\apj{ApJ}
+\def\pasp{PASP}
+\def\pasj{PASJ}
+\def\araa{ARA\&A}
+\def\aap{A\&A}
+\def\aaps{A\&AS}
+\def\apjl{ApJL}
+\def\apjs{ApJS}
+\def\mnras{MNRAS}
+\def\aj{AJ}
+\def\nat{Nature}
+\def\icarus{Icarus}
+\def\pasa{PASA}
+
+\def\la{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr<\cr\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr
+<\cr\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr
+<\cr\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil\cr
+<\cr\sim\cr}}}}}
+\def\ga{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr>\cr\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr
+>\cr\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr
+>\cr\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil\cr
+>\cr\sim\cr}}}}}
+
+
+\begin{document}
+
+\paragraph{Definitions}{\ }\\
+
+\begin{tabular}{l|l|c}
+\hline
+symbol  & description & unit\\
+\hline
+$z$                       & vertical coordinate    & cm\\
+$\nH$                     & hydrogen nuclei density & cm$^{-3}$\\
+$\rho = \mu_{\rm H}\,\nH$  & gas mass density       & g\,cm$^{-3}$\\
+$T$                       & gas temperature        & K\\
+%$p = \frac{\rho}{\mu}kT$  & gas pressure           & dyn\,cm$^{-2}$\\
+%$\mu$                     & mean gas particle mass & g\\
+$a$                       & dust particle radius   & cm\\
+$V=\frac{4\pi}{3}a^3$     & volume of a dust particle & cm$^3$\\
+$\Vl$                     & miminum volume of a dust particle & cm$^3$\\
+$f(V)$                    & size distribution function & $\rm cm^{-6}$\\
+$\rho L_j=\int_{V_\ell}^\infty f(V)V^{j/3}\,dV$  
+                          & dust moments           & cm$^{j-3}$\\
+$L_j$                     & dust moments           & cm$^j$\,g$^{-1}$\\
+$J_\star$                  & nucleation rate        & $\rm cm^{-3}s^{-1}$\\
+$D$                       & diffusion coefficient  & cm$^2$\,s$^{-1}$\\
+\hline  
+\end{tabular}
+
+\bigskip
+\section{General Equations}
+
+The dust moment equations are given by \citep[see derivation
+  in][section~3]{Woitke2003}
+\begin{equation}
+  \pdiff{(\rho L_j)}{t} + \nabla(\vec{v}\,\rho L_j) 
+    ~=~ \underbrace{\Vl^{j/3} \sum\limits_s J_\star^s}_{\rm nucleation}
+    ~+\underbrace{\frac{j}{3}\,\chi\,\rho L_{j-1}}_{\rm growth}
+    ~+\underbrace{\nabla\left(\Dd\,\rho\nabla L_j\right)}_{\rm diffusion}
+    ~+\,\underbrace{\nabla\!\left(\xi\frac{\rhod}{c_T}L_{j+1}
+                  \,\widehat{r}\right)}_{\rm drift}
+\end{equation}
+where the first term on the r.h.s. accounts for the increase of the
+dust moments due to nucleation, the second term accounts for the
+growth and evaporation of the dust particles ($\chi$ can be negative),
+the third term is for diffusive mixing, and the forth term accounts
+for the downward equilibrium drift of the grains in a gravitational
+field, $\xi=\sqrt[3]{\frac{3}{4\pi}}\frac{\sqrt{\pi}}{2}\,g$, for the
+case of small Knudsen numbers, see \citet[][section
+  5.1]{Woitke2003}. $\widehat{r}$ is the unit vector away from the
+center of gravity.  The idea of diffusive mixing due to convection and
+overshoot is introduced in \citet[][Sect.~2.1 and, in
+particular, Sect.~4.2]{Woitke2004}.
+
+All dust grains are assumed to be perfect spheres with
+well-mixed material composition, independent of size.
+We can then introduce $\rho L_3^s=\int_{V_\ell}^\infty f(V)V^s\,dV$
+\citep{Helling2008} and write
+\begin{equation}
+  V = \sum\limits_s V^s \quad\mbox{,}\quad
+  L_3 = \sum\limits_s L_3^s \quad\mbox{,}\quad
+  b^s = \frac{L_3^s}{L_3}  \ .
+\end{equation}
+In the following, $s=1\,...\,S$ is an index running over the
+different solid species, $r=1\,...\,R$ is an index running over the 
+surface reactions and $j=\{0,1,2,3,4\}$ is the index of the dust moments.
+We introduce the following abbreviation for the surface reaction rates
+[number of net reactions per surface area and per time]
+\begin{equation}
+  c_r^s ~=~ \sqrt[3]{36\pi}\;
+          \frac{\nu_r^s\,n_r^{\rm key}v_r^{\rm rel}\,\alpha_r}{\nu_r^{\rm key}}
+          \left(1-\frac{b^s}{S_r}\right) \ ,
+\end{equation}
+where $n_r^{\rm key}$ is the particle density [cm$^{-3}$] of the key
+species of surface reaction $r$, $\nu_r^{\rm key}$ its stoichiometric
+factor in that reaction, $v_r^{\rm rel}=\sqrt{kT/(2\pi\,m^{\rm key})}$
+its thermal relative velocity, $m^{\rm key}$ its mass, $\alpha_r$ its
+sticking probability, and $S_r$ is the reaction supersaturation
+ratio. For example, in this reaction
+\begin{equation}
+ \rm 2\,CaH ~+~ 2\,Ti ~+~ 6\,H_2O ~\longrightarrow~ 2\,CaTiO_3[s] ~+~ 7\,H_2
+\end{equation}
+the key species is either key$=$CaH or key$=$Ti (depending on which
+species is less abundant), $\nu_r^{\rm key}\!=\!2$ in both cases,
+$s\!=\rm\!CaTiO_3$[s] is the solid species, and $\nu_r^s\!=\!2$ units
+of CaTiO$_3$[s] are produced by one reaction. Using this definition,
+we can express the net growth velocity of all grains $\chi$ [cm/s] as
+\begin{equation}
+  \chi = \sum\limits_s \sum\limits_r c_r^s V_0^s \ ,
+\end{equation}
+where $V_0^s$ is the volume of one solid unit of material kind $s$.
+We can now separate the third moment equation and can express the 
+element conservation equations as follows
+\begin{eqnarray}
+  \pdiff{(\rho L_3^s)}{t} + \nabla(\vec{v}\,\rho L_3^s) 
+  &\!\!=\!\!& \Vl J_\star^s 
+    ~+ \rho L_2 \sum\limits_r V_0^s c_r^s  
+    ~+ \nabla\left(\Dd\,\rho\nabla L_3^s\right)
+    ~+ \nabla\!\left(\xi\frac{\rhod}{c_T}\,b^s L_4\,\widehat{r}\right)\\
+  \pdiff{(\nH\ek)}{t} + \nabla(\vec{v}\,\nH\ek)
+  &\!\!=\!\!& -\sum\limits_s \nu_k^s \Nl J_\star^s 
+    ~- \rho L_2 \sum\limits_s\sum\limits_r \nu_k^s c_r^s 
+    ~+ \nabla\left(D\,\nH\nabla \ek\right)  \ ,
+\end{eqnarray}
+where $\nu_k^s$ is the stoichiometric factor of element $k$ in solid
+$s$, for example $\nu_{\rm Ti}^{\rm TiO2[s]}=1$ and $\nu_{\rm O}^{\rm
+  TiO2[s]}=2$. 
+
+\section{Static planeparallel atmosphere}
+
+Next we assume that the gas in the atmosphere is static $\vec{v}=0$ 
+and that all processes are stationary $\pdiff{\,\cdot}{t}=0$. Also
+assuming plane-parallel geometry $\nabla\to\frac{d}{dz}$, 
+we find
+\begin{eqnarray}
+ 0 &=& \Vl^{j/3} \sum\limits_s J_\star^s
+    ~+ \frac{j}{3}\,\chi\,\rho L_{j-1}
+    ~+ \frac{d}{dz}\!\left(\Dd\,\rho\frac{d L_j}{dz}\right)
+    ~+ \frac{d}{dz}\!\left(\xi\frac{\rhod}{c_T}L_{j+1}\right) \\
+ 0 &=& \Vl J_\star^s 
+    ~+ \rho L_2 \sum\limits_r V_0^s c_r^s  
+    ~+ \frac{d}{dz}\!\left(\Dd\,\rho \frac{dL_3^s}{dz}\right)
+    ~+ \frac{d}{dz}\!\left(\xi\frac{\rhod}{c_T}\,b^s L_4\right)\\
+ 0 &=& -\sum\limits_s \nu_k^s \Nl J_\star^s 
+    ~- \rho L_2 \sum\limits_s\sum\limits_r \nu_k^s c_r^s 
+    ~+ \frac{d}{dz}\!\left(D\,\nH\frac{d\ek}{dz}\right)  \ .
+\end{eqnarray}
+
+\subsection{Dust mixing -- yes or no?}
+
+The assumed mixing by turbulence is described by a diffusion
+approximation where the effective diffusion coefficients is much
+larger than the gas-kinetic one 
+\begin{equation}
+  D_{\rm micro} ~=~ \frac{1}{3}\frac{v_{\rm th}}{\sigma\,n}
+\end{equation}
+where $1/(\sigma\,n)$ is the mean free path, $n$ would be the total
+gas particle density and $\sigma\approx 3\times 10^{-15}\rm\,cm^2$
+would be a typical cross-section for gas-gas collisions
+\citep{Woitke2003}.  Instead, the turbulent
+diffusion coefficient is roughly given by
+\begin{equation}
+  D ~\approx~ \langle v_z\rangle\,H_p ~\gg~  D_{\rm micro} \ ,
+\end{equation} 
+where $\langle v_z\rangle$ is the root-mean-square average of vertical
+velocities in the atmosphere, at height $z$. In the convective layer,
+$\langle v_z\rangle\approx v_{\rm conv}$ is the convective velocity
+which is a part of the stellar atmosphere model and results from the
+application of mixing length theory.  Above the convective layer,
+where the Schwarzschild criterion for convection is false, $\langle
+v_z\rangle$ will decrease rapidly with increasing $z$, but will not be
+entirely zero due to convective overshoot. We apply a powerlaw
+in $\log p$ to approximate this behaviour
+\begin{equation}
+  \log \langle v_z\rangle = \log v_{\rm conv} 
+                          - \beta\cdot\max\{0,\log p_{\rm conv}-\log p(z)\}
+\end{equation}
+with free parameter $\beta\approx 1.5\,...\,2.2$ \citep{Ludwig2002,Lee2015}.
+Due to their inertia, dust particles are less effected by turbulence,
+namely only via the slower and bigger turbulent modes (larger eddies). The dust
+diffusion coefficient is hence expected to be bracketed by the gas
+diffusion coefficient as
+\begin{equation}
+  0 ~<~ \Dd ~\leq~ D \ .
+\end{equation}
+We cannot fully account for these effects, because we need an average
+dust diffusion coefficient which we can pull out of the dust size
+integrals. However, we can consider the following two limiting cases
+\begin{equation}
+  \begin{array}{cc}
+  \mbox{{\bf case 1:}\ \ small grains\ \ } & \Dd=D\\
+  \mbox{{\bf case 2:}\ \ large grains\ \ } & \Dd=0
+  \end{array}
+\end{equation}
+For case 2, we are left with
+\begin{eqnarray}
+ 0 &=& \Vl^{j/3} \sum\limits_s J_\star^s
+    ~+ \frac{j}{3}\,\chi\,\rho L_{j-1}
+    ~+ \frac{d}{dz}\!\left(\xi\frac{\rhod}{c_T}L_{j+1}\right) \\
+ 0 &=& \Vl J_\star^s 
+    ~+ \rho L_2 \sum\limits_r V_0^s c_r^s  
+    ~+ \frac{d}{dz}\!\left(\xi\frac{\rhod}{c_T}\,b^s L_4\right)
+   \label{eq1}\\
+ 0 &=& -\sum\limits_s \nu_k^s \Nl J_\star^s 
+    ~- \rho L_2 \sum\limits_s\sum\limits_r \nu_k^s c_r^s 
+    ~+ \frac{d}{dz}\!\left(D\,\nH\frac{d\ek}{dz}\right)  \ .
+   \label{eq2}
+\end{eqnarray}
+\subsection{The total flux of elements}
+
+An important realisation is that in the static case, the total
+vertical flux of elements (due to vertical dust settling {\it and\,} due to
+turbulent mixing) must be zero everywhere in the atmosphere and for
+each element. We can derive this conclusion formally by summing up
+(Eq.~\ref{eq2}) and $\sum_s$
+(Eq.~\ref{eq1})\,$\cdot\,\nu_k^s/V_0^s$. The nucleation and growth
+terms cancel out exactly in this case, and we find
+\begin{equation}
+  \frac{d}{dz}\!\left(D\,\nH\frac{d\ek}{dz}\right) 
+  ~+~ \frac{d}{dz}\!\left(\xi
+      \frac{\rhod}{c_T}L_4\sum\limits_s\frac{\nu_k^s\,b^s}{V_0^s}\right)
+  ~=~0  \ ,
+\end{equation}
+thus,
+\begin{equation}
+  D\,\nH\frac{d\ek}{dz} 
+  ~+~ \xi\frac{\rhod}{c_T}L_4\sum\limits_s\frac{\nu_k^s\,b^s}{V_0^s}
+  ~=~ \mbox{const}_k
+\end{equation}
+This equation stills allow for constant (time-independent and
+height-independent) fluxes of elements through the atmosphere. Since
+this case would require very strange boundary conditions (where do
+these elements come from / where do they go?) we exclude that
+possibility here and demand const$_k=0$ instead, finding
+\begin{equation}
+  \underbrace{D\,\nH\frac{d\ek}{dz}}_{\displaystyle-j_k^{\rm mix}} ~+~
+  \underbrace{\xi\frac{\rhod}{c_T}L_4\sum\limits_s\frac{\nu_k^s\,b^s}{V_0^s}
+             }_{\displaystyle-j_k^{\rm drift}}
+  ~=~ 0
+  \label{eq3}
+\end{equation}
+$j_k^{\rm drift}<0$ is the element flux [1/cm$^2$/s] due to the
+downward gravitational settling of all dust particles.
+Equation~(\ref{eq3}) means that this flux must be balanced by an
+upward directed diffusive mixing flux $j_k^{\rm mix}>0$ due to turbulence, at
+each height $z$ in the atmosphere and for all elements $k$. We conclude
+\begin{equation}
+  \frac{d\ek}{dz} ~=~
+  -\frac{\xi\rhod L_4}{c_T D\,\nH} \sum\limits_s\frac{\nu_k^s\,b^s}{V_0^s}
+  \quad\quad\leq~0
+  \label{eq4}
+\end{equation}
+Whenever dust is present $(L_4>0)$ and gravity is active $(\xi>0)$,
+the gas element gradients must be negative, i.e.\ the abundance of all
+elements $k$ involved in dust formation {\sl must monotonically
+  decrease} toward the top of the atmosphere.
+
+\clearpage
+\section{Solution method}
+
+Using Eq.~(\ref{eq4}), we can write the system of coupled
+differential equations for dust and gas as
+\begin{equation}
+\boxed{\begin{array}{rll}
+  \displaystyle
+  -\frac{d}{dz}\!\left(\xi\frac{\rhod}{c_T}L_{j+1}\right) 
+  &=~\displaystyle
+       \Vl^{j/3} \sum\limits_s J_\star^s
+    ~+ \frac{j}{3}\,\chi\,\rho L_{j-1}
+  &\quad(j=0,1,2)\\[5mm]
+  \displaystyle
+  -\frac{d}{dz}\!\left(\xi\frac{\rhod}{c_T}\,b^s L_4\right) 
+  &=~\displaystyle
+     \Vl J_\star^s 
+    ~+ \rho L_2 \sum\limits_r V_0^s c_r^s
+  &\quad(s=1,...\,,S)\\[5mm]
+  \displaystyle
+  -\frac{d\ek}{dz} 
+  &=~\displaystyle
+     \xi\frac{\rhod}{c_T}\frac{L_4}{D\,\nH} 
+     \sum\limits_s\frac{\nu_k^s\,b^s}{V_0^s}
+  &\quad(k=1,...\,,K) 
+\end{array}}
+\label{eqsystem}
+\end{equation}
+
+\subsection{Closure condition}
+
+The moment equation system is completed by a closure condition of the form
+\begin{equation}
+  L_0 = {\cal F}(L_1,L_2,L_3,L_4)     \ ,
+\end{equation}
+see \citet[][section 2.4.1]{Woitke2004}.
+
+\subsection{ODE system}
+
+Our equation system (\ref{eqsystem}) has the standard form of a system
+of Ordinary Differential Equations (ODE) as 
+\begin{equation}
+  \frac{d\vec{y}}{dx} ~=~ \vec{F}(x,\vec{y}) \ .
+\end{equation}
+We will denote $\vec{y}$ as the {\sl solution vector} and $\vec{F}$ as the
+{\sl right-hand-side vector} in the following. The solution vector has
+dimension $(3+S+K)$ and is given by
+\begin{equation}
+  \vec{y} = \{\xi\frac{\rhod}{c_T}L_1\ ,\ 
+              \xi\frac{\rhod}{c_T}L_2\ ,\ 
+              \xi\frac{\rhod}{c_T}L_3\ ,\ 
+              \xi\frac{\rhod}{c_T}b^1 L_4\ ,\ ...\ , \ 
+              \xi\frac{\rhod}{c_T}b^S L_4\ ,\ 
+              \epsilon_1\ ,\ ...\ , \  
+              \epsilon_K
+            \} 
+\end{equation}
+
+\subsection{Boundary Conditions}
+
+\begin{itemize}
+\item The element abundances are given deep inside the
+      star, well below the cloud layers, say at $z=0$.
+\item All dust quantities can be assumed to be zero both
+      at the top and the bottom of the atmosphere
+\item I seems to me that the equations can only be integrated
+      from top to bottom, following the natural direction of the
+      settling dust particles
+\item I tried to solve the equations with a ODE-solver with a 
+      shooting method, but it looks to be very unstable and not
+      working so far.
+\end{itemize}
+Huston, we have a problem.
+
+\bibliographystyle{chicagon}
+\bibliography{references}
+
+\end{document}
