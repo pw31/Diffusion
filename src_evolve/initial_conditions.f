@@ -14,7 +14,7 @@
       integer :: i,el
       logical :: ex
 
-      allocate(nHeps(NELEM,N))
+      allocate(nHeps(NELEM,-2:N))
       allocate(xlower(NELEM),xupper(NELEM))
       inquire(file=trim(model_name)//"/restart.dat",exist=ex)
       if (init==-1.and.(.not.ex)) init=0
@@ -48,13 +48,15 @@
             stop
           endif  
         enddo
-        nHeps(:,1) = nHtot(1)*crust_gaseps(:)
+        do i=-2,2    ! guard cells -2,-1 and first three cells 0,1,2
+          nHeps(:,i) = nHtot(i)*crust_gaseps(:)
+        enddo  
         print*
         print*,"start from init =",init
-        
+
       endif  
 
-      xlower(:) = nHeps(:,1)/nHtot(1)
+      xlower(:) = crust_gaseps(:)
       xupper(:) = nHeps(:,N)/nHtot(N)
 
       end

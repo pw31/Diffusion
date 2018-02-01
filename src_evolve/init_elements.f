@@ -7,7 +7,7 @@
 **********************************************************************
       use PARAMETERS,ONLY: abund_pick
       use ELEMENTS,ONLY: NELEM,eps=>eps0,eps_solar,eps_meteor,
-     >                   mass,elnam
+     >                   eps_crust,mass,elnam
       use NATURE,ONLY: amu
       use EXCHANGE,ONLY: H,He,Li,Be,B,C,N,O,F,Ne,Na,Mg,Al,Si,P,S,Cl,
      >                   Ar,K,Ca,Sc,Ti,V,Cr,Mn,Fe,Co,Ni,Cu,Zn,Ga,Ge,
@@ -170,10 +170,12 @@
         if (nr<=40) then
           !mass(nr)  = m*amu
           !elnam(nr) = el
+          eps_crust(nr)  = MAX(1.e-50,abund(nr,1)/abund(1,1))
           eps_meteor(nr) = MAX(1.e-50,abund(nr,4)/abund(1,4))
         else if (trim(el)=='W') then
           !mass(W)  = m*amu
           !elnam(W) = el
+          eps_crust(W)   = MAX(1.e-50,abund(nr,1)/abund(1,1))
           eps_meteor(W)  = MAX(1.e-50,abund(nr,4)/abund(1,4))
         endif  
       enddo  

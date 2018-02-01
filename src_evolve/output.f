@@ -17,11 +17,11 @@
       real*8,intent(in) :: time,dt
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST),out(NDUST)
-      real*8 :: pp,Tg,nH,nges,kT,mu,sumn,sumnm
+      real*8 :: pp,Tg,nH,nges,kT,mu,sumn,sumnm,dz,Ncol(NELEM)
       integer :: i,j,ip,dk,e,NOUT
       character(len=200) :: line,filename
       character(len=20) :: name,short_name(NDUST)
-      character(len=1) :: char
+      character(len=1) :: char1
       character(len=8) :: cout
       logical :: hasW,ex
       integer :: verbose=0
@@ -33,11 +33,50 @@
 #endif
       if (.not.ex) then
         call SYSTEM("mkdir "//trim(model_name)) 
-      endif  
-
-      !----------------------------
-      ! ***  open output files  ***
-      !----------------------------
+      endif
+  
+      !---------------------------------
+      ! ***  write crust properties  ***
+      !---------------------------------
+      inquire(file=trim(model_name)//'/history.out',exist=ex)
+      if ((num==0).or.(.not.ex)) then
+        open(unit=12,file=trim(model_name)//'/history.out',
+     >       status='replace') 
+        write(12,'(a6,99(a14))') '#','time[s]','dt[s]','depth[cm]',
+     >            elnam(elnum(1:el-1)),elnam(elnum(el+1:NELM))
+      else   
+        open(unit=12,file=trim(model_name)//'/history.out',
+     >       position='append')
+      endif   
+      write(12,'(i6,99(1pE14.6))') num,time,dt,crust_depth,
+     >            crust_Neps(elnum(1:el-1)),crust_Neps(elnum(el+1:NELM))
+      close(12)
+      
+      !---------------------------------------
+      ! ***  write total column densities  ***
+      !---------------------------------------
+      inquire(file=trim(model_name)//'/check.out',exist=ex)
+      if ((num==0).or.(.not.ex)) then
+        open(unit=12,file=trim(model_name)//'/check.out',
+     >       status='replace') 
+        write(12,'(a6,99(a14))') '#','time[s]','dt[s]','depth[cm]',
+     >            elnam(elnum(1:el-1)),elnam(elnum(el+1:NELM))
+      else   
+        open(unit=12,file=trim(model_name)//'/check.out',
+     >       position='append')
+      endif   
+      Ncol(:) = crust_Neps(:)
+      do ip=0,Npoints
+        dz = zz(ip)-zz(ip-1)
+        Ncol(:) = Ncol(:) + nHeps(:,ip)*dz
+      enddo  
+      write(12,'(i6,99(1pE14.6))') num,time,dt,crust_depth,
+     >            Ncol(elnum(1:el-1)),Ncol(elnum(el+1:NELM))
+      close(12)
+      
+      !---------------------------------------------------------------
+      ! ***  write crust and atmospheric structure to output file  ***
+      !---------------------------------------------------------------
       do i=1,NDUST
         name = dust_nam(i) 
         j=index(name,"[s]")
@@ -50,7 +89,7 @@
       open(unit=70,file=trim(model_name)//'/structure_'//cout//'.dat',
      &     status='replace')
       write(70,*) 't=',time
-      write(70,*) NOUT,NMOLE,NDUST,Npoints
+      write(70,*) NOUT,NMOLE,NDUST,Npoints+1
       write(70,*) crust_depth
       do i=1,NDUST
         write(70,3000) trim(short_name(i)),crust_Ncond(i),crust_beta(i) 
@@ -63,7 +102,7 @@
      &               ('eps'//trim(elnam(elnum(j))),j=1,el-1),
      &               ('eps'//trim(elnam(elnum(j))),j=el+1,NELM)
 
-      do ip=1,Npoints
+      do ip=0,Npoints
         ipoint = ip
 
         !--- temperature and density ---
@@ -118,6 +157,7 @@
       write(70) crust_Neps
       write(70) crust_gaseps
       close(70)
+      read'(A1)',char1
 
  1000 format(4(' eps(',a2,') = ',1pD8.2))
  1010 format(A4,0pF8.2,3(a6,1pE9.2),1(a11,1pE9.2))

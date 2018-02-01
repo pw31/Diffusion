@@ -26,29 +26,21 @@
         print*,"========================="
       endif  
 
-      Tg = Temp(1)
-      nH = nHtot(1)
-      dz = zz(2)-zz(1)
+      Tg = Temp(0)
+      nH = nHtot(0)
+      dz = zz(1)-zz(0)
       eps0 = 0.Q0
       NtotH = nH*dz + crust_Neps(H)
       do i=1,NELM
         if (i==iel) cycle
         el = elnum(i)
-        Natmos = nHeps(el,1)*dz           ! col.dens. in atmosphere cell
+        Natmos = nHeps(el,0)*dz           ! col.dens. in atmosphere cell
         Ncrust = crust_Neps(el)           ! col.dens. in crust
         eps0(el) = (Natmos+Ncrust)/NtotH
-        !print'(A4,2(1pE16.8))',elnam(el),Natmos/NtotH,Ncrust/NtotH 
+        print'(A4,2(1pE16.8))',elnam(el),Natmos,Ncrust 
       enddo  
       inactive = .false.
       call EQUIL_COND(nH,Tg,eps,Sat,eldust,verb)
-
-      if (verbose>1) then
-        do i=1,NELM
-          if (i==iel) cycle
-          el = elnum(i)
-          print'(A3,2(1pE16.7))',elnam(el),eps0(el),eps(el) 
-        enddo
-      endif  
 
       crust_gaseps(:) = eps(:)            ! element abund. over crust
       crust_Ncond(:) = 0.Q0               ! crust material column densities
@@ -76,5 +68,14 @@
         sum_beta = sum_beta + crust_beta(i)
       enddo  
       crust_beta = crust_beta/sum_beta
+
+      if (verbose>1) then
+        do i=1,NELM
+          if (i==iel) cycle
+          el = elnum(i)
+          print'(A3,4(1pE16.7))',elnam(el),eps0(el),eps(el),
+     >         nH*crust_gaseps(el)*dz,crust_Neps(el)
+        enddo
+      endif  
 
       end

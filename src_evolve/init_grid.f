@@ -11,14 +11,14 @@
       implicit none
       integer :: i,j
       real*8 :: fac1,fac2,hmin,hmax,h1,h2,df
-      real*8 :: hr(N),hl(N),f0(N),f1(N),f2(N)
+      real*8 :: hr(-2:N),hl(-2:N),f0(-2:N),f1(-2:N),f2(-2:N)
       logical :: test=.false.
 
-      allocate(zz(N),Diff(N),rho(N),nHtot(N),
-     >         Temp(N),press(N),mu(N),
-     >         mols(NMOLE,N),atms(NELEM,N),elec(N),
-     >         d1l(1:N),d1m(1:N),d1r(1:N),
-     >         d2l(1:N),d2m(1:N),d2r(1:N))
+      allocate(zz(-2:N),Diff(-2:N),rho(-2:N),nHtot(-2:N),
+     >         Temp(-2:N),press(-2:N),mu(-2:N),
+     >         mols(NMOLE,-2:N),atms(NELEM,-2:N),elec(-2:N),
+     >         d1l(-2:N),d1m(-2:N),d1r(-2:N),
+     >         d2l(-2:N),d2m(-2:N),d2r(-2:N))
 
       hmin = 0.0
       hmax = 0.0
@@ -28,14 +28,14 @@
         if (play(j)>pmax*bar.and.hmin==0.0) hmin=zlay(j) 
       enddo   
       !write(*,*) hmin,hmax
-      do i=1,N
-        zz(i) = hmin+(hmax-hmin)*(REAL(i-1)/REAL(N-1))**1.0
+      do i=-2,N
+        zz(i) = hmin+(hmax-hmin)*(REAL(i)/REAL(N))**1.0
       enddo
   
       write(*,*)
       write(*,1000) "","z[km]","p[bar]","T[K]","mu[amu]","Diff[cm2/s]"
       j=Nlayers
-      do i=1,N
+      do i=-2,N
         do 
           if (zz(i)<zlay(j-1).or.j==2) exit
           j=j-1
@@ -61,15 +61,15 @@
       zz(:) = zz(:)-zz(1)
 
       !--- compute grid point differences ---
-      do i=1,N-1
+      do i=-2,N-1
         hr(i) = zz(i+1)-zz(i)
       enddo  
-      do i=2,N
+      do i=-1,N
         hl(i) = zz(i)-zz(i-1)
       enddo  
 
       !--- compute 1st and 2nd derivative coefficients ---
-      do i=2,N-1
+      do i=-1,N-1
         d1l(i) = -hr(i)/((hr(i)+hl(i))*hl(i))
         d1m(i) =  (hr(i)-hl(i))/(hl(i)*hr(i))
         d1r(i) =  hl(i)/((hr(i)+hl(i))*hr(i)) 
@@ -81,11 +81,11 @@
       !--- compute 1st derivative coefficients at boundaries ---
       !d1m(1) = -1.d0/hr(1)
       !d1r(1) =  1.d0/hr(1)  ! first order
-      h1 = zz(2)-zz(1)
-      h2 = zz(3)-zz(1)      
-      d1l(1) = -(h1+h2)/(h1*h2)
-      d1m(1) =  h2/(h1*(h2-h1))
-      d1r(1) = -h1/(h2*(h2-h1))
+      h1 = zz(-1)-zz(-2)
+      h2 = zz(0)-zz(-2)      
+      d1l(-2) = -(h1+h2)/(h1*h2)
+      d1m(-2) =  h2/(h1*(h2-h1))
+      d1r(-2) = -h1/(h2*(h2-h1))
       !d1l(N) = -1.d0/hl(N)
       !d1m(N) =  1.d0/hl(N)
       h1 = zz(N-1)-zz(N)
@@ -96,21 +96,21 @@
 
       if (test) then
         !--- test derivatives ---
-        do i=1,N
+        do i=-2,N
           f0(i) = 2.0*zz(i)**2-zz(i)+0.5
           f1(i) = 4.0*zz(i)-1.0
           f2(i) = 4.0
         enddo
-        do i=2,N-1
+        do i=-1,N-1
           df = f0(i-1)*d1l(i) + f0(i)*d1m(i) + f0(i+1)*d1r(i)
           print'(I4,3(1pE14.6))',i,f1(i),df,f1(i)-df
         enddo
-        do i=2,N-1
+        do i=-1,N-1
           df = f0(i-1)*d2l(i) + f0(i)*d2m(i) + f0(i+1)*d2r(i)
           print'(I4,3(1pE14.6))',i,f2(i),df,f2(i)-df
         enddo
-        df = f0(1)*d1l(1) + f0(2)*d1m(1) + f0(3)*d1r(1) 
-        print'(I4,3(1pE14.6))',1,f1(1),df,f1(1)-df
+        df = f0(-2)*d1l(-2) + f0(-1)*d1m(-2) + f0(0)*d1r(-2) 
+        print'(I4,3(1pE14.6))',-2,f1(-2),df,f1(-2)-df
         df = f0(N-2)*d1l(N) + f0(N-1)*d1m(N) + f0(N)*d1r(N) 
         print'(I4,3(1pE14.6))',N,f1(N),df,f1(N)-df
         stop

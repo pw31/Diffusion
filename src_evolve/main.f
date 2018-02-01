@@ -28,7 +28,7 @@
       call OUTPUT(nout,time,dt)
       next = nout
 
-      do it=1,100
+      do it=1,99
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
         call DIFFUSION(time,dt,verbose)
@@ -55,8 +55,6 @@
       NLAST=0         ! also save replaced database entries
       call SAVE_DBASE
       
-      !call DIFFUSION(time,dt,verbose)
-
       end
 
       

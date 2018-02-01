@@ -230,6 +230,7 @@
       !--------------------------------------------
       call GET_DATA(nHtot,T,epsread,ddustread,qread,iread,act_read,0)
       Nact = 0
+      verbose = 0
       if (qread.lt.0.5.and.useDatabase) then
         eps    = epsread
         ddust  = ddustread
@@ -242,7 +243,6 @@
           text = trim(text)//" "//trim(dust_nam(i))
         enddo
         Nact = Nact_read
-        verbose = 0
         !if (qread>1.Q-3.and.Nact>0) verbose=2
         !if (qread>1.Q-3.and.iread==207) verbose=2
         if (verbose>0) then

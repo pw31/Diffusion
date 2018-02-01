@@ -27,6 +27,7 @@
       character(len=2) :: elnam(NELEM)        ! names of elements
       real(kind=qp) :: eps_solar(NELEM)       ! solar element abundances
       real(kind=qp) :: eps_meteor(NELEM)      ! meteroritic element abundances
+      real(kind=qp) :: eps_crust(NELEM)       ! Earth crust element abundances
       real(kind=qp) :: eps0(NELEM)            ! element abundances
       integer :: elnr(NELEM),elcode(NELEM)    ! element cross-indices
       real*8 :: mass(NELEM)                   ! element masses
