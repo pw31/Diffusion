@@ -37,7 +37,7 @@
         Natmos = nHeps(el,0)*dz           ! col.dens. in atmosphere cell
         Ncrust = crust_Neps(el)           ! col.dens. in crust
         eps0(el) = (Natmos+Ncrust)/NtotH
-        print'(A4,2(1pE16.8))',elnam(el),Natmos,Ncrust 
+        !print'(A4,2(1pE16.8))',elnam(el),Natmos+Ncrust 
       enddo  
       inactive = .false.
       call EQUIL_COND(nH,Tg,eps,Sat,eldust,verb)
@@ -68,6 +68,7 @@
         sum_beta = sum_beta + crust_beta(i)
       enddo  
       crust_beta = crust_beta/sum_beta
+      nHeps(:,0) = nH*crust_gaseps(:)
 
       if (verbose>1) then
         do i=1,NELM

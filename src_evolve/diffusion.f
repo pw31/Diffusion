@@ -146,9 +146,15 @@
       real*8 :: D,nD,d1,d2,d1nD,time,dt,dz,dNcol
       character :: CR = CHAR(13)
       character(len=1) :: char1
-      logical :: IS_NAN
+      logical :: in_crust(NELEM),IS_NAN
 
       time = 0.d0
+      do e=1,NELM
+        if (e==iel) cycle
+        el = elnum(e)
+        in_crust(el) = (crust_Neps(el)>0.Q0)
+      enddo  
+
       do it=1,9999999
 
         dt = MIN(dt_diff_ex,deltat-time)
@@ -159,7 +165,7 @@
         do e=1,NELM
           if (e==iel) cycle
           el = elnum(e)
-          if (crust_Neps(el)>0.Q0) then
+          if (in_crust(el)) then
             !--- put crust_eps on guard cells ---
             nHeps(el,-2) = nHtot(-2)*crust_gaseps(el)
             nHeps(el,-1) = nHtot(-1)*crust_gaseps(el)
@@ -170,103 +176,93 @@
           endif
         enddo  
 
-        do round=1,1
+        
+        do e=1,NELM
+          if (e==iel) cycle
+          el = elnum(e)
+          !if (round==1.and..not.limiting(el)) cycle
+          !if (round==2.and.limiting(el)) cycle
 
-          if (round==2) then
-            !---------------------------------------------------------
-            ! ***  figure out influx of the non-limiting elements  ***
-            ! ***  from the influxes of the limiting elements and  ***
-            ! ***  the stoichiometry of the crust                  ***
-            !---------------------------------------------------------
-            call INFLUXES(influx,limiting,Nlim,Dlim,branch) 
-          endif
+          xx(:) = nHeps(el,:)/nHtot(:) 
 
-          do e=1,NELM
-            if (e==iel) cycle
-            el = elnum(e)
-            !if (round==1.and..not.limiting(el)) cycle
-            !if (round==2.and.limiting(el)) cycle
-
-            xx(:) = nHeps(el,:)/nHtot(:) 
-
-            !-------------------------------------------
-            ! ***  d/dt(nH*x) = d/dz(nH*Diff*dx/dz)  ***
-            !-------------------------------------------
-            rate(:) = 0.0
-            do i=-1,N-1
-              nD   = nHtot(i)*Diff(i)  
-              d1   = d1l(i)*xx(i-1) + d1m(i)*xx(i) + d1r(i)*xx(i+1)
-              d2   = d2l(i)*xx(i-1) + d2m(i)*xx(i) + d2r(i)*xx(i+1)
-              d1nD = d1l(i)*nHtot(i-1)*Diff(i-1) 
-     >             + d1m(i)*nHtot(i)  *Diff(i) 
-     >             + d1r(i)*nHtot(i+1)*Diff(i+1) 
-              rate(i) = nD*d2 + d1nD*d1
-            enddo
-
-            !----------------------------
-            ! ***  explicit timestep  ***
-            !----------------------------
-            xold = xx
-            do i=-1,N-1
-              xx(i) = xx(i) + rate(i)*dt/nHtot(i)
-            enddo  
-
-            !------------------------------
-            ! ***  boundary conditions  ***
-            !------------------------------
-            dNcol = 0.d0
-            do i=0,N
-              dz = zz(i)-zz(i-1) 
-              dNcol = dNcol + nHtot(i)*(xx(i)-xold(i))*dz
-            enddo
-            nD = nHtot(0)*Diff(0)  
-            if (crust_Neps(el)>0.d0) then   
-              influx(el) = -nD
-     >              *(d1l(0)*xx(-1) + d1m(0)*xx(0) + d1r(0)*xx(1))
-              print'(A3,"  influx=",2(1pE12.4))',
-     >             elnam(el),influx(el),dNcol/dt
-              influx = dNcol/dt
-            else   
-              influx(el) = 0.d0 
-              xx(-1) = (-influx(el)/nD - d1m(0)*xx(0) - d1r(0)*xx(1))
-     >               /d1l(0)                   ! constant flux 
-              print'(A3,"  influx=",99(1pE12.4))',elnam(el),-nD
-     >             *(d1l(0)*xx(-1) + d1m(0)*xx(0) + d1r(0)*xx(1))
-            endif  
-            nD = nHtot(N)*Diff(N)  
-            if (bc_high==1) then
-              xx(N) = xupper(el)              ! const concentration
-              outflux = -nD
-     >                *(d1l(N)*xx(N-2) + d1m(N)*xx(N-1) + d1r(N)*xx(N)) 
-            else if (bc_high==2) then   
-              xx(N) = (-outflux/nD - d1l(N)*xx(N-2) - d1m(N)*xx(N-1))
-     >                /d1r(N)                 ! constant flux 
-            else if (bc_high==3) then   
-              outflux = nHtot(N)*xx(N)*outrate*vout  
-              xx(N) = -(d1l(N)*xx(N-2) + d1m(N)*xx(N-1))
-     >                /(d1r(N) + outrate*vout/Diff(N))
-            endif   
-
-            !------------------------------------------
-            ! ***  map solution on atmosphere grid  ***
-            !------------------------------------------
-            print'(A3,7(1pE10.3))',elnam(el),xold(-2:3)
-            print'(3x,7(1pE10.3))',xx(-2:3)
-            do i=-2,N
-              nHeps(el,i) = nHtot(i)*xx(i)
-              if (xx(i)<0.d0) then
-                print*,"negative elem.abund. in diffusion." 
-                print*,elnam(el),i
-                read'(A1)',char1
-                if (i==N) then 
-                  nHeps(el,i) = nHtot(i)*xx(N-1)
-                else  
-                  nHeps(el,i) = nHtot(i)*1.E-50
-                endif
-              endif    
-            enddo 
-
+          !-------------------------------------------
+          ! ***  d/dt(nH*x) = d/dz(nH*Diff*dx/dz)  ***
+          !-------------------------------------------
+          rate(:) = 0.0
+          do i=-1,N-1
+            nD   = nHtot(i)*Diff(i)  
+            d1   = d1l(i)*xx(i-1) + d1m(i)*xx(i) + d1r(i)*xx(i+1)
+            d2   = d2l(i)*xx(i-1) + d2m(i)*xx(i) + d2r(i)*xx(i+1)
+            d1nD = d1l(i)*nHtot(i-1)*Diff(i-1) 
+     >           + d1m(i)*nHtot(i)  *Diff(i) 
+     >           + d1r(i)*nHtot(i+1)*Diff(i+1) 
+            rate(i) = nD*d2 + d1nD*d1
           enddo
+          
+          !----------------------------
+          ! ***  explicit timestep  ***
+          !----------------------------
+          xold = xx
+          do i=-1,N-1
+            xx(i) = xx(i) + rate(i)*dt/nHtot(i)
+          enddo  
+
+          !------------------------------
+          ! ***  boundary conditions  ***
+          !------------------------------
+          dNcol = 0.d0
+          do i=0,N
+            dz = zz(i)-zz(i-1) 
+            dNcol = dNcol + nHtot(i)*(xx(i)-xold(i))*dz
+          enddo
+          nD = nHtot(0)*Diff(0)  
+          if (in_crust(el)) then   
+            influx(el) = -nD
+     >              *(d1l(0)*xx(-1) + d1m(0)*xx(0) + d1r(0)*xx(1))
+            print'(A3,"  influx=",2(1pE12.4))',
+     >           elnam(el),influx(el),dNcol/dt
+            influx(el) = dNcol/dt
+          else   
+            influx(el) = 0.d0 
+            nD = nHtot(0)*Diff(0)
+            xx(-1) = (-influx(el)/nD - d1m(0)*xx(0) - d1r(0)*xx(1))
+     >               /d1l(0)                   ! constant flux 
+            print'(A3,"  influx=",99(1pE12.4))',elnam(el),-nD
+     >           *(d1l(0)*xx(-1) + d1m(0)*xx(0) + d1r(0)*xx(1))
+          endif  
+          nD = nHtot(N)*Diff(N)  
+          if (bc_high==1) then
+            xx(N) = xupper(el)                ! const concentration
+            outflux = -nD
+     >           *(d1l(N)*xx(N-2) + d1m(N)*xx(N-1) + d1r(N)*xx(N)) 
+          else if (bc_high==2) then   
+            xx(N) = (-outflux/nD - d1l(N)*xx(N-2) - d1m(N)*xx(N-1))
+     >            /d1r(N)                     ! constant flux 
+          else if (bc_high==3) then   
+            outflux = nHtot(N)*xx(N)*outrate*vout  
+            xx(N) = -(d1l(N)*xx(N-2) + d1m(N)*xx(N-1))
+     >           /(d1r(N) + outrate*vout/Diff(N))
+          endif   
+
+          !------------------------------------------
+          ! ***  map solution on atmosphere grid  ***
+          !------------------------------------------
+          print'(A3,7(1pE10.3))',elnam(el),xold(-2:3)
+          print'(3x,7(1pE10.3))',xx(-2:3)
+          do i=-2,N
+            nHeps(el,i) = nHtot(i)*xx(i)
+            if (xx(i)<0.d0) then
+              print*,"negative elem.abund. in diffusion." 
+              print*,elnam(el),i
+              read'(A1)',char1
+              if (i==N) then 
+                nHeps(el,i) = nHtot(i)*xx(N-1)
+              else  
+                nHeps(el,i) = nHtot(i)*1.E-50
+              endif
+            endif    
+          enddo 
+
         enddo  
 
         do e=1,NELM
@@ -275,9 +271,9 @@
           !----------------------------------------
           ! ***  update crust column densities  ***
           !----------------------------------------
-          if (crust_Neps(el)>0.Q0) then   
+          if (in_crust(el)) then   
             print'(A4,2(1pE14.6))',elnam(el),
-     >           crust_Neps(el),influx(el)*dt
+     >            crust_Neps(el),influx(el)*dt
             crust_Neps(el) = crust_Neps(el) - influx(el)*dt
             if (crust_Neps(el)<0.Q0) then
               print*,elnam(el),"*** negative crust column density"
