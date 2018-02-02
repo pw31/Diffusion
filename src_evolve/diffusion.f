@@ -127,8 +127,8 @@
      >                              branch,verbose)
 ************************************************************************
       use NATURE,ONLY: pi
-      use GRID,ONLY: N=>Npoints,zz,d1l,d1m,d1r,d2l,d2m,d2r,dt_diff_ex,
-     >               xlower,xupper
+      use GRID,ONLY: N=>Npoints,zz,zweight,d1l,d1m,d1r,d2l,d2m,d2r,
+     >               dt_diff_ex,xlower,xupper
       use PARAMETERS,ONLY: dust_diffuse,bc_low,bc_high,
      >                     outflux,inrate,outrate,vin,vout
       use STRUCT,ONLY: Diff,nHtot,nHeps,
@@ -137,7 +137,8 @@
       use ELEMENTS,ONLY: NELEM,elnam
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el
       implicit none
-      real*8,intent(in) :: time0,deltat,branch(NELEM,10)
+      real*8,intent(in) :: time0,branch(NELEM,10)
+      real*8,intent(inout) :: deltat
       logical,intent(in) :: limiting(NELEM)
       integer,intent(in) :: Nlim(NELEM),Dlim(NELEM,10),verbose
       integer :: i,it,e,el,round
@@ -146,7 +147,7 @@
       real*8 :: D,nD,d1,d2,d1nD,time,dt,dz,dNcol
       character :: CR = CHAR(13)
       character(len=1) :: char1
-      logical :: in_crust(NELEM),IS_NAN
+      logical :: in_crust(NELEM),IS_NAN,exhausted
 
       time = 0.d0
       do e=1,NELM
@@ -212,8 +213,7 @@
           !------------------------------
           dNcol = 0.d0
           do i=0,N
-            dz = zz(i)-zz(i-1) 
-            dNcol = dNcol + nHtot(i)*(xx(i)-xold(i))*dz
+            dNcol = dNcol + nHtot(i)*(xx(i)-xold(i))*zweight(i)
           enddo
           nD = nHtot(0)*Diff(0)  
           if (in_crust(el)) then   
@@ -265,6 +265,7 @@
 
         enddo  
 
+        exhausted = .false.
         do e=1,NELM
           if (e==iel) cycle
           el = elnum(e)
@@ -276,6 +277,7 @@
      >            crust_Neps(el),influx(el)*dt
             crust_Neps(el) = crust_Neps(el) - influx(el)*dt
             if (crust_Neps(el)<0.Q0) then
+              exhausted = .true. 
               print*,elnam(el),"*** negative crust column density"
             endif  
           endif  
@@ -285,6 +287,10 @@
         time = time + dt
         if (verbose>0) write(*,'(TL10," DIFFUSION:",I8,A,$)') it,CR
         if (time.ge.deltat) exit
+        if (exhausted) then
+          deltat = dt
+          exit
+        endif  
 
       enddo  
       if (verbose>0) print'(" DIFFUSION:",I8,"  time=",1pE11.4,

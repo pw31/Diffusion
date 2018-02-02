@@ -5,7 +5,7 @@ DustChem_ALL.dat        ! dustchem_file
 3.E+9                   ! tsim
 0.8                     ! beta
 
-101      ! Npoints
+201      ! Npoints
 1.E-7    ! pmin
 1.0      ! pmax
 2        ! init

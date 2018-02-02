@@ -38,7 +38,7 @@
         if (nout>next) then
           call OUTPUT(nout,time,dt)
           next = nout
-          dt = 2.0*dt
+          dt = 1.5*dt
         endif  
         if (time>tsim) exit
       enddo  

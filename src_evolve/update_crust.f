@@ -28,7 +28,7 @@
 
       Tg = Temp(0)
       nH = nHtot(0)
-      dz = zz(1)-zz(0)
+      dz = 0.5*(zz(1)-zz(0))
       eps0 = 0.Q0
       NtotH = nH*dz + crust_Neps(H)
       do i=1,NELM

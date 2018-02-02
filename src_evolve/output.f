@@ -7,7 +7,7 @@
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_mass,dust_Vol,
      &                    dust_nel,dust_el,dust_nu,dust_rho
       use EXCHANGE,ONLY: ipoint,nel,nat,nion,nmol,Jst,chi
-      use GRID,ONLY: Npoints,zz,d1l,d1m,d1r
+      use GRID,ONLY: Npoints,zz,d1l,d1m,d1r,zweight
       use STRUCT,ONLY: Temp,press,rho,nHtot,Diff,nHeps,crust_gaseps,
      &                 crust_depth,crust_Ncond,crust_Neps,crust_beta
       use NUCLEATION,ONLY: NNUC,nuc,nuc_nam
@@ -67,8 +67,7 @@
       endif   
       Ncol(:) = crust_Neps(:)
       do ip=0,Npoints
-        dz = zz(ip)-zz(ip-1)
-        Ncol(:) = Ncol(:) + nHeps(:,ip)*dz
+        Ncol(:) = Ncol(:) + nHeps(:,ip)*zweight(ip)
       enddo  
       write(12,'(i6,99(1pE14.6))') num,time,dt,crust_depth,
      >            Ncol(elnum(1:el-1)),Ncol(elnum(el+1:NELM))

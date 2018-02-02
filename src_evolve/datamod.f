@@ -128,6 +128,7 @@
 ************************************************************************
       integer :: Npoints                        ! number of gridpoints
       real,allocatable :: zz(:)                 ! vertical gridpoints
+      real,allocatable :: zweight(:)            ! integration weights
       real,allocatable :: d1l(:),d1m(:),d1r(:)  ! first derivatives
       real,allocatable :: d2l(:),d2m(:),d2r(:)  ! second derivatives
       real,allocatable :: BB(:,:)               ! implicit diffusion matrix

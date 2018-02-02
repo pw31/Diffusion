@@ -22,3 +22,8 @@ diffuevo
 out.*
 output*
 movies/*.mpg
+database.dat
+dispol_selection.dat
+gmon.out
+gprof*
+

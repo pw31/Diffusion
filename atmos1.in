@@ -3,7 +3,7 @@
 200                 ! Npoints
 3.E-6               ! pmin
 60.0                ! pmax
-0.5                 ! beta
+0.8                 ! beta
 
 2        ! init
 1        ! bc_low    
