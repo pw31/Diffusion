@@ -8,10 +8,10 @@ src/*.mod
 src/makefile
 src/*~
 diffuse
-src_dustchem/*.o
-src_dustchem/*.mod
-src_dustchem/makefile
-src_dustchem/*~
+src_weather/*.o
+src_weather/*.mod
+src_weather/makefile
+src_weather/*~
 src_evolve/*.o
 src_evolve/*.mod
 src_evolve/makefile

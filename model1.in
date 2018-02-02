@@ -1,0 +1,26 @@
+H He C N O Na Mg Si Fe Al Ti S Cl K el
+
+1600K_nodustdiff_beta0.8_evap2   ! model_name
+2Drift_1600.data                 ! struc_file
+DustChem12a.dat                  ! dustchem_file
+
+0.8      ! beta
+2        ! evap_model
+10       ! Nl
+.false.  ! dust_diffuse
+
+3.E+7    ! tsim
+.false.  ! implicit
+101      ! Npoints
+3.E-6    ! pmin
+60.0     ! pmax
+-1       ! init
+1        ! bc_low    
+2        ! bc_high    
+0.0      ! outflux
+1        ! verbose
+800.0    ! Tfast
+.true.   ! NewFullIt
+5        ! NewBackIt
+1.E+2    ! NewBackFac
+
