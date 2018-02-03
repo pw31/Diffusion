@@ -24,22 +24,22 @@
       xlower = crust_gaseps
       eps(:) = nHeps(:,0)/nHtot(0)
       dz = zz(1)-zz(0)
-      do e=1,NELM
-        if (e==iel) cycle
-        el = elnum(e)
-        !if (crust_Neps(el)>0.d0) cycle
-        flux = -Diff(0)*nHtot(0)*(eps(el)-crust_gaseps(el))/dz
-        Ncol = nHeps(el,0)*dz + crust_Neps(el)
-        if (ABS(flux)*deltat > fac*Ncol) then
-          deltat = fac*Ncol/ABS(flux)
-          print'(A3," coldens=",1pE10.3," change=",1pE10.3,
-     >           "  dt=",1pE10.3)',elnam(el),Ncol,
-     >           ABS(flux)*deltat/Ncol,deltat
-        else
-          print'(A3," coldens=",1pE10.3," change=",1pE10.3)',
-     >           elnam(el),Ncol,ABS(flux)*deltat/Ncol
-        endif
-      enddo  
+      !do e=1,NELM
+      !  if (e==iel) cycle
+      !  el = elnum(e)
+      !  !if (crust_Neps(el)>0.d0) cycle
+      !  flux = -Diff(0)*nHtot(0)*(eps(el)-crust_gaseps(el))/dz
+      !  Ncol = nHeps(el,0)*dz + crust_Neps(el)
+      !  if (ABS(flux)*deltat > fac*Ncol) then
+      !    deltat = fac*Ncol/ABS(flux)
+      !    print'(A3," coldens=",1pE10.3," change=",1pE10.3,
+     >!           "  dt=",1pE10.3)',elnam(el),Ncol,
+     >!           ABS(flux)*deltat/Ncol,deltat
+      !  else
+      !    print'(A3," coldens=",1pE10.3," change=",1pE10.3)',
+     >!           elnam(el),Ncol,ABS(flux)*deltat/Ncol
+      !  endif
+      !enddo  
 
       if (.false.) then
       !------------------------------------------------
@@ -101,13 +101,12 @@
       enddo 
       endif
 
-      if (implicit.and.deltat>100*dt_diff_ex) then
+      if (implicit.and.deltat>50*dt_diff_ex) then
         if (verbose>1) then
           print*
           print*,"entering IMPLICIT DIFFUSION ..."
           print*,"==============================="
         endif  
-        stop
         call DIFFUSION_IMPLICIT(time,deltat,limiting,Nlim,Dlim,
      >                          branch,verbose)
       else
@@ -303,8 +302,8 @@
       subroutine DIFFUSION_IMPLICIT(time0,deltat,limiting,Nlim,Dlim,
      >                              branch,verbose)
 ************************************************************************
-      use GRID,ONLY: N=>Npoints,zz,d1l,d1m,d1r,d2l,d2m,d2r,
-     >               dt_diff_im,xlower,xupper
+      use GRID,ONLY: N=>Npoints,zz,zweight,d1l,d1m,d1r,d2l,d2m,d2r,
+     >               dd1l,dd1m,dd1r,dt_diff_im,xlower,xupper
       use PARAMETERS,ONLY: tfac,bc_low,bc_high,
      >                     outflux,inrate,outrate,vin,vout,
      >                     dust_diffuse
@@ -313,97 +312,94 @@
       use ELEMENTS,ONLY: NELEM,elnam
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el
       implicit none
-      real*8,intent(IN) :: time0,deltat,branch(NELEM,10)
+      real*8,intent(IN) :: time0,branch(NELEM,10)
+      real*8,intent(INOUT) :: deltat
       logical,intent(in) :: limiting(NELEM)
       integer,intent(in) :: Nlim(NELEM),Dlim(NELEM,10),verbose
       integer :: i,j,it,e,el,Nstep,round
-      real*8,dimension(N) :: xx,xnew,rest
-      real*8,dimension(N,N) :: BB_1,BB_2,BB
-      real*8 :: influx(NELEM)
+      real*8,dimension(-1:N) :: xx,xnew,rest
+      real*8,dimension(N+2,N+2) :: BB_1,BB_2,BB
+      real*8 :: influx(NELEM),dNcol
       real*8 :: nD,time,dt
       character :: CR = CHAR(13)
+      logical :: in_crust(NELEM),exhausted
 
       Nstep = 20
       time  = 0.d0
       dt    = deltat/Nstep
+      do e=1,NELM
+        if (e==iel) cycle
+        el = elnum(e)
+        in_crust(el) = (crust_Neps(el)>0.Q0)
+      enddo  
       call INIT_DIFFUSION(N,1,dt,BB_1)  ! for bc_low=1
       call INIT_DIFFUSION(N,2,dt,BB_2)  ! for bc_low=2
       
       do it=1,Nstep
 
-        do round=1,2
+        do e=1,NELM
+          if (e==iel) cycle
+          el = elnum(e)
+          xx(-1:N) = nHeps(el,-1:N)/nHtot(-1:N) 
+          if (in_crust(el)) then
+            xx(-1) = xlower(el)         ! ghostcell 
+          endif   
 
-          if (round==2) then
-            !---------------------------------------------------------
-            ! ***  figure out influx of the non-limiting elements  ***
-            ! ***  from the influxes of the limiting elements and  ***
-            ! ***  the stoichiometry of the crust                  ***
-            !---------------------------------------------------------
-            call INFLUXES(influx,limiting,Nlim,Dlim,branch) 
+          !------------------------------
+          ! ***  boundary conditions  ***
+          !------------------------------
+          rest = xx
+          nD = nHtot(-1)*Diff(-1)  
+          if (in_crust(el)) then   
+            rest(-1) = xlower(el)                ! fixed concentration
+            bc_low = 1
+            BB = BB_1
+          else                              
+            bc_low = 2
+            influx(el) = 0.d0
+            rest(-1) = -influx(el)/nD/dd1l(-1)   ! fixed flux
+            BB = BB_2
+          endif
+          nD = nHtot(N)*Diff(N)  
+          if (bc_high==1) then
+            rest(N) = xupper(el) 
+          else if (bc_high==2) then
+            rest(N) = -outflux/nD/d1r(N)           
+          else if (bc_high==3) then
+            rest(N) = 0.d0
           endif
 
-          do e=1,NELM
-            if (e==iel) cycle
-            el = elnum(e)
-            if (round==1.and..not.limiting(el)) cycle
-            if (round==2.and.limiting(el)) cycle
-
-            xx(:) = nHeps(el,:)/nHtot(:) 
-
-            !------------------------------
-            ! ***  boundary conditions  ***
-            !------------------------------
-            rest = xx
-            nD = nHtot(1)*Diff(1)  
-            if (limiting(el)) then   
-              rest(1) = xlower(el)              ! fixed concentration
-              bc_low = 1
-              BB = BB_1
-            else                              
-              bc_low = 2
-              rest(1) = -influx(el)/nD/d1l(1)   ! fixed flux
-              BB = BB_2
-            endif
-            nD = nHtot(N)*Diff(N)  
-            if (bc_high==1) then
-              rest(N) = xupper(el) 
-            else if (bc_high==2) then
-              rest(N) = -outflux/nD/d1r(N)           
-            else if (bc_high==3) then
-              rest(N) = 0.d0
-            endif
-
-            !----------------------------
-            ! ***  implicit timestep  ***
-            !----------------------------
-            do i=1,N
-              xnew(i) = 0.d0 
-              do j=1,N 
-                xnew(i) = xnew(i) + BB(i,j)*rest(j)
-              enddo  
+          !----------------------------
+          ! ***  implicit timestep  ***
+          !----------------------------
+          do i=-1,N
+            xnew(i) = 0.d0 
+            do j=-1,N 
+              xnew(i) = xnew(i) + BB(i+2,j+2)*rest(j)
             enddo  
-            print'(A3,4(1pE10.3))',elnam(el),xx(1:4)
-            print'(3x,4(1pE10.3))',xnew(1:4)
-            xx(:) = xnew(:)
-            nHeps(el,:) = nHtot(:)*xnew(:)
-
-            !-----------------------------------------------------------
-            ! ***  compute fluxes through inner boundary in round=1  ***
-            !-----------------------------------------------------------
-            nD = nHtot(1)*Diff(1)  
-            if (limiting(el)) then
-              influx(el) = -nD
-     >                * (d1l(1)*xx(1) + d1m(1)*xx(2) + d1r(1)*xx(3))
-            endif
-            !nD = nHtot(N)*Diff(N)  
-            !if (bc_high==1) then
-            !  outflux = -nD*(d1l(N)*xx(N-2) + d1m(N)*xx(N-1) + d1r(N)*xx(N)) 
-            !else if (bc_high==2) then
-            !else if (bc_high==3) then
-            !  outflux = outrate*nHtot(N)*xx(N)*vout 
-            !endif
-
           enddo  
+          print'(A3,99(1pE10.3))',elnam(el),xx(-1:3)
+          print'(3x,99(1pE10.3))',xnew(-1:3)
+
+          !------------------------------------------------
+          ! ***  compute fluxes through inner boundary  ***
+          !------------------------------------------------
+          dNcol = 0.d0
+          do i=0,N
+            dNcol = dNcol + nHtot(i)*(xnew(i)-xx(i))*zweight(i)
+          enddo
+          xx(:) = xnew(:)
+          nHeps(el,-1:N) = nHtot(-1:N)*xnew(-1:N)
+
+          nD = nHtot(0)*Diff(0)  
+          if (in_crust(el)) then   
+            influx(el) = -nD
+     >              *(d1l(0)*xx(-1) + d1m(0)*xx(0) + d1r(0)*xx(1))
+            print'(A3,"  influx=",2(1pE12.4))',
+     >           elnam(el),influx(el),dNcol/dt
+            influx(el) = dNcol/dt
+          endif  
+
         enddo  
 
         do e=1,NELM
@@ -412,18 +408,22 @@
           !----------------------------------------
           ! ***  update crust column densities  ***
           !----------------------------------------
-          if (crust_Neps(el)>0.Q0) then   
+          if (in_crust(el)) then 
             print*,elnam(el),REAL(crust_Neps(el)),influx(el)*dt
             crust_Neps(el) = crust_Neps(el) - influx(el)*dt
             if (crust_Neps(el)<0.Q0) then
-              print*,elnam(el),"negative crust column density"
-              stop
+              exhausted = .true. 
+              print*,elnam(el),"*** negative crust column density"
             endif  
           endif  
         enddo  
 
         time = time + dt
         if (verbose>0) write(*,'(TL10," DIFFUSION:",I8,A,$)') it,CR
+        if (exhausted) then
+          deltat = dt
+          exit
+        endif  
 
       enddo
       if (verbose>0) print'(" DIFFUSION:",I8,"  time=",1pE11.4,

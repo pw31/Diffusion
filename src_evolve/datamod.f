@@ -130,6 +130,7 @@
       real,allocatable :: zz(:)                 ! vertical gridpoints
       real,allocatable :: zweight(:)            ! integration weights
       real,allocatable :: d1l(:),d1m(:),d1r(:)  ! first derivatives
+      real,allocatable :: dd1l(:),dd1m(:),dd1r(:) 
       real,allocatable :: d2l(:),d2m(:),d2r(:)  ! second derivatives
       real,allocatable :: BB(:,:)               ! implicit diffusion matrix
       real,allocatable :: xlower(:),xupper(:)   ! boudary values

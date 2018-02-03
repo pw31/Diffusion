@@ -2,7 +2,8 @@
       subroutine INIT_GRID
 ************************************************************************
       use NATURE,ONLY: bk,amu,km,bar
-      use GRID,ONLY: N=>Npoints,zz,zweight,d1l,d1m,d1r,d2l,d2m,d2r
+      use GRID,ONLY: N=>Npoints,zz,zweight,d1l,d1m,d1r,d2l,d2m,d2r,
+     >               dd1l,dd1m,dd1r
       use READMODEL,ONLY: Nlayers,zlay,Tlay,play,rholay,glay,Difflay
       use STRUCT,ONLY: Diff,rho,nHtot,Temp,press,mu,mols,atms,elec
       use CHEMISTRY,ONLY: NMOLE
@@ -19,6 +20,7 @@
      >         Temp(-2:N),press(-2:N),mu(-2:N),
      >         mols(NMOLE,-2:N),atms(NELEM,-2:N),elec(-2:N),
      >         d1l(-2:N),d1m(-2:N),d1r(-2:N),
+     >         dd1l(-2:N),dd1m(-2:N),dd1r(-2:N),
      >         d2l(-2:N),d2m(-2:N),d2r(-2:N))
 
       !---- set z-gridpoints ----
@@ -104,6 +106,12 @@
       d1r(N) = -(h1+h2)/(h1*h2)
       d1m(N) =  h2/(h1*(h2-h1))
       d1l(N) = -h1/(h2*(h2-h1))
+
+      h1 = zz(0)-zz(-1)
+      h2 = zz(1)-zz(-1)      
+      dd1l(-1) = -(h1+h2)/(h1*h2)
+      dd1m(-1) =  h2/(h1*(h2-h1))
+      dd1r(-1) = -h1/(h2*(h2-h1))
 
       if (test) then
         !--- test derivatives ---
