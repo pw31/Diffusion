@@ -5,7 +5,6 @@
 *****   initialises the element abundances and masses            *****
 *****                                                            *****
 **********************************************************************
-      use PARAMETERS,ONLY: abund_pick
       use ELEMENTS,ONLY: NELEM,eps=>eps0,eps_solar,eps_meteor,
      >                   eps_crust,mass,elnam
       use NATURE,ONLY: amu

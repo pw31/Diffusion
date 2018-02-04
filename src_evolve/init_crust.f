@@ -5,7 +5,7 @@
 ! ***  and column densities by considering phase equilibrium of a      ***
 ! ***  solar abundance gas at the bottom of the atmosphere.            ***
 !-------------------------------------------------------------------------
-      use NATURE,ONLY: km
+      use PARAMETERS,ONLY: crust_kind,crust_thickness
       use GRID,ONLY: zz
       use STRUCT,ONLY: Temp,nHtot,press,crust_depth,crust_beta,
      >                 crust_Ncond,crust_Neps,crust_gaseps
@@ -24,9 +24,13 @@
       allocate(nmol(NMOLE),chi(NDUST),inactive(NMOLE))
       Tg = Temp(0)
       nH = nHtot(0)
-      eps0 = eps_solar
-      !eps0 = eps_meteor
-      !eps0 = eps_crust
+      if (crust_kind==1) then
+        eps0 = eps_solar
+      else if (crust_kind==2) then 
+        eps0 = eps_meteor
+      else if (crust_kind==3) then 
+        eps0 = eps_crust
+      endif  
       !Tg = 500.d0
       !eps0(:) = 1.E-99
       !eps0(H) = 1.E+0 
@@ -61,9 +65,7 @@
 
       crust_Ncond(:) = 0.Q0                    ! condensed col.des. in crust
       crust_Neps(:)  = 0.Q0                    ! element col.dens. in crust
-      !crust_depth = 1.d0*km                   ! initial thickness of crust
-      !crust_depth = 1.E-3
-      crust_depth = 1.e-7                    ! initial thickness of crust
+      crust_depth = crust_thickness
       do i=1,NDUST         
         if (eldust(i).le.0.Q0) cycle 
         crust_Ncond(i) = crust_depth*crust_beta(i)/dust_vol(i)
@@ -72,5 +74,9 @@
           crust_Neps(el) = crust_Neps(el) + dust_nu(i,j)*crust_Ncond(i)
         enddo
       enddo  
+
+      print*
+      print*," INIT_CRUST with crust_kind =",crust_kind
+      print*,"            crust_depth[cm] =",crust_thickness
 
       end

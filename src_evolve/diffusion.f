@@ -15,120 +15,83 @@
       real*8,intent(inout) :: deltat
       integer,intent(in) :: verbose
       real(kind=qp) :: eps(NELEM),Sat(NDUST)
-      real*8 :: nH,Tg,flux,fmin,dz,bsum,Ncol,fac=0.05
-      real*8 :: branch(NELEM,10)
-      integer :: s,i,j,e,el,el2,emin
-      integer :: Nlim(NELEM),Dlim(NELEM,10)
-      logical :: evaporates(NDUST),limiting(NELEM)
+      real*8 :: nH,Tg,flux,fmin,dz,bsum,Ncol,rsort(NELEM)
+      integer :: i,e,el,emin,esort(NELEM),isort,ipass,Ncrust  
+      logical :: in_crust(NELEM),limiting(NELEM)
 
       xlower = crust_gaseps
       eps(:) = nHeps(:,0)/nHtot(0)
-      dz = zz(1)-zz(0)
-      !do e=1,NELM
-      !  if (e==iel) cycle
-      !  el = elnum(e)
-      !  !if (crust_Neps(el)>0.d0) cycle
-      !  flux = -Diff(0)*nHtot(0)*(eps(el)-crust_gaseps(el))/dz
-      !  Ncol = nHeps(el,0)*dz + crust_Neps(el)
-      !  if (ABS(flux)*deltat > fac*Ncol) then
-      !    deltat = fac*Ncol/ABS(flux)
-      !    print'(A3," coldens=",1pE10.3," change=",1pE10.3,
-     >!           "  dt=",1pE10.3)',elnam(el),Ncol,
-     >!           ABS(flux)*deltat/Ncol,deltat
-      !  else
-      !    print'(A3," coldens=",1pE10.3," change=",1pE10.3)',
-     >!           elnam(el),Ncol,ABS(flux)*deltat/Ncol
-      !  endif
-      !enddo  
 
-      if (.false.) then
-      !------------------------------------------------
-      ! ***  Consider layer=2 to determine whether  ***
-      ! ***  solids grow or evaporate.              ***
-      ! ***  Determine flux limiting elements.      ***
-      !------------------------------------------------
-      Tg = Temp(1)
-      nH = nHtot(1)
-      call GGCHEM(nH,Tg,eps,.false.,0)
-      call SUPERSAT(Tg,nat,nmol,Sat)
-      evaporates(:) = .false.
-      limiting(:) = .false.
-      Nlim(:) = 0
-      do s=1,NDUST
-        if (crust_Ncond(s)<=0.Q0) cycle
-        if (Sat(s)<1.Q0) evaporates(s)=.true. 
-        print'(A15,"  evaporates=",L1)',dust_nam(s),evaporates(s)
-        fmin = 9.E+99
-        emin = 0
-        do i=1,dust_nel(s)
-          el = dust_el(s,i)
-          flux = -Diff(1)*nHtot(1)*(eps(el)-crust_gaseps(el))/dz
-          if (ABS(flux)/dust_nu(s,i)<fmin) then
-            fmin = ABS(flux)/dust_nu(s,i) 
-            emin = el
-          endif   
-          print'(A3," flux=",1pE12.4," stoich=",I2)',
-     >          elnam(el),flux,dust_nu(s,i)
-        enddo
-        print'("limiting element =",A3)',elnam(emin)
-        limiting(emin) = .true.
-        Nlim(emin) = Nlim(emin)+1
-        Dlim(emin,Nlim(emin)) = s
+      !------------------------------------------
+      ! ***  identify most abundant elements  ***
+      !------------------------------------------
+      esort(:) = 0
+      rsort(:) = 0.d0
+      isort = 0
+      ipass = 0
+      Ncrust = 0
+      do e=1,NELM
+        if (e==iel) cycle
+        el = elnum(e)
+        in_crust(el) = (crust_Neps(el)>0.Q0)
+        isort = isort+1
+        if (.not.in_crust(el)) then
+          ipass = ipass+1 
+          esort(ipass+1:isort) = esort(ipass:isort-1)
+          rsort(ipass+1:isort) = rsort(ipass:isort-1)
+          esort(ipass) = el
+          rsort(ipass) = eps(el)
+          cycle
+        endif
+        Ncrust = Ncrust+1
+        i = ipass+1
+        do i=ipass+1,isort-1
+          if (eps(el)<rsort(i)) exit
+        enddo   
+        esort(i+1:isort) = esort(i:isort-1)
+        rsort(i+1:isort) = rsort(i:isort-1)
+        esort(i) = el
+        rsort(i) = eps(el)
+      enddo  
+      do i=1,NDUST
+        if (crust_Ncond(i)>0.Q0) Ncrust=Ncrust-1
       enddo
-      !-------------------------------------------------------
-      ! ***  if one element limites the growth of several  ***
-      ! ***  materials, fix branching ratios dependent on  ***
-      ! ***  the abundance of the second most important    ***
-      ! ***  constituent element                           ***
-      !-------------------------------------------------------
-      do el=1,NELEM
-        if (Nlim(el).le.1) cycle
-        bsum = 0.d0
-        do i=1,Nlim(el)
-          branch(el,i) = 1.d0
-          s = Dlim(el,i)
-          do j=1,dust_nel(s)
-            el2 = dust_el(s,j)
-            if (el2==el) cycle
-            branch(el,i) = MIN(branch(el,i),
-     >                         crust_gaseps(el2)/dust_nu(s,j))
-          enddo
-          bsum = bsum + branch(el,i)
-        enddo
-        branch(el,:) = branch(el,:)/bsum
-        print*,elnam(el),": ",dust_nam(Dlim(el,1:Nlim(el)))
-        print*,branch(el,1:Nlim(el))
-      enddo 
-      endif
+      limiting(:) = .true.
+      limiting(isort+1-Ncrust:isort) = .false.
+      do i=1,isort
+        el = esort(i) 
+        print'(A3,2(L2),2(1pE10.3))',elnam(el),in_crust(el),
+     >                         limiting(i),rsort(i),eps(el) 
+      enddo
 
-      if (implicit.and.deltat>50*dt_diff_ex) then
+      if (implicit.and.deltat>30*dt_diff_ex) then
         if (verbose>1) then
           print*
           print*,"entering IMPLICIT DIFFUSION ..."
           print*,"==============================="
         endif  
-        call DIFFUSION_IMPLICIT(time,deltat,limiting,Nlim,Dlim,
-     >                          branch,verbose)
+        call DIFFUSION_IMPLICIT(time,deltat,isort,ipass,esort,
+     >                          in_crust,limiting,verbose)
       else
         if (verbose>1) then
           print*
           print*,"entering EXPLICIT DIFFUSION ..."
           print*,"==============================="
         endif  
-        call DIFFUSION_EXPLICIT(time,deltat,limiting,Nlim,Dlim,
-     >                          branch,verbose)
+        call DIFFUSION_EXPLICIT(time,deltat,isort,ipass,esort,
+     >                          in_crust,limiting,verbose)
       endif
       end
 
 
 ************************************************************************
-      subroutine DIFFUSION_EXPLICIT(time0,deltat,limiting,Nlim,Dlim,
-     >                              branch,verbose)
+      subroutine DIFFUSION_EXPLICIT(time0,deltat,isort,ipass,esort,
+     >                              in_crust,limiting,verbose)
 ************************************************************************
       use NATURE,ONLY: pi
       use GRID,ONLY: N=>Npoints,zz,zweight,d1l,d1m,d1r,d2l,d2m,d2r,
      >               dt_diff_ex,xlower,xupper
-      use PARAMETERS,ONLY: dust_diffuse,bc_low,bc_high,
+      use PARAMETERS,ONLY: bc_low,bc_high,
      >                     outflux,inrate,outrate,vin,vout
       use STRUCT,ONLY: Diff,nHtot,nHeps,
      >                 crust_Neps,crust_Ncond,crust_gaseps
@@ -136,24 +99,19 @@
       use ELEMENTS,ONLY: NELEM,elnam
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el
       implicit none
-      real*8,intent(in) :: time0,branch(NELEM,10)
+      real*8,intent(in) :: time0
       real*8,intent(inout) :: deltat
-      logical,intent(in) :: limiting(NELEM)
-      integer,intent(in) :: Nlim(NELEM),Dlim(NELEM,10),verbose
+      logical,intent(in) :: in_crust(NELEM),limiting(NELEM)
+      integer,intent(in) :: isort,ipass,esort(NELEM),verbose
       integer :: i,it,e,el,round
       real*8,dimension(-2:N) :: xx,xold,rate
       real*8 :: influx(NELEM)
-      real*8 :: D,nD,d1,d2,d1nD,time,dt,dz,dNcol
+      real*8 :: D,nD,d1,d2,d1nD,time,dt,dz,dNcol,xl,xm,xr
       character :: CR = CHAR(13)
       character(len=1) :: char1
-      logical :: in_crust(NELEM),IS_NAN,exhausted
+      logical :: IS_NAN,exhausted
 
       time = 0.d0
-      do e=1,NELM
-        if (e==iel) cycle
-        el = elnum(e)
-        in_crust(el) = (crust_Neps(el)>0.Q0)
-      enddo  
 
       do it=1,9999999
 
@@ -175,19 +133,21 @@
             nHeps(el,-1) = nHeps(el,1)/nHtot(1)*nHtot(-1)
           endif
         enddo  
-
         
-        do e=1,NELM
-          if (e==iel) cycle
-          el = elnum(e)
-          !if (round==1.and..not.limiting(el)) cycle
-          !if (round==2.and.limiting(el)) cycle
+        round = 1
+        influx(:) = 0.d0
+        do e=1,isort
 
-          xx(:) = nHeps(el,:)/nHtot(:) 
+          el = esort(e)
+          if ((round==1).and.(.not.limiting(e))) then
+            round = 2 
+            call INFLUXES(influx,isort,ipass,esort,limiting) 
+          endif  
 
           !-------------------------------------------
           ! ***  d/dt(nH*x) = d/dz(nH*Diff*dx/dz)  ***
           !-------------------------------------------
+          xx(:) = nHeps(el,:)/nHtot(:) 
           rate(:) = 0.0
           do i=-1,N-1
             nD   = nHtot(i)*Diff(i)  
@@ -215,19 +175,20 @@
             dNcol = dNcol + nHtot(i)*(xx(i)-xold(i))*zweight(i)
           enddo
           nD = nHtot(0)*Diff(0)  
-          if (in_crust(el)) then   
-            influx(el) = -nD
-     >              *(d1l(0)*xx(-1) + d1m(0)*xx(0) + d1r(0)*xx(1))
+          if (in_crust(el).and.limiting(e)) then   
+            xl = 0.5*(xx(-1)+xold(-1)) 
+            xm = 0.5*(xx( 0)+xold( 0)) 
+            xr = 0.5*(xx(+1)+xold(+1)) 
+            influx(el) = -nD*(d1l(0)*xl + d1m(0)*xm + d1r(0)*xr)
             print'(A3,"  influx=",2(1pE12.4))',
      >           elnam(el),influx(el),dNcol/dt
             influx(el) = dNcol/dt
           else   
-            influx(el) = 0.d0 
             nD = nHtot(0)*Diff(0)
             xx(-1) = (-influx(el)/nD - d1m(0)*xx(0) - d1r(0)*xx(1))
      >               /d1l(0)                   ! constant flux 
-            print'(A3,"  influx=",99(1pE12.4))',elnam(el),-nD
-     >           *(d1l(0)*xx(-1) + d1m(0)*xx(0) + d1r(0)*xx(1))
+            !print'(A3,"  influx=",99(1pE12.4))',elnam(el),-nD
+     >      !     *(d1l(0)*xx(-1) + d1m(0)*xx(0) + d1r(0)*xx(1))
           endif  
           nD = nHtot(N)*Diff(N)  
           if (bc_high==1) then
@@ -265,9 +226,8 @@
         enddo  
 
         exhausted = .false.
-        do e=1,NELM
-          if (e==iel) cycle
-          el = elnum(e)
+        do e=1,isort
+          el = esort(e)
           !----------------------------------------
           ! ***  update crust column densities  ***
           !----------------------------------------
@@ -287,7 +247,7 @@
         if (verbose>0) write(*,'(TL10," DIFFUSION:",I8,A,$)') it,CR
         if (time.ge.deltat) exit
         if (exhausted) then
-          deltat = dt
+          deltat = time
           exit
         endif  
 
@@ -299,65 +259,61 @@
 
 
 ************************************************************************
-      subroutine DIFFUSION_IMPLICIT(time0,deltat,limiting,Nlim,Dlim,
-     >                              branch,verbose)
+      subroutine DIFFUSION_IMPLICIT(time0,deltat,isort,ipass,esort,
+     >                              in_crust,limiting,verbose)
 ************************************************************************
       use GRID,ONLY: N=>Npoints,zz,zweight,d1l,d1m,d1r,d2l,d2m,d2r,
      >               dd1l,dd1m,dd1r,dt_diff_im,xlower,xupper
-      use PARAMETERS,ONLY: tfac,bc_low,bc_high,
-     >                     outflux,inrate,outrate,vin,vout,
-     >                     dust_diffuse
+      use PARAMETERS,ONLY: bc_low,bc_high,
+     >                     outflux,inrate,outrate,vin,vout
       use STRUCT,ONLY: Diff,nHtot,nHeps,crust_Neps,crust_Ncond
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
       use ELEMENTS,ONLY: NELEM,elnam
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el
       implicit none
-      real*8,intent(IN) :: time0,branch(NELEM,10)
+      real*8,intent(IN) :: time0
       real*8,intent(INOUT) :: deltat
-      logical,intent(in) :: limiting(NELEM)
-      integer,intent(in) :: Nlim(NELEM),Dlim(NELEM,10),verbose
+      logical,intent(in) :: limiting(NELEM),in_crust(NELEM)
+      integer,intent(in) :: isort,ipass,esort(NELEM),verbose
       integer :: i,j,it,e,el,Nstep,round
-      real*8,dimension(-1:N) :: xx,xnew,rest
-      real*8,dimension(N+2,N+2) :: BB_1,BB_2,BB
+      real*8,dimension(0:N) :: xx,xnew,rest
+      real*8,dimension(N+1,N+1) :: BB_1,BB_2,BB
       real*8 :: influx(NELEM),dNcol
-      real*8 :: nD,time,dt
+      real*8 :: nD,time,dt,xl,xm,xr
       character :: CR = CHAR(13)
-      logical :: in_crust(NELEM),exhausted
+      logical :: exhausted
 
       Nstep = 20
       time  = 0.d0
       dt    = deltat/Nstep
-      do e=1,NELM
-        if (e==iel) cycle
-        el = elnum(e)
-        in_crust(el) = (crust_Neps(el)>0.Q0)
-      enddo  
       call INIT_DIFFUSION(N,1,dt,BB_1)  ! for bc_low=1
       call INIT_DIFFUSION(N,2,dt,BB_2)  ! for bc_low=2
       
       do it=1,Nstep
 
-        do e=1,NELM
-          if (e==iel) cycle
-          el = elnum(e)
-          xx(-1:N) = nHeps(el,-1:N)/nHtot(-1:N) 
-          if (in_crust(el)) then
-            xx(-1) = xlower(el)         ! ghostcell 
-          endif   
+        round = 1
+        influx(:) = 0.d0
+        do e=1,isort
+
+          el = esort(e)
+          if ((round==1).and.(.not.limiting(e))) then
+            round = 2 
+            call INFLUXES(influx,isort,ipass,esort,limiting) 
+          endif  
+          xx(0:N) = nHeps(el,0:N)/nHtot(0:N) 
 
           !------------------------------
           ! ***  boundary conditions  ***
           !------------------------------
           rest = xx
-          nD = nHtot(-1)*Diff(-1)  
-          if (in_crust(el)) then   
-            rest(-1) = xlower(el)                ! fixed concentration
+          nD = nHtot(0)*Diff(0)  
+          if (in_crust(el).and.limiting(e)) then   
+            rest(0) = xlower(el)                 ! fixed concentration
             bc_low = 1
             BB = BB_1
           else                              
             bc_low = 2
-            influx(el) = 0.d0
-            rest(-1) = -influx(el)/nD/dd1l(-1)   ! fixed flux
+            rest(0) = -influx(el)/nD/dd1l(0)     ! fixed flux
             BB = BB_2
           endif
           nD = nHtot(N)*Diff(N)  
@@ -372,14 +328,14 @@
           !----------------------------
           ! ***  implicit timestep  ***
           !----------------------------
-          do i=-1,N
+          do i=0,N
             xnew(i) = 0.d0 
-            do j=-1,N 
-              xnew(i) = xnew(i) + BB(i+2,j+2)*rest(j)
+            do j=0,N 
+              xnew(i) = xnew(i) + BB(i+1,j+1)*rest(j)
             enddo  
           enddo  
-          print'(A3,99(1pE10.3))',elnam(el),xx(-1:3)
-          print'(3x,99(1pE10.3))',xnew(-1:3)
+          print'(A3,99(1pE10.3))',elnam(el),xx(0:3)
+          print'(3x,99(1pE10.3))',xnew(0:3)
 
           !------------------------------------------------
           ! ***  compute fluxes through inner boundary  ***
@@ -388,20 +344,24 @@
           do i=0,N
             dNcol = dNcol + nHtot(i)*(xnew(i)-xx(i))*zweight(i)
           enddo
-          xx(:) = xnew(:)
-          nHeps(el,-1:N) = nHtot(-1:N)*xnew(-1:N)
 
           nD = nHtot(0)*Diff(0)  
-          if (in_crust(el)) then   
-            influx(el) = -nD
-     >              *(d1l(0)*xx(-1) + d1m(0)*xx(0) + d1r(0)*xx(1))
+          if (in_crust(el).and.limiting(e)) then   
+            xl = 0.5*(xx(0)+xnew(0)) 
+            xm = 0.5*(xx(1)+xnew(1)) 
+            xr = 0.5*(xx(2)+xnew(2)) 
+            influx(el) = -nD*(dd1l(0)*xl + dd1m(0)*xm + dd1r(0)*xr)
             print'(A3,"  influx=",2(1pE12.4))',
      >           elnam(el),influx(el),dNcol/dt
             influx(el) = dNcol/dt
           endif  
 
+          xx(:) = xnew(:)
+          nHeps(el,0:N) = nHtot(0:N)*xnew(0:N)
+
         enddo  
 
+        exhausted = .false.
         do e=1,NELM
           if (e==iel) cycle
           el = elnum(e)
@@ -421,7 +381,7 @@
         time = time + dt
         if (verbose>0) write(*,'(TL10," DIFFUSION:",I8,A,$)') it,CR
         if (exhausted) then
-          deltat = dt
+          deltat = time          
           exit
         endif  
 
@@ -433,7 +393,7 @@
 
 
 ************************************************************************
-      SUBROUTINE INFLUXES(influx,limiting,Nlim,Dlim,branch) 
+      SUBROUTINE INFLUXES(influx,isort,ipass,esort,limiting) 
 ************************************************************************
       use STRUCT,ONLY: Diff,nHtot,nHeps,crust_Neps,crust_Ncond
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
@@ -442,113 +402,44 @@
       implicit none
       real*8,intent(inout) :: influx(NELEM)
       logical,intent(in) :: limiting(NELEM)
-      integer,intent(in) :: Nlim(NELEM),Dlim(NELEM,10)
-      real*8,intent(in) :: branch(NELEM,10)
-      integer :: i,j,k,e,el,el2,el3,s,Neq1,Neq2,ii,jj,NEXTRA
-      integer :: extra_nel(NDUST),extra_Ns(NDUST),extra_s(NDUST,20)
+      integer,intent(in) :: isort,ipass,esort(NELEM)
+      integer :: i,ii,jj,e,el,el2,i1,i2,s,Neq1,Neq2
       real*8 :: AA(NELM,NELM),sol(NELM),rhs(NELM)
-      real*8 :: dNcond(NDUST),check(NELEM)     
-      real*8 :: qual
-      real*8 :: extra_el(NDUST,20),extra_nu(NDUST,20)
-      character(len=500) :: extra_nam(NDUST)
-      logical :: disconsider(NDUST),found
-
-      do e=1,NELM
-        if (e==iel) cycle
-        el = elnum(e)
-        if (limiting(el)) cycle
-        influx(el) = 0.d0
-      enddo
-      return
-
-      disconsider(:) = .false.
-      NEXTRA = 0
-      do e=1,NELM
-        if (e==iel) cycle
-        el = elnum(e)
-        if (Nlim(el).le.1) cycle
-        NEXTRA = NEXTRA+1
-        extra_nam(NEXTRA) = ''
-        extra_nel(NEXTRA) = 0
-        extra_Ns(NEXTRA) = 0
-        do i=1,Nlim(el)
-          s = Dlim(el,i)
-          disconsider(s) = .true.
-          extra_nam(NEXTRA) = trim(extra_nam(NEXTRA))
-     >                        //"-"//trim(dust_nam(s))
-          extra_Ns(NEXTRA) = extra_Ns(NEXTRA)+1
-          extra_s(NEXTRA,i) = s
-          do j=1,dust_nel(s)
-            el2 = dust_el(s,j)
-            found = .false.
-            do k=1,extra_nel(NEXTRA)
-              el3 = extra_el(NEXTRA,k)
-              if (el2==el3) then
-                found = .true.
-                exit
-              endif
-            enddo
-            if (found) then
-              extra_nu(NEXTRA,k) = extra_nu(NEXTRA,k)
-     >                           + branch(el,i)*dust_nu(s,j)
-            else
-              extra_nel(NEXTRA)  = extra_nel(NEXTRA)+1
-              k = extra_nel(NEXTRA)
-              extra_el(NEXTRA,k) = el2
-              extra_nu(NEXTRA,k) = branch(el,i)*dust_nu(s,j)
-            endif
-          enddo
-        enddo
-      enddo
-      do i=1,NEXTRA
-        print*,trim(extra_nam(i))
-        do j=1,extra_nel(i)
-          el = extra_el(i,j)
-          print*,elnam(el),extra_nu(i,j)
-        enddo  
-      enddo
+      real*8 :: dNcond(NDUST),check(NDUST),qual
 
       !--------------------------------------------
       ! ***  fill in equation system            ***
       ! ***  ((stoich))*(dNcond/dt) = (influx)  ***
       ! ***  for limiting element fluxes        ***
       !--------------------------------------------
+      i1 = ipass+1
+      do i=i1,isort
+        if (limiting(i)) i2=i 
+      enddo 
+      Neq1 = i2-i1+1
+
       ii = 0
-      do e=1,NELM
-        if (e==iel) cycle
-        el = elnum(e)
-        if (.not.limiting(el)) cycle
-        if (crust_Neps(el).le.0.Q0) cycle
+      do e=i1,i2
+        el = esort(e)
         ii = ii+1
-        Neq1 = ii
         rhs(ii) = influx(el)
         AA(ii,:) = 0.d0
         jj = 0
         do s=1,NDUST
           if (crust_Ncond(s)<=0.Q0) cycle
-          if (disconsider(s)) cycle
           jj = jj+1
-          if (ii==1) print*,jj,dust_nam(s)
+          if (e==i1) print*,jj,dust_nam(s)
           Neq2 = jj
           do i=1,dust_nel(s)
             el2 = dust_el(s,i)
             if (el==el2) AA(ii,jj) = dust_nu(s,i)
           enddo
         enddo
-        do s=1,NEXTRA
-          jj = jj+1
-          if (ii==1) print*,jj,trim(extra_nam(s))
-          Neq2 = jj
-          do i=1,extra_nel(s)
-            el2 = extra_el(s,i)
-            if (el==el2) AA(ii,jj) = extra_nu(s,i)
-          enddo
-        enddo   
         print*,ii,elnam(el)
       enddo  
       print*,Neq1,Neq2
       do i=1,Neq1
-        print'(99(1pE10.3))',AA(i,1:Neq2)
+        print'(99(I3))',int(AA(i,1:Neq2))
       enddo  
       if (Neq1.ne.Neq2) stop "Neq1<>Neq2 in diffusion."
 
@@ -560,19 +451,8 @@
       jj = 0
       do s=1,NDUST
         if (crust_Ncond(s)<=0.Q0) cycle
-        if (disconsider(s)) cycle
         jj = jj+1
         dNcond(s) = sol(jj)
-      enddo  
-      do e=1,NELM
-        if (e==iel) cycle
-        el = elnum(e)
-        if (Nlim(el).le.1) cycle
-        jj = jj+1
-        do i=1,Nlim(el)
-          s = Dlim(el,i)
-          dNcond(s) = branch(el,i)*sol(jj)
-        enddo
       enddo  
 
       !----------------------------------------------------
@@ -580,10 +460,8 @@
       !----------------------------------------------------
       check = influx
       influx(:) = 0.d0
-      do e=1,NELM
-        if (e==iel) cycle
-        el = elnum(e)
-        if (crust_Neps(el).le.0.Q0) cycle
+      do e=i1,isort
+        el = esort(e)
         do s=1,NDUST
           if (crust_Ncond(s)<=0.Q0) cycle
           do i=1,dust_nel(s)
@@ -593,7 +471,7 @@
             endif  
           enddo
         enddo
-        if (limiting(el)) then
+        if (limiting(e)) then
           qual = ABS(influx(el)/check(el)-1.d0) 
           print'(A3,"  influx=",1pE12.4,"  check=",1pE9.2)',
      >                 elnam(el),influx(el),qual

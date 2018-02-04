@@ -11,11 +11,13 @@
 ************************************************************************
       character(len=200) :: elements_select,model_name,dustchem_file
       character(len=200) :: struc_file
-      real :: logg,Teff,vzconst,pconst,beta,Hp,pmin,pmax,Nl,Vl
+      real :: logg,Teff,vzconst,pconst,beta,Hp,pmin,pmax
+      integer :: gas_kind,crust_kind
+      real :: crust_thickness
       real :: influx,outflux,inrate,outrate,vin,vout
-      real :: Tfast,tfac,outtime(50),tsim
-      integer :: bc_low,bc_high,init,Nout,abund_pick,evap_model,verbose
-      logical :: implicit,tindep,dust_diffuse,useDatabase
+      real :: Tfast,tsim,dt_init,dt_increase
+      integer :: bc_low,bc_high,verbose
+      logical :: implicit,useDatabase
       end
 
 ************************************************************************

@@ -11,10 +11,11 @@ GOP_SIZE		6
 
 SLICES_PER_FRAME	1
 
-INPUT_DIR	        ~/Diffusion/output_1800K_dustdiff_full
+INPUT_DIR	        ~/Diffusion/output
 
 INPUT
-eps_*.png [00001-00140]
+frame_00000*.png [001-097]
+#eps_*.png [00001-00140]
 #dust_*.png [00001-00059]
 #dust_*.png [00060-00177+3]
 #dust_*.png [00180-00990+10]

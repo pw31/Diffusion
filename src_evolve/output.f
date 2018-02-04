@@ -1,7 +1,7 @@
 ***********************************************************************
       SUBROUTINE OUTPUT(num,time,dt)
 ***********************************************************************
-      use PARAMETERS,ONLY: model_name,logg
+      use PARAMETERS,ONLY: model_name,logg,verbose
       use NATURE,ONLY: bk,bar,amu,mel,pi,mic
       use CHEMISTRY,ONLY: NELM,NMOLE,elnum,cmol,catm,el,charge,molmass
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_mass,dust_Vol,
@@ -24,7 +24,6 @@
       character(len=1) :: char1
       character(len=8) :: cout
       logical :: hasW,ex
-      integer :: verbose=0
 
 #ifdef IFORT
       inquire(directory=trim(model_name),exist=ex)
@@ -38,18 +37,31 @@
       !---------------------------------
       ! ***  write crust properties  ***
       !---------------------------------
-      inquire(file=trim(model_name)//'/history.out',exist=ex)
+      inquire(file=trim(model_name)//'/history1.out',exist=ex)
       if ((num==0).or.(.not.ex)) then
-        open(unit=12,file=trim(model_name)//'/history.out',
+        open(unit=12,file=trim(model_name)//'/history1.out',
      >       status='replace') 
         write(12,'(a6,99(a14))') '#','time[s]','dt[s]','depth[cm]',
      >            elnam(elnum(1:el-1)),elnam(elnum(el+1:NELM))
       else   
-        open(unit=12,file=trim(model_name)//'/history.out',
+        open(unit=12,file=trim(model_name)//'/history1.out',
      >       position='append')
       endif   
       write(12,'(i6,99(1pE14.6))') num,time,dt,crust_depth,
      >            crust_Neps(elnum(1:el-1)),crust_Neps(elnum(el+1:NELM))
+      close(12)
+      inquire(file=trim(model_name)//'/history2.out',exist=ex)
+      if ((num==0).or.(.not.ex)) then
+        open(unit=12,file=trim(model_name)//'/history2.out',
+     >       status='replace') 
+        write(12,'(a6,999(a20))') '#','time[s]','dt[s]','depth[cm]',
+     >            (trim(dust_nam(i)),i=1,NDUST)
+      else   
+        open(unit=12,file=trim(model_name)//'/history2.out',
+     >       position='append')
+      endif   
+      write(12,'(i6,999(1pE20.6))') num,time,dt,crust_depth,
+     >            crust_Ncond(1:NDUST)
       close(12)
       
       !---------------------------------------
@@ -156,7 +168,7 @@
       write(70) crust_Neps
       write(70) crust_gaseps
       close(70)
-      read'(A1)',char1
+      if (verbose>=2) read'(A1)',char1
 
  1000 format(4(' eps(',a2,') = ',1pD8.2))
  1010 format(A4,0pF8.2,3(a6,1pE9.2),1(a11,1pE9.2))

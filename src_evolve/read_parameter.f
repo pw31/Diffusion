@@ -3,13 +3,12 @@
 ************************************************************************
       use NATURE,ONLY: bar
       use PARAMETERS,ONLY: elements_select,model_name,dustchem_file,
-     >                     struc_file,Tfast,tsim,verbose,
+     >                     struc_file,Tfast,tsim,dt_init,dt_increase,
      >                     logg,Teff,vzconst,pconst,beta,Hp,
-     >                     pmin,pmax,Nl,Vl,evap_model,
-     >                     bc_low,bc_high,init,implicit,tindep,
+     >                     gas_kind,crust_kind,crust_thickness,
+     >                     pmin,pmax, bc_low,bc_high,implicit,
      >                     influx,outflux,inrate,outrate,vin,vout,
-     >                     abund_pick,Nout,outtime,tfac,dust_diffuse,
-     >                     useDatabase
+     >                     useDatabase,verbose
       use CHEMISTRY,ONLY: NewBackIt,NewFullIt,NewBackFac,dispol_file
       use GRID,ONLY: Npoints
       implicit none
@@ -27,38 +26,33 @@
       dispol_file(3) = 'dispol_WoitkeRefit.dat'
       dispol_file(4) = ''
       elements_select= 'H He C N O Na Mg Si Fe Al Ca Ti S Cl K el'
-      abund_pick = 3
       Tfast      = 1000.d0
       NewFullIt  = .true.
       NewBackIt  = 5
       NewBackFac = 1.E+2
       tsim = 300.0          ! 5 minutes
+      dt_init = 1.E-3       ! 1 milli-sec
+      dt_increase = 1.3     ! factor for dt increase
       pmin       = 1.d-8*bar
       pmax       = 100.d0*bar
       beta       = 1.5
-      Nl         = 1000.0
-      Vl         = 3.d-23*Nl
-      evap_model = 1
       Npoints    = 100
       pconst     = 0.1*bar  ! 100 mbar
       vzconst    = 10.0     ! 10 cm/s
       Hp         = 1.0
       bc_low     = 1        ! fixed conc.
       bc_high    = 1        ! fixed conc.
-      init       = 1        ! start with x=1 everywhere
       influx     = 0.0      
       outflux    = 0.0
       inrate     = 0.0
       outrate    = 0.0
       vin        = 1.0
       vout       = 1.0
-      implicit   = .false.
-      tindep     = .false.
-      dust_diffuse = .false. 
+      implicit   = .true.
+      gas_kind = 1             ! 0=empty, 1=solar, 2=meteor, 3=EarthCrust
+      crust_kind = 1           ! 1=solar, 2=meteor, 3=EarthCrust
+      crust_thickness = 100.0  ! 1 metre
       useDatabase = .true.
-      Nout       = 8
-      outtime(1:8) = (/0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5/)
-      tfac = 10.0
       verbose = 1
 
       !-------------------------------------------
@@ -82,8 +76,6 @@
         print*,trim(line)
         if (iline.eq.1) then
           elements_select = ' '//trim(line)//' '  
-        else if (index(line,"! abund_pick")>0) then   
-          read(line,*) abund_pick
         else if (index(line,"! Tfast")>0) then   
           read(line,*) Tfast
         else if (index(line,"! NewBackFac")>0) then 
@@ -111,8 +103,12 @@
           read(line,*) bc_low
         else if (index(line,"! bc_high")>0) then   
           read(line,*) bc_high
-        else if (index(line,"! init")>0) then   
-          read(line,*) init
+        else if (index(line,"! gas_kind")>0) then   
+          read(line,*) gas_kind
+        else if (index(line,"! crust_kind")>0) then   
+          read(line,*) crust_kind
+        else if (index(line,"! crust_thickness")>0) then   
+          read(line,*) crust_thickness
         else if (index(line,"! influx")>0) then   
           read(line,*) influx
         else if (index(line,"! outflux")>0) then   
@@ -127,13 +123,6 @@
           read(line,*) vout
         else if (index(line,"! implicit")>0) then   
           read(line,*) implicit
-        else if (index(line,"! tindep")>0) then   
-          read(line,*) tindep
-        else if (index(line,"! Nout")>0) then   
-          read(line,*) Nout
-          read(1,*) outtime(1:Nout)           
-        else if (index(line,"! tfac")>0) then   
-          read(line,*) tfac
         else if (index(line,"! model_name")>0) then
           i = index(line,' ')
           model_name = 'output_'//line(1:i-1)
@@ -145,15 +134,12 @@
           struc_file = line(1:i-1)
         else if (index(line,"! tsim")>0) then   
           read(line,*) tsim
+        else if (index(line,"! dt_init")>0) then   
+          read(line,*) dt_init
+        else if (index(line,"! dt_increase")>0) then   
+          read(line,*) dt_increase
         else if (index(line,"! verbose")>0) then   
           read(line,*) verbose
-        else if (index(line,"! dust_diffuse")>0) then   
-          read(line,*) dust_diffuse
-        else if (index(line,"! Nl")>0) then   
-          read(line,*) Nl
-          Vl = 3.d-23*Nl
-        else if (index(line,"! evap_model")>0) then   
-          read(line,*) evap_model
         else if (index(line,"! dispol_file2")>0) then 
           i = index(line,"!")
           read(line(1:i-1),*)  dispol_file(2)

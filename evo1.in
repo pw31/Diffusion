@@ -2,21 +2,24 @@ H He C N O Na Mg Si Fe Ni Ca Al Ti S Cl K el
 
 2Drift_1400.data        ! struc_file
 DustChem_ALL.dat        ! dustchem_file
-3.E+9                   ! tsim
 0.8                     ! beta
+
+0        ! gas_kind   (0=empty,1=solar,2=meteor,3=EarthCrust)
+1        ! crust_kind         (1=solar,2=meteor,3=EarthCrust)
+1.E+4    ! crust_thickness    [cm]
+1.E-3    ! dt_init            (initial time step)
+3.E+8    ! tsim               (maximum simulation time)
+1.3      ! dt_increase 
 
 201      ! Npoints
 1.E-7    ! pmin
 1.0      ! pmax
-2        ! init
 2        ! bc_high    
 0.0      ! outflux
-2        ! verbose
-.true.   ! implicit
-100.0    ! tfac
+1        ! verbose
 
-800.0    ! Tfast
+1200.0   ! Tfast
 .true.   ! NewFullIt
 5        ! NewBackIt
-1.E+2    ! NewBackFac
+1.E+3    ! NewBackFac
 

@@ -99,6 +99,7 @@ print crust_dname
 print crust_Ncond
 plt.bar(xpos, crust_Ncond, align='center', alpha=0.5, color=colo)
 plt.xlim(-0.6,Ncond-0.4)
+plt.ylim(0,1.05*np.max(crust_Ncond))
 plt.xticks(xpos, crust_dname, rotation=70,fontsize=16)
 plt.ylabel(r'$N_{\rm cond}\ \rm[cm^{-2}]$',fontsize=20)
 titel2 = "crust column densities,   thickness = %10.3e m" %(crust_thick/100.0)

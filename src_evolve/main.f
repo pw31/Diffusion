@@ -1,7 +1,7 @@
 
       program DiffuDrift
 
-      use PARAMETERS,ONLY: tsim,verbose
+      use PARAMETERS,ONLY: tsim,dt_init,dt_increase,verbose
       use GRID,ONLY: dt_diff_ex
       use EXCHANGE,ONLY: chemcall,chemiter,ieqcond,ieqconditer,
      >                   itransform
@@ -23,7 +23,7 @@
 
       nout = 0
       time = 0.d0
-      dt   = 1.E-3*dt_diff_ex
+      dt   = dt_init
       call INITIAL_CONDITIONS(nout,time,dt)
       call OUTPUT(nout,time,dt)
       next = nout
@@ -38,7 +38,7 @@
         if (nout>next) then
           call OUTPUT(nout,time,dt)
           next = nout
-          dt = 1.5*dt
+          dt = dt*dt_increase
         endif  
         if (time>tsim) exit
       enddo  

@@ -8,7 +8,7 @@
       end
 
 !-------------------------------------------------------------------------
-      SUBROUTINE EQUIL_COND(nHtot,T,eps,Sat,ddust,verbose)
+      SUBROUTINE EQUIL_COND(nHtot,T,eps,Sat,ddust,verb)
 !-------------------------------------------------------------------------
 ! ***  computes the gas element abundances eps, the saturation ratios  ***
 ! ***  Sat and the dust number densities ddust after equilibrium       ***
@@ -32,7 +32,7 @@
       real(kind=qp),intent(out) :: eps(NELEM)   ! gas element abundances
       real(kind=qp),intent(out) :: Sat(NDUST)   ! saturation ratio
       real(kind=qp),intent(out) :: ddust(NDUST) ! density of solid units/nHtot
-      integer,intent(inout) :: verbose
+      integer,intent(inout) :: verb
       real(kind=qp),dimension(NELEM) :: eps00,epsread,check,FF,Fsav,dx
       real(kind=qp),dimension(NELEM) :: eps_save,vec,xstep,Iabund,work
       real(kind=qp),dimension(NELEM) :: scale,bvec
@@ -52,7 +52,7 @@
       integer,dimension(NELEM,NDUST) :: dustkind,stoich
       integer :: it,i,j,m,el,el2,Nact,Nact_read,Neq,slots,sl,dk,eq
       integer :: itry,knowns,unknowns,unknown,ii,jj,lastit,laston
-      integer :: imaxon,iminoff,info,ipvt(NELEM)
+      integer :: verbose,imaxon,iminoff,info,ipvt(NELEM)
       integer :: e_num(NELEM),e_num_save(NELEM)
       integer :: Nunsolved,unsolved(NELEM),Nvar1,Nvar2,var(NELEM)
       integer :: Nsolve,ebest,dbest,nonzero,itrivial,iread,ioff
@@ -272,7 +272,7 @@
       enddo
       !eps00 = check
       eps00 = eps0
-      !if (verbose>=0) then
+      if (verbose>0) then
         write(*,*) "element conservation error 1:",worst
         write(*,*) "initial gas fractions ..."
         do i=1,NELM
@@ -280,7 +280,7 @@
           el = elnum(i) 
           print'(A3,2(1pE16.7))',elnam(el),eps0(el),eps(el)
         enddo
-      !endif  
+      endif  
       if (worst>1.Q-8) stop "*** worst>1.Q-8 in equil_cond"
 
       !----------------------------------------------------------

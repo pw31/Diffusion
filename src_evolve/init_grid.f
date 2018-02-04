@@ -113,6 +113,12 @@
       dd1m(-1) =  h2/(h1*(h2-h1))
       dd1r(-1) = -h1/(h2*(h2-h1))
 
+      h1 = zz(1)-zz(0)
+      h2 = zz(2)-zz(0)      
+      dd1l(0) = -(h1+h2)/(h1*h2)
+      dd1m(0) =  h2/(h1*(h2-h1))
+      dd1r(0) = -h1/(h2*(h2-h1))
+
       if (test) then
         !--- test derivatives ---
         do i=-2,N
@@ -128,8 +134,12 @@
           df = f0(i-1)*d2l(i) + f0(i)*d2m(i) + f0(i+1)*d2r(i)
           print'(I4,3(1pE14.6))',i,f2(i),df,f2(i)-df
         enddo
-        df = f0(-2)*d1l(-2) + f0(-1)*d1m(-2) + f0(0)*d1r(-2) 
+        df = f0(-2)* d1l(-2) + f0(-1)* d1m(-2) + f0( 0)*d1r(-2) 
         print'(I4,3(1pE14.6))',-2,f1(-2),df,f1(-2)-df
+        df = f0(-1)*dd1l(-1) + f0( 0)*dd1m(-1) + f0( 1)*dd1r(-1) 
+        print'(I4,3(1pE14.6))',-1,f1(-1),df,f1(-1)-df
+        df = f0( 0)*dd1l( 0) + f0( 1)*dd1m( 0) + f0( 2)*dd1r( 0) 
+        print'(I4,3(1pE14.6))', 0,f1( 0),df,f1( 0)-df
         df = f0(N-2)*d1l(N) + f0(N-1)*d1m(N) + f0(N)*d1r(N) 
         print'(I4,3(1pE14.6))',N,f1(N),df,f1(N)-df
         int = 0.d0
