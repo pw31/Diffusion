@@ -13,7 +13,7 @@
       logical :: conv
 
       write(*,*) 
-      write(*,*) "reading PHOENIX structure"//trim(struc_file)//" ..."
+      write(*,*) "reading structure "//trim(struc_file)//" ..."
       write(*,*) "============================================"
 
       open(42,file=struc_file,status='old')
@@ -35,7 +35,8 @@
 c     write(*,*) (Z(i), i=1,  elementCount)
       read(42,*)
       read(42,*)
-      if (index(struc_file,"2Drift")>0) then
+      if (index(struc_file,"2Drift")>0.or.
+     >    index(struc_file,"lte_")>0) then
         read(42,300) (Rlay(i),i=1,Nlayers)
 c       write(*,*) "nach Rlay"
         read(42,*)

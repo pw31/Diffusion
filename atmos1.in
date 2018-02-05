@@ -1,17 +1,18 @@
-.false.             ! simple
-2Drift_1600.data    ! struc_file
-200                 ! Npoints
-3.E-6               ! pmin
-60.0                ! pmax
-0.8                 ! beta
+Structures/BD_DriftPhoenix/lte_1500_3.5-0.0.2d     ! struc_file
 
-2        ! init
-1        ! bc_low    
-2        ! bc_high    
-0.0      ! outflux
-.false.  ! tindep
-.true.   ! implicit
+.false.   ! simple
+200       ! Npoints
+5.0       ! pmax
+3.E-9     ! pmin
+0.8       ! beta
 
-9        ! Nout
+2         ! init
+1         ! bc_low    
+2         ! bc_high    
+0.0       ! outflux
+.false.   ! tindep
+.true.    ! implicit
+
+9         ! Nout
 1.E+3,1.E+4,1.E+5,3.E+5,1.E+6,3.E+6,1.E+7,3.E+7,1.E+8
-3000.0   ! tfac
+3000.0    ! tfac
