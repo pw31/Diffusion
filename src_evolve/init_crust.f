@@ -13,7 +13,7 @@
       use CHEMISTRY,ONLY: NELEM,NELM,NMOLE,elnum,iel=>el
       use DUST_DATA,ONLY: NDUST,dust_vol,dust_nam,
      >                    dust_nel,dust_el,dust_nu
-      use EXCHANGE,ONLY: inactive,nmol,chi,H,S
+      use EXCHANGE,ONLY: inactive,nmol,chi,H,S,Fe,He
       implicit none
       integer,parameter  :: qp = selected_real_kind ( 33, 4931 )
       real*8  :: Tg,nH,p,dz,PRESSURE
@@ -30,18 +30,22 @@
         eps0 = eps_meteor
       else if (crust_kind==3) then 
         eps0 = eps_crust
+      else if (crust_kind==4) then 
+        !Tg = 500.d0
+        eps0(:) = 1.E-99
+        eps0(He) = 1.E+0 
+        eps0(Fe) = 0.9E+0 
+        eps0(S) = 1.E+0
+      else
+        stop "*** unknown crust_kind." 
       endif  
-      !Tg = 500.d0
-      !eps0(:) = 1.E-99
-      !eps0(H) = 1.E+0 
-      !eps0(S) = 1.E+0
-      !print*,eps0
       inactive = .false.
       do it=1,99
         call EQUIL_COND(nH,Tg,eps,Sat,eldust,verbose)
         p = PRESSURE(Tg)
         print'(" iter=",I2," press=",2(1pE15.8))',it,p,press(0)
         fac = press(0)/p
+        fac = MIN(3.0,MAX(0.3,fac))
         eps0 = eps0*fac
         if (ABS(1.d0-fac).lt.1.E-8) exit
       enddo  

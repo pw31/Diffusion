@@ -22,9 +22,25 @@ bar = 1.E+6                    # 1 bar in dyn/cm2
 day = 3600.*24.
 yr  = 365.25*day
 
-species = ['SiO2','MgSiO3','Mg2SiO4','Fe2SiO4','Fe','FeS','Ni','MgAl2O4','CaMgSi2O6','CaAl2Si2O8','KAlSi3O8','NaAlSi3O8','FeTiO3','TiO2','Ti4O7','CaTiSiO5']
-Ncond = len(species)
+data = open('history2.out')
+titel = data.readline()
+data.close()
+solids = titel.split()
+NDUST = len(solids)
+dat = np.loadtxt('history2.out',skiprows=1)
+species = []
+Ncond = 0
+for i in range(4,NDUST):
+  if (np.max(dat[:,i])>0.0):
+    name = solids[i]
+    if ('[s]' in name): name=name[:len(name)-3]
+    species.append(name)
+    Ncond = Ncond+1
 species = np.array(species)
+print Ncond,species
+Nmax = np.log10(np.max(dat[:,4:]))+0.1
+Nmin = Nmax-5
+print "Nmax=",Nmax
 
 nnn = first
 while (nnn<=last):
@@ -69,8 +85,6 @@ while (nnn<=last):
   pmin  = np.min(lp)
   pmax  = np.max(lp)
   iii   = np.where((lp>pmin) & (lp<pmax))[0]
-  Nmax  = 26.3 
-  Nmin  = Nmax-4
   colo = ['blue','black','silver','red','darkorange','gold','darkorchid','aqua','cadetblue','darkkhaki','pink','moccasin','cornflowerblue','chartreuse','limegreen','darkgreen','chocolate','darkgoldenrod']
   #'darkolivegreen','darkmagenta','aquamarine','coral','burlywood',
   #'beige','darkorange','crimson','darkcyan','bisque'

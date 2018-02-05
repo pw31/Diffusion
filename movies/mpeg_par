@@ -14,7 +14,7 @@ SLICES_PER_FRAME	1
 INPUT_DIR	        ~/Diffusion/output
 
 INPUT
-frame_00000*.png [001-097]
+frame_00000*.png [000-137]
 #eps_*.png [00001-00140]
 #dust_*.png [00001-00059]
 #dust_*.png [00060-00177+3]
