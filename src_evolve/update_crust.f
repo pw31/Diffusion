@@ -70,11 +70,13 @@
       crust_beta = crust_beta/sum_beta
       nHeps(:,0) = nH*crust_gaseps(:)
 
+      print*
+      print'(3x,4(A15))',"eps0","eps","Ngas[cm-2]","Ncrust[cm-2]"
       if (verbose>1) then
         do i=1,NELM
           if (i==iel) cycle
           el = elnum(i)
-          print'(A3,4(1pE16.7))',elnam(el),eps0(el),eps(el),
+          print'(A3,4(1pE15.7))',elnam(el),eps0(el),eps(el),
      >         nH*crust_gaseps(el)*dz,crust_Neps(el)
         enddo
       endif  

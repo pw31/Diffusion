@@ -272,7 +272,7 @@
       enddo
       !eps00 = check
       eps00 = eps0
-      if (verbose>0) then
+      if (verbose>1) then
         write(*,*) "element conservation error 1:",worst
         write(*,*) "initial gas fractions ..."
         do i=1,NELM
@@ -299,7 +299,9 @@
       xstep(:) = 0.Q0             
       call SUPER(nHtot,T,xstep,eps,Sat0,.false.) ! from scratch
       qual = SQUAL(Sat0,active)
-      print'("it=",I4," qual=",1pE13.4E4)',0,qual
+      if (verbose>0) then
+        print'("it=",I4," qual=",1pE13.4E4)',0,qual
+      endif  
       act_old = active
       lastit = -99
       iminoff = 0
@@ -444,7 +446,9 @@
                 write(dum6,'(F6.3)') slin(dk)
                 txt = trim(txt)//dum6//" "//trim(dust_nam(dk))
               enddo
-              print*,"linear combination found: "//trim(txt)
+              if (verbose>0) then
+                print*,"linear combination found: "//trim(txt)
+              endif  
               itried(:) = .false.
               do
                 Smin = 9.Q+99
@@ -503,7 +507,7 @@
           xstep(:)= 0.Q0             
           call SUPER(nHtot,T,xstep,eps,Sat0,NewFastLevel<1)
           qual = SQUAL(Sat0,active)
-          print'("it=",I4," qual=",1pE13.4E4)',it,qual
+          if (verbose>0) print'("it=",I4," qual=",1pE13.4E4)',it,qual
           lastit = it
         endif
         if (verbose>0) then
@@ -664,8 +668,8 @@
               endif
             enddo  
             if (found) then
-              print*,"... exchanging "//elnam(Iindex(i))//
-     >               " for "//elnam(Iindex(j))
+              if (verbose>0) print*,"... exchanging "//
+     >               elnam(Iindex(i))//" for "//elnam(Iindex(j))
               swap = Iindex(i)   
               Iindex(i) = Iindex(j)
               Iindex(j) = swap
@@ -708,8 +712,8 @@
               endif 
             enddo
             if (found) then
-              print*,"... exchanging "//elnam(Iindex(j))//
-     >               " for "//elnam(Iindex(i))
+              if (verbose>0) print*,"... exchanging "//
+     >               elnam(Iindex(j))//" for "//elnam(Iindex(i))
               swap = Iindex(i)   
               Iindex(i) = Iindex(j)
               Iindex(j) = swap
@@ -727,8 +731,8 @@
             ! there is a linear-combination disregarding hydrogen
             i = Nall
             j = Nact
-            print*,"... exchanging "//elnam(Iindex(j))//
-     >             " for "//elnam(Iindex(i))
+            if (verbose>0) print*,"... exchanging "//
+     >             elnam(Iindex(j))//" for "//elnam(Iindex(i))
             swap = Iindex(i)   
             Iindex(i) = Iindex(j)
             Iindex(j) = swap
@@ -1236,7 +1240,9 @@
         xstep(:) = 0.Q0
         call SUPER(nHtot,T,xstep,eps,Sat0,NewFastLevel<1)
         qual = SQUAL(Sat0,active)
-        print'("it=",I4," qual=",1pE13.4E4)',it,qual
+        if (verbose>0) then
+          print'("it=",I4," qual=",1pE13.4E4)',it,qual
+        endif  
         if (qual<1.Q-20) exit
         if (verbose>0) read(*,'(a1)') char1
 

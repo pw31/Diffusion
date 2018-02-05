@@ -97,11 +97,13 @@ objects = ('Python', 'C++', 'Java', 'Perl', 'Scala', 'Lisp')
 xpos = np.arange(Ncond)
 print crust_dname
 print crust_Ncond
-plt.bar(xpos, crust_Ncond, align='center', alpha=0.5, color=colo)
+plt.bar(xpos, np.log10(crust_Ncond), align='center', alpha=0.5, color=colo)
 plt.xlim(-0.6,Ncond-0.4)
-plt.ylim(0,1.05*np.max(crust_Ncond))
+Nmax = np.log10(np.max(crust_Ncond)*1.5)
+Nmin = np.log10(np.min(crust_Ncond)*0.5)
+plt.ylim(Nmin,Nmax)
 plt.xticks(xpos, crust_dname, rotation=70,fontsize=16)
-plt.ylabel(r'$N_{\rm cond}\ \rm[cm^{-2}]$',fontsize=20)
+plt.ylabel(r'$\log\ N_{\rm cond}\ \rm[cm^{-2}]$',fontsize=20)
 titel2 = "crust column densities,   thickness = %10.3e m" %(crust_thick/100.0)
 plt.title(titel2)
 plt.savefig(pp,format='pdf')
@@ -248,7 +250,7 @@ plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
 
-'''
+#'''
 #================== where are the elements? ================
 ellist = ['H','C','O','N','SI','S','NA','CL','CA','TI','K','AL','MG','FE','LI','F','P','NI','MN','CR','ZN','ZR','RB','CU','B','BR','V','SR','W','el']
 allist = [' ',' ',' ',' ','Si',' ','Na','Cl','Ca','Ti',' ','Al','Mg','Fe','Li',' ',' ','Ni','Mn','Cr','Zn','Zr','Rb','Cu',' ','Br',' ','Sr',' ','+']
@@ -347,7 +349,7 @@ for mol in range(4,5+NELEM+NMOLE,1):
 print NMOLE," molecules,  ",Nnot," unimportant, namely ..."
 print out
 
-'''
+#'''
 pp.close()
 print '... written output to structure.pdf.'
 

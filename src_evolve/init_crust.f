@@ -51,11 +51,13 @@
       enddo  
 
       crust_gaseps = 0.Q0                      ! element abund. over crust
+      print*
+      print'(3x,2(A15))',"eps0","eps"
       do i=1,NELM
         if (i==iel) cycle
         el = elnum(i) 
         crust_gaseps(el) = eps(el) 
-        print'(A3,2(1pE15.8))',elnam(el),eps0(el),eps(el)
+        print'(A3,2(1pE15.7))',elnam(el),eps0(el),eps(el)
       enddo 
 
       crust_beta(:) = 0.Q0                     ! crust volume composition
