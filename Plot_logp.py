@@ -218,24 +218,29 @@ ymax = -100.0
 fig,ax = plt.subplots()
 count = 0
 nsolid = np.zeros(NPOINT)
-for i in range(5+NELEM+NMOLE,5+NELEM+NMOLE+NDUST,1):
+i1 = 5+NELEM+NMOLE
+i2 = 5+NELEM+NMOLE+NDUST
+ymax = np.max(dat[iii,i1+NDUST:i2+NDUST])
+ymin = ymax-8
+ymax = ymax+0.3
+for i in range(i1,i2,1):
   solid = keyword[i]
   solid = solid[1:]
-  print solid
   ind = np.where(keyword == 'n'+solid)[0]
   if (np.size(ind) == 0): continue
   ind = ind[0]
   yy = dat[:,ind]               # log10 nsolid/n<H>
-  nsolid = nsolid + 10**dat[:,ind]
-  ymax = np.max([ymax,np.max(yy[iii])])
-  plt.plot(lp[iii],yy[iii],c=colo[count],ls=styl[count],lw=widt[count],label=solid)
+  nsolid = nsolid + 10**yy
+  #print solid,np.max(yy[iii]),ymax,ymin
+  if (np.max(yy[iii])>ymin):
+    plt.plot(lp[iii],yy[iii],c=colo[count],ls=styl[count],lw=widt[count],label=solid)
   count = count + 1
 plt.title('condensates',fontsize=20)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\mathrm{log}_{10}\ n_\mathrm{solid}/n_\mathrm{\langle H\rangle}$',fontsize=20)
 #plt.xscale('log')
 plt.xlim(pmin,pmax)
-plt.ylim(ymax-8,ymax+0.3)
+plt.ylim(ymin,ymax)
 plt.tick_params(axis='both', labelsize=14)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
@@ -258,7 +263,8 @@ for i in range(5+NELEM+NMOLE,5+NELEM+NMOLE+NDUST,1):
   if (np.size(ind) == 0): continue
   ind = ind[0]
   yy = 10**dat[:,ind]/nsolid               # log10 nsolid/ntotsolid
-  plt.plot(lp[ipos],yy[ipos],c=colo[count],ls=styl[count],lw=widt[count],label=solid)
+  if (np.max(yy[ipos])>1.E-10):
+    plt.plot(lp[ipos],yy[ipos],c=colo[count],ls=styl[count],lw=widt[count],label=solid)
   count = count + 1
 plt.title('condensates',fontsize=20)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
