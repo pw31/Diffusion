@@ -65,7 +65,7 @@
       enddo
 
       if (implicit.and.deltat>30*dt_diff_ex) then
-        if (verbose>1) then
+        if (verbose>0) then
           print*
           print*,"entering IMPLICIT DIFFUSION ..."
           print*,"==============================="
@@ -278,21 +278,26 @@
       integer :: i,j,it,e,el,Nstep,round
       real*8,dimension(0:N) :: xx,xnew,rest
       real*8,dimension(N+1,N+1) :: BB_1,BB_2,BB
-      real*8 :: influx(NELEM),dNcol
+      real*8 :: nHold(NELEM,-2:N),influx(NELEM),dNcol,Natmos
       real*8 :: nD,time,dt,xl,xm,xr
       character :: CR = CHAR(13)
-      logical :: exhausted
+      character(len=1) :: char1
+      logical :: exhausted,toomuch,reduced
 
       Nstep = 20
       time  = 0.d0
       dt    = deltat/Nstep
+      reduced = .false.
       call INIT_DIFFUSION(N,1,dt,BB_1)  ! for bc_low=1
       call INIT_DIFFUSION(N,2,dt,BB_2)  ! for bc_low=2
       
       do it=1,Nstep
 
+ 100    continue
         round = 1
         influx(:) = 0.d0
+        nHold(:,:) = nHeps(:,:)
+
         do e=1,isort
 
           el = esort(e)
@@ -360,6 +365,36 @@
           nHeps(el,0:N) = nHtot(0:N)*xnew(0:N)
 
         enddo  
+        
+        !----------------------------------------------------
+        ! ***  check whether influx would substantially   *** 
+        ! ***  increase total atmospheric column density  ***
+        !----------------------------------------------------
+        toomuch = .false.
+        do e=1,isort
+          el = esort(e)
+          if (in_crust(el)) then   
+            Natmos = 0.d0
+            do i=0,N
+              Natmos = Natmos + nHold(el,i)*zweight(i)
+            enddo
+            if (influx(el)*dt>0.05*Natmos) then
+              print*,"*** "//elnam(el)//" too large timestep",
+     >               influx(el)*dt/Natmos
+              dt = dt/2.0
+              toomuch = .true.
+              exit
+            endif  
+          endif
+        enddo     
+        if (toomuch) then
+          nHeps(:,:) = nHold(:,:) 
+          call INIT_DIFFUSION(N,1,dt,BB_1)
+          call INIT_DIFFUSION(N,2,dt,BB_2)
+          read'(A1)',char1
+          reduced = .true.
+          goto 100
+        endif  
 
         exhausted = .false.
         do e=1,NELM
@@ -374,20 +409,20 @@
             if (crust_Neps(el)<0.Q0) then
               exhausted = .true. 
               print*,elnam(el),"*** negative crust column density"
+              read'(A1)',char1
             endif  
           endif  
         enddo  
 
         time = time + dt
         if (verbose>0) write(*,'(TL10," DIFFUSION:",I8,A,$)') it,CR
-        if (exhausted) then
-          deltat = time          
-          exit
-        endif  
+        if (exhausted) exit
 
       enddo
       if (verbose>0) print'(" DIFFUSION:",I8,"  time=",1pE11.4,
      >               "  Dt=",1pE11.4)',it,time0,time
+
+      deltat = time    ! actually advanced timestep
 
       end
 

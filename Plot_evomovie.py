@@ -39,7 +39,7 @@ for i in range(4,NDUST):
 species = np.array(species)
 print Ncond,species
 Nmax = np.log10(np.max(dat[:,4:]))+0.1
-Nmin = Nmax-10
+Nmin = Nmax-7
 print "Nmax=",Nmax
 
 nnn = first

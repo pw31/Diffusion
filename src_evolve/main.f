@@ -1,7 +1,7 @@
 
       program DiffuDrift
 
-      use PARAMETERS,ONLY: tsim,dt_init,dt_increase,verbose
+      use PARAMETERS,ONLY: tsim,dt_init,dt_increase,dt_max,verbose
       use GRID,ONLY: dt_diff_ex
       use EXCHANGE,ONLY: chemcall,chemiter,ieqcond,ieqconditer,
      >                   itransform
@@ -30,6 +30,7 @@
 
       do it=1,999999
         print* 
+        call WARM_UP(time)
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
         call DIFFUSION(time,dt,verbose)
         call UPDATE_CRUST
@@ -38,7 +39,7 @@
         if (nout>next) then
           call OUTPUT(nout,time,dt)
           next = nout
-          dt = dt*dt_increase
+          dt = MIN(dt_max,dt*dt_increase)
         endif  
         if (time>tsim) exit
       enddo  

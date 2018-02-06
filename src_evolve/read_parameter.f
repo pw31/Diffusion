@@ -1,9 +1,10 @@
 ************************************************************************
       subroutine READ_PARAMETER
 ************************************************************************
-      use NATURE,ONLY: bar
+      use NATURE,ONLY: bar,yr
       use PARAMETERS,ONLY: elements_select,model_name,dustchem_file,
-     >                     struc_file,Tfast,tsim,dt_init,dt_increase,
+     >                     struc_file,Tfast,
+     >                     tsim,dt_init,dt_increase,dt_max,heatrate,
      >                     logg,Teff,vzconst,pconst,beta,Hp,
      >                     gas_kind,crust_kind,crust_thickness,
      >                     pmin,pmax, bc_low,bc_high,implicit,
@@ -30,9 +31,11 @@
       NewFullIt  = .true.
       NewBackIt  = 5
       NewBackFac = 1.E+2
-      tsim = 300.0          ! 5 minutes
-      dt_init = 1.E-3       ! 1 milli-sec
-      dt_increase = 1.3     ! factor for dt increase
+      tsim       = 300.0    ! 5 minutes
+      dt_init    = 1.E-3    ! 1 milli-sec
+      dt_increase= 1.3      ! factor for dt increase
+      dt_max     = 9.E+99   ! unlimited timestep
+      heatrate   = 0.0      ! heating rate [K/yr]
       pmin       = 1.d-8*bar
       pmax       = 100.d0*bar
       beta       = 1.5
@@ -138,6 +141,11 @@
           read(line,*) dt_init
         else if (index(line,"! dt_increase")>0) then   
           read(line,*) dt_increase
+        else if (index(line,"! dt_max")>0) then   
+          read(line,*) dt_max
+        else if (index(line,"! heatrate")>0) then   
+          read(line,*) heatrate
+          heatrate = heatrate/yr
         else if (index(line,"! verbose")>0) then   
           read(line,*) verbose
         else if (index(line,"! dispol_file2")>0) then 

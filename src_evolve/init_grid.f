@@ -5,7 +5,7 @@
       use GRID,ONLY: N=>Npoints,zz,zweight,d1l,d1m,d1r,d2l,d2m,d2r,
      >               dd1l,dd1m,dd1r
       use READMODEL,ONLY: Nlayers,zlay,Tlay,play,rholay,glay,Difflay
-      use STRUCT,ONLY: Diff,rho,nHtot,Temp,press,mu,mols,atms,elec
+      use STRUCT,ONLY: Diff,rho,nHtot,Temp,Temp0,press,mu,mols,atms
       use CHEMISTRY,ONLY: NMOLE
       use ELEMENTS,ONLY: NELEM
       use PARAMETERS,ONLY: Hp,pmin,pmax
@@ -17,8 +17,8 @@
 
       allocate(zz(-2:N),zweight(0:N),
      >         Diff(-2:N),rho(-2:N),nHtot(-2:N),
-     >         Temp(-2:N),press(-2:N),mu(-2:N),
-     >         mols(NMOLE,-2:N),atms(NELEM,-2:N),elec(-2:N),
+     >         Temp(-2:N),Temp0(-2:N),press(-2:N),mu(-2:N),
+     >         mols(NMOLE,-2:N),atms(NELEM,-2:N),
      >         d1l(-2:N),d1m(-2:N),d1r(-2:N),
      >         dd1l(-2:N),dd1m(-2:N),dd1r(-2:N),
      >         d2l(-2:N),d2m(-2:N),d2r(-2:N))
@@ -55,6 +55,7 @@
         fac1 = 1.0-fac2
         !print*,i,j,zlay(j),zz(i),zlay(j-1),fac2
         Temp(i)  = Tlay(j)*fac1 + Tlay(j-1)*fac2
+        Temp0(i) = Temp(i)
         press(i) = EXP(LOG(play(j))*fac1 + LOG(play(j-1))*fac2)
         rho(i)   = EXP(LOG(rholay(j))*fac1 + LOG(rholay(j-1))*fac2)
         nHtot(i) = rho(i)/(1.4*amu)

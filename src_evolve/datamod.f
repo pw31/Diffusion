@@ -15,7 +15,7 @@
       integer :: gas_kind,crust_kind
       real :: crust_thickness
       real :: influx,outflux,inrate,outrate,vin,vout
-      real :: Tfast,tsim,dt_init,dt_increase
+      real :: Tfast,tsim,dt_init,dt_max,dt_increase,heatrate
       integer :: bc_low,bc_high,verbose
       logical :: implicit,useDatabase
       end
@@ -41,7 +41,7 @@
 ************************************************************************
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       integer,parameter :: NDUSTmax=500       ! max number of condensed species
-      integer :: NDUST                        ! number of condensed species      
+      integer :: NDUST                        ! number of condensed species
       character(len=20) :: dust_nam(NDUSTmax) ! names of dust species
       real*8  :: dust_rho(NDUSTmax)           ! dust material densities
       real*8  :: dust_mass(NDUSTmax)          ! dust monomer volume
@@ -149,6 +149,7 @@
       real,allocatable :: rho(:)      ! mass density [g/cm3]
       real,allocatable :: nHtot(:)    ! total H nuclei density [1/cm3]
       real,allocatable :: Temp(:)     ! temperature [K]
+      real,allocatable :: Temp0(:)    ! temperature [K]
       real,allocatable :: press(:)    ! pressure [dyn/cm2]
       real,allocatable :: mu(:)       ! mean molecular weight [g]
       real,allocatable :: nHeps(:,:)  ! element abundances [cm-3]
