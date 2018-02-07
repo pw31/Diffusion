@@ -26,13 +26,12 @@
       !------------------------------------------
       ! ***  identify most abundant elements  ***
       !------------------------------------------
-      ecount(:) = 0
+      ecount(:) = 99
       do i=1,NDUST
         if (crust_Ncond(i)<=0.Q0) cycle
-        do j=1,dust_nel(i)
-          el = dust_el(i,j)
-          ecount(el) = ecount(el)+1
-        enddo  
+        if (dust_nel(i)<1) cycle
+        el = dust_el(i,1)
+        ecount(el) = 1
       enddo
       
       esort(:) = 0
@@ -264,8 +263,8 @@
         endif  
 
       enddo  
-      if (verbose>0) print'(" DIFFUSION:",I8,"  time=",1pE11.4,
-     >               "  Dt=",1pE11.4)',it,time0,time
+      if (verbose>0) print'(" EXPLICIT DIFFUSION:",I8,"  time=",
+     >               1pE11.4,"  Dt=",1pE11.4)',it,time0,time
 
       end
 
@@ -290,7 +289,8 @@
       integer :: i,j,it,e,el,Nstep,round
       real*8,dimension(0:N) :: xx,xnew,rest
       real*8,dimension(N+1,N+1) :: BB_1,BB_2,BB
-      real*8 :: nHold(NELEM,-2:N),influx(NELEM),dNcol,Natmos
+      real*8 :: influx(NELEM),dNcol,Natmos
+      real*8 :: nHold(NELEM,-2:N),crust_Nold(NELEM)
       real*8 :: nD,time,dt,xl,xm,xr
       character :: CR = CHAR(13)
       character(len=1) :: char1
@@ -305,14 +305,16 @@
       
       do it=1,Nstep
 
+        nHold(:,:) = nHeps(:,:)
+        crust_Nold(:) = crust_Neps(:)
  100    continue
         round = 1
         influx(:) = 0.d0
-        nHold(:,:) = nHeps(:,:)
         if (MINVAL(nHeps)<0.d0) then
           print*,"*** negative nHeps it=",it
           stop
         endif  
+        toomuch = .false.
 
         do e=1,isort
 
@@ -377,6 +379,14 @@
             influx(el) = dNcol/dt
           endif  
 
+          if (round==2) then
+            print*,"deviation "//elnam(el),xx(1)/xnew(1)-1.d0
+            if (ABS(xnew(1)/xx(1)-1.d0)>0.05) then
+              print*,'*** too large deviation'
+              toomuch = .true.
+            endif  
+          endif
+
           xx(:) = xnew(:)
           nHeps(el,0:N) = nHtot(0:N)*xnew(0:N)
 
@@ -386,7 +396,6 @@
         ! ***  check whether influx would substantially   *** 
         ! ***  increase total atmospheric column density  ***
         !----------------------------------------------------
-        toomuch = .false.
         do e=1,isort
           el = esort(e)
           if (in_crust(el)) then   
@@ -397,20 +406,10 @@
             if (influx(el)*dt>0.2*Natmos) then
               print*,"*** "//elnam(el)//" too large timestep",
      >               influx(el)*dt/Natmos
-              dt = dt/2.0
               toomuch = .true.
-              exit
             endif  
           endif
         enddo     
-        if (toomuch) then
-          nHeps(:,:) = nHold(:,:) 
-          call INIT_DIFFUSION(N,1,dt,BB_1)
-          call INIT_DIFFUSION(N,2,dt,BB_2)
-          read'(A1)',char1
-          reduced = .true.
-          goto 100
-        endif  
 
         exhausted = .false.
         do e=1,NELM
@@ -424,19 +423,35 @@
             crust_Neps(el) = crust_Neps(el) - influx(el)*dt
             if (crust_Neps(el)<0.Q0) then
               exhausted = .true. 
-              print*,elnam(el),"*** negative crust column density"
-              read'(A1)',char1
+              print*,elnam(el)," *** negative crust column density"
+              Natmos = nHeps(el,0)*zweight(0)
+              print*,"column densities:",Natmos,REAL(crust_Neps(el))
+              if (ABS(crust_Neps(el))>0.5*Natmos) then
+                print*,"*** too large timestep" 
+                toomuch = .true. 
+              endif  
             endif  
           endif  
         enddo  
+
+        if (toomuch) then
+          dt = dt/2.0
+          nHeps(:,:) = nHold(:,:) 
+          crust_Neps(:) = crust_Nold(:)
+          call INIT_DIFFUSION(N,1,dt,BB_1)
+          call INIT_DIFFUSION(N,2,dt,BB_2)
+          read'(A1)',char1
+          reduced = .true.
+          goto 100
+        endif  
 
         time = time + dt
         if (verbose>0) write(*,'(TL10," DIFFUSION:",I8,A,$)') it,CR
         if (exhausted) exit
 
       enddo
-      if (verbose>0) print'(" DIFFUSION:",I8,"  time=",1pE11.4,
-     >               "  Dt=",1pE11.4)',it,time0,time
+      if (verbose>0) print'(" IMPLICIT DIFFUSION:",I8,"  time=",
+     >               1pE11.4,"  Dt=",1pE11.4)',it,time0,time
 
       deltat = time    ! actually advanced timestep
 

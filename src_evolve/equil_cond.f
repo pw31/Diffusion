@@ -272,7 +272,7 @@
       enddo
       !eps00 = check
       eps00 = eps0
-      if (verbose>1) then
+      if (verbose>-1) then
         write(*,*) "element conservation error 1:",worst
         write(*,*) "initial gas fractions ..."
         do i=1,NELM
@@ -1311,7 +1311,8 @@
         if (i==iel) cycle
         el = elnum(i) 
         if (eps1(el).le.0.Q0) then
-          write(*,*) "*** negative el.abund. SUPER",elnam(el),eps1(el)
+          write(*,*) "*** negative el.abund. SUPER ",
+     >               elnam(el),eps(el),eps1(el)
           stop
         endif  
       enddo
