@@ -11,8 +11,8 @@
       do i=-2,Npoints
         Temp(i) = Temp0(i) + heatrate*time
       enddo
-      print'("SURFACE TEMPERATURE =",0pF8.2," K")',Temp(0)
-      print'(A31)',"==============================="
       print*
+      print'(" SURFACE TEMPERATURE =",0pF8.2," K")',Temp(0)
+      print'(A32)'," ==============================="
 
       end

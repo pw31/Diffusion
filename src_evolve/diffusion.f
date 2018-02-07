@@ -16,7 +16,8 @@
       integer,intent(in) :: verbose
       real(kind=qp) :: eps(NELEM),Sat(NDUST)
       real*8 :: nH,Tg,flux,fmin,dz,bsum,Ncol,rsort(NELEM)
-      integer :: i,e,el,emin,esort(NELEM),isort,ipass,Ncrust  
+      integer :: i,j,e,el,emin,ecount(NELEM),esort(NELEM)
+      integer :: isort,ipass,Ncrust  
       logical :: in_crust(NELEM),limiting(NELEM)
 
       xlower = crust_gaseps
@@ -25,6 +26,15 @@
       !------------------------------------------
       ! ***  identify most abundant elements  ***
       !------------------------------------------
+      ecount(:) = 0
+      do i=1,NDUST
+        if (crust_Ncond(i)<=0.Q0) cycle
+        do j=1,dust_nel(i)
+          el = dust_el(i,j)
+          ecount(el) = ecount(el)+1
+        enddo  
+      enddo
+      
       esort(:) = 0
       rsort(:) = 0.d0
       isort = 0
@@ -47,11 +57,13 @@
         i = ipass+1
         do i=ipass+1,isort-1
           if (eps(el)<rsort(i)) exit
+          if (ecount(el)==1) exit
         enddo   
         esort(i+1:isort) = esort(i:isort-1)
         rsort(i+1:isort) = rsort(i:isort-1)
         esort(i) = el
         rsort(i) = eps(el)
+        if (ecount(el)==1) rsort(i)=1.E-99
       enddo  
       do i=1,NDUST
         if (crust_Ncond(i)>0.Q0) Ncrust=Ncrust-1
@@ -297,6 +309,10 @@
         round = 1
         influx(:) = 0.d0
         nHold(:,:) = nHeps(:,:)
+        if (MINVAL(nHeps)<0.d0) then
+          print*,"*** negative nHeps it=",it
+          stop
+        endif  
 
         do e=1,isort
 
@@ -378,7 +394,7 @@
             do i=0,N
               Natmos = Natmos + nHold(el,i)*zweight(i)
             enddo
-            if (influx(el)*dt>0.05*Natmos) then
+            if (influx(el)*dt>0.2*Natmos) then
               print*,"*** "//elnam(el)//" too large timestep",
      >               influx(el)*dt/Natmos
               dt = dt/2.0
@@ -430,7 +446,7 @@
 ************************************************************************
       SUBROUTINE INFLUXES(influx,isort,ipass,esort,limiting) 
 ************************************************************************
-      use STRUCT,ONLY: Diff,nHtot,nHeps,crust_Neps,crust_Ncond
+      use STRUCT,ONLY: crust_Neps,crust_Ncond
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
       use ELEMENTS,ONLY: NELEM,elnam
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el

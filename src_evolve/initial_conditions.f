@@ -36,6 +36,8 @@
         close(70)
         print*
         print*,"restart from file:  num,time,dt =",nout,time,dt
+        call WARM_UP(time)
+        call UPDATE_CRUST
 
       else  
 

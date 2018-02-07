@@ -18,6 +18,7 @@
       real*8  :: Tg,nH,dz
       real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST)
       real(kind=qp) :: sum_beta,Natmos,Ncrust,NtotH,crust_Vol
+      character(len=500) :: line
       integer :: i,j,el,verb,verbose=2
 
       if (verbose>1) then
@@ -62,14 +63,19 @@
 
       crust_beta(:) = 0.Q0                ! crust volume composition
       sum_beta = 0.Q0
+      line = ""
       do i=1,NDUST
         if (eldust(i).le.0.Q0) cycle
         crust_beta(i) = eldust(i)*dust_vol(i)
         sum_beta = sum_beta + crust_beta(i)
+        line = trim(line)//" "//trim(dust_nam(i))
       enddo  
       crust_beta = crust_beta/sum_beta
       nHeps(:,0) = nH*crust_gaseps(:)
 
+      print*
+      print*,"active condensates ..."      
+      print*,trim(line)
       print*
       print'(3x,4(A15))',"eps0","eps","Ngas[cm-2]","Ncrust[cm-2]"
       if (verbose>1) then
