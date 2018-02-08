@@ -31,9 +31,8 @@
         if (crust_Ncond(i)<=0.Q0) cycle
         if (dust_nel(i)<1) cycle
         el = dust_el(i,1)
-        ecount(el) = 1
+        ecount(el) = 1     ! keep the pure atomic species
       enddo
-      
       esort(:) = 0
       rsort(:) = 0.d0
       isort = 0
@@ -120,7 +119,7 @@
       real*8 :: D,nD,d1,d2,d1nD,time,dt,dz,dNcol,xl,xm,xr
       character :: CR = CHAR(13)
       character(len=1) :: char1
-      logical :: IS_NAN,exhausted
+      logical :: IS_NAN,exhausted,toomuch
 
       time = 0.d0
 
@@ -147,6 +146,7 @@
         
         round = 1
         influx(:) = 0.d0
+        toomuch = .false.
         do e=1,isort
 
           el = esort(e)
@@ -177,6 +177,14 @@
           do i=-1,N-1
             xx(i) = xx(i) + rate(i)*dt/nHtot(i)
           enddo  
+
+          if (round==2) then
+            print*,"deviation "//elnam(el),xold(1)/xx(1)-1.d0
+            if (ABS(xold(1)/xx(1)-1.d0)>0.01) then
+              print*,'*** too large deviation'
+              toomuch = .true.
+            endif  
+          endif
 
           !------------------------------
           ! ***  boundary conditions  ***
@@ -367,7 +375,6 @@
           do i=0,N
             dNcol = dNcol + nHtot(i)*(xnew(i)-xx(i))*zweight(i)
           enddo
-
           nD = nHtot(0)*Diff(0)  
           if (in_crust(el).and.limiting(e)) then   
             xl = 0.5*(xx(0)+xnew(0)) 
@@ -381,7 +388,7 @@
 
           if (round==2) then
             print*,"deviation "//elnam(el),xx(1)/xnew(1)-1.d0
-            if (ABS(xnew(1)/xx(1)-1.d0)>0.05) then
+            if (ABS(xnew(1)/xx(1)-1.d0)>0.01) then
               print*,'*** too large deviation'
               toomuch = .true.
             endif  

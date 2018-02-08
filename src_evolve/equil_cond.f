@@ -272,7 +272,7 @@
       enddo
       !eps00 = check
       eps00 = eps0
-      if (verbose>-1) then
+      if (verbose>1) then
         write(*,*) "element conservation error 1:",worst
         write(*,*) "initial gas fractions ..."
         do i=1,NELM
