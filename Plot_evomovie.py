@@ -124,7 +124,10 @@ while (nnn<=last):
   ax[1].set_xlim(-0.6,Ncond-0.4)
   ax[1].set_ylim(Nmin,Nmax)
   ax[1].set_xticks(xpos)
-  ax[1].set_xticklabels(species, rotation=70,fontsize=16)
+  if (Ncond<10):
+    ax[1].set_xticklabels(species, rotation=70,fontsize=16)
+  else:
+    ax[1].set_xticklabels(species, rotation=90,fontsize=11)      
   ax[1].set_ylabel(r'$N_{\rm cond}\ \rm[cm^{-2}]$',fontsize=20)
   titel2 = "Tsurf =%8.2f K,  thickness =%10.3e cm" %(Tsurf,crust_thick)
   ax[1].set_title(titel2,fontsize=18)
