@@ -82,6 +82,7 @@ while (nnn<=last):
   Diff  = dat[:,3]                 # diffusion coefficient cm2/s
   lognH = np.log10(nHtot)          
   lp    = np.log10(press)
+  Tsurf = Tg[0]
   pmin  = np.min(lp)
   pmax  = np.max(lp)
   iii   = np.where((lp>pmin) & (lp<pmax))[0]
@@ -125,7 +126,7 @@ while (nnn<=last):
   ax[1].set_xticks(xpos)
   ax[1].set_xticklabels(species, rotation=70,fontsize=16)
   ax[1].set_ylabel(r'$N_{\rm cond}\ \rm[cm^{-2}]$',fontsize=20)
-  titel2 = "thickness =%10.3e cm" %(crust_thick)
+  titel2 = "Tsurf =%8.2f K,  thickness =%10.3e cm" %(Tsurf,crust_thick)
   ax[1].set_title(titel2,fontsize=18)
 
   plt.tight_layout()

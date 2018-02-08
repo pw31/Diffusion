@@ -32,9 +32,9 @@
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
         call DIFFUSION(time,dt,verbose)
+        time = time+dt
         call WARM_UP(time)
         call UPDATE_CRUST
-        time = time+dt
         nout = nout + 1
         if (nout>next) then
           call OUTPUT(nout,time,dt)

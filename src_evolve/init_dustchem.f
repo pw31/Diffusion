@@ -1,7 +1,7 @@
 **********************************************************************
       SUBROUTINE INIT_DUSTCHEM
 **********************************************************************
-      use PARAMETERS,ONLY: dustchem_file
+      use PARAMETERS,ONLY: dustchem_file,heatrate
       use NATURE,ONLY: amu
       use ELEMENTS,ONLY: NELEM,NEPS,mass,elnr,elcode,elnam
       use CHEMISTRY,ONLY: NMOLE,NELM,catm,cmol
@@ -315,7 +315,7 @@
       close(12)
 
       Tcorr(:) = -1.d0
-      call CHECK_MELTING
+      if (heatrate.ne.0.d0) call CHECK_MELTING
       write(*,*)
 
       !open(unit=1,file='condensates.tex')
@@ -397,7 +397,6 @@
         endif
       enddo  
       if (Ncheck==0) return
-      return   ! temporary acceleration!
 
       !-------------------------------
       ! ***  check melting points  ***

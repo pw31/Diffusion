@@ -117,6 +117,7 @@
       real*8,dimension(-2:N) :: xx,xold,rate
       real*8 :: influx(NELEM)
       real*8 :: D,nD,d1,d2,d1nD,time,dt,dz,dNcol,xl,xm,xr
+      real*8 :: nHold(NELEM,-2:N),crust_Nold(NELEM)
       character :: CR = CHAR(13)
       character(len=1) :: char1
       logical :: IS_NAN,exhausted,toomuch
@@ -144,9 +145,13 @@
           endif
         enddo  
         
+        nHold(:,:) = nHeps(:,:)
+        crust_Nold(:) = crust_Neps(:)
+ 100    continue
         round = 1
         influx(:) = 0.d0
         toomuch = .false.
+
         do e=1,isort
 
           el = esort(e)
@@ -179,8 +184,8 @@
           enddo  
 
           if (round==2) then
-            print*,"deviation "//elnam(el),xold(1)/xx(1)-1.d0
-            if (ABS(xold(1)/xx(1)-1.d0)>0.01) then
+            print*,"deviation "//elnam(el),xold(0)/xx(0)-1.d0
+            if (ABS(xold(0)/xx(0)-1.d0)>0.01) then
               print*,'*** too large deviation'
               toomuch = .true.
             endif  
@@ -231,9 +236,9 @@
           do i=-2,N
             nHeps(el,i) = nHtot(i)*xx(i)
             if (xx(i)<0.d0) then
-              print*,"negative elem.abund. in diffusion." 
+              print*,"*** negative elem.abund. in diffusion." 
               print*,elnam(el),i
-              read'(A1)',char1
+              if (verbose>0) read'(A1)',char1
               if (i==N) then 
                 nHeps(el,i) = nHtot(i)*xx(N-1)
               else  
@@ -262,15 +267,22 @@
 
         enddo  
 
+        if (toomuch) then
+          dt = dt/2.0
+          nHeps(:,:) = nHold(:,:) 
+          crust_Neps(:) = crust_Nold(:)
+          if (verbose>0) read'(A1)',char1
+          goto 100
+        endif  
+
         time = time + dt
         if (verbose>0) write(*,'(TL10," DIFFUSION:",I8,A,$)') it,CR
         if (time.ge.deltat) exit
-        if (exhausted) then
-          deltat = time
-          exit
-        endif  
+        if (exhausted) exit
 
       enddo  
+
+      deltat = time    ! return actually advanced timestep
       if (verbose>0) print'(" EXPLICIT DIFFUSION:",I8,"  time=",
      >               1pE11.4,"  Dt=",1pE11.4)',it,time0,time
 
@@ -302,12 +314,11 @@
       real*8 :: nD,time,dt,xl,xm,xr
       character :: CR = CHAR(13)
       character(len=1) :: char1
-      logical :: exhausted,toomuch,reduced
+      logical :: exhausted,toomuch
 
       Nstep = 20
       time  = 0.d0
       dt    = deltat/Nstep
-      reduced = .false.
       call INIT_DIFFUSION(N,1,dt,BB_1)  ! for bc_low=1
       call INIT_DIFFUSION(N,2,dt,BB_2)  ! for bc_low=2
       
@@ -447,8 +458,7 @@
           crust_Neps(:) = crust_Nold(:)
           call INIT_DIFFUSION(N,1,dt,BB_1)
           call INIT_DIFFUSION(N,2,dt,BB_2)
-          read'(A1)',char1
-          reduced = .true.
+          if (verbose>0) read'(A1)',char1
           goto 100
         endif  
 
@@ -457,10 +467,10 @@
         if (exhausted) exit
 
       enddo
+
+      deltat = time    ! return actually advanced timestep
       if (verbose>0) print'(" IMPLICIT DIFFUSION:",I8,"  time=",
      >               1pE11.4,"  Dt=",1pE11.4)',it,time0,time
-
-      deltat = time    ! actually advanced timestep
 
       end
 
