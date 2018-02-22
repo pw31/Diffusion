@@ -160,6 +160,7 @@
 *     ---------------------------------------------
 *     ***  read meteorite abundances from file  ***      
 *     ---------------------------------------------
+      print'(3x,3(A12))',"solar","EarthCrust","Meteor"
       open(1,file='data/Abundances.dat',status='old')
       do i=1,5
         read(1,'(A200)') line
@@ -171,6 +172,8 @@
           !elnam(nr) = el
           eps_crust(nr)  = MAX(1.e-50,abund(nr,1)/abund(1,1))
           eps_meteor(nr) = MAX(1.e-50,abund(nr,4)/abund(1,4))
+          print'(A3,3(1pE12.2))',
+     >       elnam(nr),eps_solar(nr),eps_crust(nr),eps_meteor(nr)
         else if (trim(el)=='W') then
           !mass(W)  = m*amu
           !elnam(W) = el

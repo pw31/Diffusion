@@ -3,11 +3,10 @@ fort.*
 fatal*
 logfile*
 GIT.commands
-src/*.o
-src/*.mod
-src/makefile
-src/*~
-diffuse
+src_diffuse/*.o
+src_diffuse/*.mod
+src_diffuse/makefile
+src_diffuse/*~
 src_weather/*.o
 src_weather/*.mod
 src_weather/makefile

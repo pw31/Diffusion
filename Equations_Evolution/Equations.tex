@@ -1,0 +1,245 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx,natbib,amsmath}
+
+\setlength{\textheight}{24.5cm}
+\setlength{\textwidth}{16.5cm}
+\setlength{\topmargin}{-14mm}
+\setlength{\evensidemargin}{-2mm}
+\setlength{\oddsidemargin}{-2mm}
+\setlength{\headsep}{4mm}
+
+\def\nH{n_{\langle\rm H\rangle}}
+\def\Vl{V_{\ell}}
+\def\Nl{N_{\ell}}
+\def\rhod{\rho_{\rm d}}
+\def\ek{\epsilon_k}
+\def\pdiff#1#2{\frac{\partial #1}{\partial #2}}
+\def\rhogr{\rho_{\rm gr}}
+\def\Dd{D_{\!d}}
+
+\def\apj{ApJ}
+\def\pasp{PASP}
+\def\pasj{PASJ}
+\def\araa{ARA\&A}
+\def\aap{A\&A}
+\def\aaps{A\&AS}
+\def\apjl{ApJL}
+\def\apjs{ApJS}
+\def\mnras{MNRAS}
+\def\aj{AJ}
+\def\nat{Nature}
+\def\icarus{Icarus}
+\def\pasa{PASA}
+
+\def\la{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr<\cr\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr
+<\cr\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr
+<\cr\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil\cr
+<\cr\sim\cr}}}}}
+\def\ga{\mathrel{\mathchoice {\vcenter{\offinterlineskip\halign{\hfil
+$\displaystyle##$\hfil\cr>\cr\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\textstyle##$\hfil\cr
+>\cr\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptstyle##$\hfil\cr
+>\cr\sim\cr}}}
+{\vcenter{\offinterlineskip\halign{\hfil$\scriptscriptstyle##$\hfil\cr
+>\cr\sim\cr}}}}}
+
+
+\begin{document}
+
+\centerline{Definitions}
+
+\begin{tabular}{l|l|c}
+\hline
+symbol  & description & unit\\
+\hline
+$z$                       & vertical coordinate    & cm\\
+$\ek$                     & abundance of element $k$ 
+                            with respect to H      & --\\
+$n_i$                     & particle density of molecule $i$ & cm$^{-3}$\\
+$\nH$                     & total hydrogen nuclei density & cm$^{-3}$\\
+$\rho = \sum_i n_i m_i = \mu_{\rm H}\,\nH = \mu \sum_i n_i$  
+                          & gas mass density       & g\,cm$^{-3}$\\
+$m_i$                     & mass of particle $i$   & g\\
+$m_k$                     & mass of element $k$    & g\\
+$\mu = {\sum_i n_i m_i}\Big/{\sum_i n_i}$ 
+                          & mean gas particle mass & g\\
+$\mu_{\rm H} = \sum_k \epsilon_k m_k$   
+                          & proportionality constant & g\\
+$T$                       & gas temperature        & K\\
+$p = \frac{\rho}{\mu}kT = \sum_i n_i\,kT$  
+                          & gas pressure           & dyn\,cm$^{-2}$\\
+$D$                       & diffusion coefficient  & cm$^2$\,s$^{-1}$\\
+\hline  
+\end{tabular}
+
+\bigskip
+\section{The Atmospheric Diffusion Problem}
+
+To simultaneously model the evolution of the chemical composition of
+the atmosphere and the ``upper crust'' of a hot rocky planet, we use
+the implicit/explicit time-dependent second-order diffusion solver
+{\sc Diffuse} developed by Peter Woitke.  At the top of the atmosphere, a
+modified fixed-flux boundary condition will be applied to allow for
+the Jeans escape of H$_2$ and He (see Sect.~\ref{UpperBound}), whereas 
+at the bottom, a modified fixed-concentration boundary condition will
+be applied to treat the outgasing/deposition of elements to/from the 
+crust (see Sect.~\ref{LowerBound}). By book-keeping 
+the element fluxed through the lower boundary, we can also predict how
+the crust composition slowly changes.
+ 
+Between the boundaries, we solve the second-order diffusion problem
+\begin{equation}
+  \pdiff{(\nH\,\ek)}{t} + \nabla(\vec{v}\,\nH\ek) 
+   ~=~ \nabla\left(\nH D\,\nabla\ek\right) \ .
+\end{equation}
+Assuming a 1-d plane-parallel and static $(\vec{v}=0)$ atmosphere, the
+equations to solve are
+\begin{equation}
+  \frac{d}{dt}\Big(\nH\,\ek\Big) 
+  ~=~ \frac{d}{dz}\left(\nH D\,\frac{d\ek}{dz}\right) \ .
+  \label{eq:diff1}
+\end{equation}
+Assuming, in addition, a constant density structure
+$\nH=\nH\!(z)$ the equations simplify to
+\begin{equation}
+  \frac{d\ek}{dt} 
+  ~=~ \frac{1}{\nH}\,\frac{d}{dz}\!\left(\nH D\,\frac{d\ek}{dz}\right) \ ,
+  \label{eq:diff2}
+\end{equation}
+where $\ek(z,t)$ are the height-dependent and time-dependent element
+abundances we wish to determine. We note that $\nH=\nH\!(z)$ and
+$D=D(z)$ vary by many orders of magnitude throughout the atmosphere,
+often more than the element abundances we wish to determine, therefore 
+we {\sl cannot} neglect the $\frac{d\nH}{dz}$ and $\frac{dD}{dz}$
+terms as
+\begin{equation}
+  \frac{d\ek}{dt} ~\neq~ D\,\frac{d^{\,2}\ek}{dz^2} \ .
+\end{equation}
+The diffusion constant $D(z)$ is determined by proper microscopic diffusion
+in the uppermost layers $D_{\rm micro}$, but otherwise mainly by
+turbulent quasi-diffusion $D_{\rm mix}$ due to vertical mixing
+processes excited by convective instabilities. 
+\begin{equation}
+  D(z) = D_{\rm micro}(z) + D_{\rm mix}(z)
+\end{equation}
+The turbulent diffusion takes place on large spatial scales, hence we
+can safely assume that $D_{\rm mix}$ does not depend on the molecule
+(or element) we want to diffuse. Concerning $D_{\rm micro}$, however, 
+there is a small dependence on the size and reduced mass of the
+molecule with respect to collisions with H$_2$, see
+\citet[][Eq.~(26) therein]{Woitke2003}, which causes deviations
+of $D$ as function of molecule by a factor of about 2 to 3. We will simply
+neglect these deviations in the following.
+
+This neglection allows us to consider the diffusion of elements
+instead of calculating the diffusion of all individual molecules separately.
+The total particle density $\rm[cm^{-3}]$ of element $k$ is given by 
+\begin{equation}
+  \nH\,\ek = \sum_i s_{i,k}\,n_i
+\end{equation} 
+where $s_{i,k}$ is the stoichiometic factor of element $k$ in molecule
+$i$, for example $s_{\rm H_2O,H}=2$. Using Eq.~(\ref{eq:diff1}), the
+diffusion of that total nuclei particle density is given by
+\begin{eqnarray}
+  \frac{d}{dt}\left(\nH\,\ek\right)
+  &=& \frac{d}{dt}\sum_i s_{i,k}\,n_i
+  ~=~ \sum_i s_{i,k}\,\frac{dn_i}{dt} \\
+  &=& \sum_i s_{i,k}\,\frac{d}{dz}\!\left(\nH D\,\frac{d}{dz}
+                     \left(\frac{n_i}{\nH}\right)\right) \\
+  &=& \frac{d}{dz}\!\left(\nH D\,\frac{d}{dz}\left(\sum_i s_{i,k}
+  \frac{n_i}{\nH}\right)\right) \\
+  &=& \frac{d}{dz}\!\left(\nH D\,\frac{d\ek}{dz}\right)
+\end{eqnarray}
+
+
+
+
+\section{Spatial Grid and Initial Conditions}
+
+We use an equidistant grid in $\{z_i\,|\,i\!=\!0,...,I\}$ to
+discretise the 1d atmosphere with a fixed temperature and pressure
+structure, $T(z)$ and $p(z)$. At the lower boundary $(i=0)$, the
+atmospheric gas is in contact with the crust. The crust is represented
+by column densities $N_{\rm cond,j}$ for a number of $j=1,...,J$
+condensed species.
+
+At initialisation $(t=0)$, we consider one set of element abundances
+$\{\epsilon_k^0\}$ at temperature $T(0)$ and pressure $p(0)$ in phase
+equilibrium, using the {\sc GGchem}-code \citep{Woitke2017}.  
+The $\{\epsilon_k^0\}$ element abundances are chosen to be, 
+for example, those of meteors 
+
+
+\section{Element Conservation}
+
+
+
+\section{Boundary Conditions}
+\subsection{Upper boundary condition}
+\label{UpperBound}
+
+We specify the escaping element fluxes through the upper boundary of
+the atmosphere by applying the formula for Jeans escape $\to$ \citet{Tian2015}.
+
+\noindent Where to apply that formula? $\to$ exobase $\to$ \citet{Volkov2011}.
+
+\noindent Here, we need to decompose the elements into molecules,
+apply the Jeans escape to each molecule, and lump the escaping fluxes
+together to get the escaping element fluxes. 
+
+\subsection{Lower boundary condition}
+\label{LowerBound}
+
+At the bottom of the atmosphere, the atmospheric gas is in contact
+with the crust. At pressures are the order of fractions of a bar to
+several bars, hence the collision rates of gas particles with the crust are
+huge, leading to a fast relaxation towards phase equilibrium.  We will
+therefore assume that the gas at the bottom of the atmosphere is
+saturated (in phase equilibrium) with respect to the solid/liquid 
+materials forming the crust.
+\begin{equation}
+  S_j(\ek)\Big|_{z=0} ~=~ 1
+  \label{phaseEq}
+\end{equation}
+As shown in Appendix B of \citep{Woitke2017}, the number $N$ of
+simultaneously present condensates in phase equilibrium is limited
+and cannot exceed the number of elements $K$ contained in them,\\
+\begin{center}
+\begin{tabular}{rcl}
+  $J$ &$=$& number of condensates in crust $j=1,...,J$\\
+  $K$ &$=$& number of condensed elements in crust $k=1,...,K$ \\
+  $J$ &$\leq$ & $K$ \\
+  $D$ &$=$& $K-J~\geq~0$ number of non-limiting elements,
+\end{tabular}
+\end{center} 
+i.e.\ the number of condensing elements can (and usually will) 
+exceed the number of condensates in the crust. In oder to formulate
+the phase equilibrium boundary condition for the diffusion experiment,
+we need to solve $J$ Eq.~\ref{phaseEq} for $K$ elements which is not
+possible if $N<K$. In order to solve this problem, we need to make a 
+case differentiation
+\begin{center}
+\begin{tabular}{rll}
+  case 1: & element not affected by condensation & $j_k=0$\\
+  case 2: & limiting element & solution of $\ek$ from
+            Eq.~(\ref{phaseEq})\\
+  case 3: & non-limiting element & use stoichiometric constraints
+            to compute $j_k$
+\end{tabular}
+\end{center}
+
+
+
+
+\section{Updating the crust thickness and composition}
+
+
+\bibliographystyle{chicagon}
+\bibliography{references}
+
+\end{document}
