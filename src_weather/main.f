@@ -30,7 +30,8 @@
       if (next>=30000) next=next+50
       if (next>=100000) next=next+100
       if (next>=300000) next=next+300
-      if (next>=1000000) next=next+1000
+      if (next>=1000000) next=next+500
+      if (next>=3000000) next=next+1000
       do 
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
@@ -51,7 +52,8 @@
           if (next>=30000) next=next+50
           if (next>=100000) next=next+100
           if (next>=300000) next=next+300
-          if (next>=1000000) next=next+1000
+          if (next>=1000000) next=next+500
+          if (next>=3000000) next=next+1000
         endif  
         if (time>tsim) exit
       enddo  

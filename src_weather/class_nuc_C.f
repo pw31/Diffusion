@@ -39,7 +39,7 @@
        slog = DLOG(SS)
        if (SS.le.1.d0) then
          Jst = 0.d0
-         Nst = 0.d0
+         Nst = 9.d+99
          return
        endif
 

@@ -31,24 +31,21 @@
       endif    
 
       do i=1,NNUC
+        SS = Sat(nuc(i))
         if (nuc_nam(i).eq.'TiO2') then
           nTiO2 = nmol(TiO2)
-          SS    = Sat(nuc(i))
           CALL CLASS_NUC_TIO2(T,SS,nTiO2,Jstern,Nstern)
           !write(*,*) "TiO2 nuc:",nTiO2,SS,Jstern,J_is_zero
         else if (nuc_nam(i).eq.'SiO') then
           nSiO  = nmol(SiO)
-          SS    = Sat(nuc(i))
-          CALL CLASS_NUC_SIO(T,SS,nSIO,Jstern,Nstern)
-          Jst(i) = Jstern
-          !write(*,*) "SiO nuc in NUCLEATION.f"
+          CALL CLASS_NUC_SIO(T,SS,nSiO,Jstern,Nstern)
+          !write(*,*) "SiO nuc:",T,SS,nSiO,Jstern
         else if (nuc_nam(i).eq.'C') then
           nC1   = nat(C)
           nC2   = nmol(C2)
           nC3   = nmol(C3)
           nC2H  = nmol(C2H)
           nC2H2 = nmol(C2H2)
-          SS    = Sat(nuc(i))
           CALL CLASS_NUC_C(T,SS,nC1,nC2,nC2H,nC2H2,nC3,Jstern,Nstern)
           !write(*,*) "C nuc:",nC1,SS,Jstern,J_is_zero
 	else if (nuc_nam(i).eq.'KCl') then

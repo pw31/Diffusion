@@ -87,12 +87,13 @@ implicit/explicit time-dependent second-order diffusion solver {\sc
 modified fixed-flux boundary condition will be applied to allow for
 the Jeans escape of H$_2$ and He (see Sect.~\ref{UpperBound}), whereas
 at the bottom, a modified fixed-concentration boundary condition will
-be applied to treat the outgasing/deposition of elements to/from the
+be applied to treat the outgasing/deposition of elements from/to the
 crust (see Sect.~\ref{LowerBound}). By book-keeping the element fluxed
 through the lower boundary, we can also predict how the crust
-composition slowly changes.
+composition changes with time.
  
-Between the boundaries, we solve the second-order diffusion problem
+In the planet atmosphere between these boundaries, we solve the 
+second-order diffusion problem
 \begin{equation}
   \pdiff{(\nH\,\ek)}{t} + \nabla(\vec{v}\,\nH\ek) 
    ~=~ \nabla\left(\nH D\,\nabla\ek\right) \ .
@@ -112,22 +113,23 @@ $\nH=\nH\!(z)$ the equations simplify to
   \label{eq:diff2}
 \end{equation}
 where $\ek(z,t)$ are the height-dependent and time-dependent element
-abundances we wish to determine. We note that $\nH=\nH\!(z)$ and
-$D=D(z)$ vary by many orders of magnitude throughout the atmosphere,
-often more than the element abundances we wish to determine, therefore 
-we {\sl cannot} neglect the $\frac{d\nH}{dz}$ and $\frac{dD}{dz}$
-terms as
+abundances in the planet atmosphere we wish to determine. We note that
+$\nH=\nH\!(z)$ and $D=D(z)$ vary by many orders of magnitude
+throughout the atmosphere, often more than the element abundances we
+wish to determine, therefore we {\sl cannot} neglect the
+$\frac{d\nH}{dz}$ and $\frac{dD}{dz}$ terms as
 \begin{equation}
   \frac{d\ek}{dt} ~\neq~ D\,\frac{d^{\,2}\ek}{dz^2} \ .
 \end{equation}
-The diffusion constant $D(z)$ is determined by proper microscopic diffusion
-in the uppermost layers $D_{\rm micro}$, but otherwise mainly by
-turbulent quasi-diffusion $D_{\rm mix}$ due to vertical mixing
-processes excited by convective instabilities. 
+The diffusion constant $D(z)$ is determined by (i) the microscopic diffusion
+which turns out to be important in the uppermost layers $D_{\rm
+  micro}$, and (ii) the turbulent quasi-diffusion $D_{\rm mix}$ due to 
+vertical mixing processes excited e.g.\ by convective or other flow 
+instabilities. 
 \begin{equation}
   D(z) = D_{\rm micro}(z) + D_{\rm mix}(z)
 \end{equation}
-The turbulent diffusion takes place on large spatial scales, hence we
+Since the turbulent diffusion takes place on large spatial scales, we
 can safely assume that $D_{\rm mix}$ does not depend on the molecule
 (or element) we want to diffuse. Concerning $D_{\rm micro}$, however, 
 there is a small dependence on the size and reduced mass of the
@@ -136,8 +138,8 @@ molecule with respect to collisions with H$_2$, see
 of $D$ as function of molecule by a factor of about 2 to 3. We will simply
 neglect these deviations in the following.
 
-This neglection allows us to consider the diffusion of elements
-instead of calculating the diffusion of all individual molecules separately.
+This neglection allows us to calculate the diffusion of elements
+rather than the diffusion of individual molecules.
 The total particle density $\rm[cm^{-3}]$ of element $k$ is given by 
 \begin{equation}
   \nH\,\ek = \sum_i s_{i,k}\,n_i
@@ -163,8 +165,8 @@ diffusion of that total nuclei particle density is given by
 
 We use an equidistant grid in $\{z_i\,|\,i\!=\!0,...,I\}$ to
 discretise the 1d-structure of the planetary atmosphere with fixed
-temperature and pressure points in hydrostatic equilibrium, $T(z)$
-and $p(z)$.  At the lower boundary $(z=0)$ of the model, the
+temperature and pressure points in hydrostatic equilibrium, $T(z_i)$
+and $p(z_i)$.  At the lower boundary $(z=0)$ of the model, the
 atmospheric gas is in contact with the crust. The crust is represented
 by column densities $N_j^{\rm cond}$ for a number of $j=1,...,J$
 condensed species.
@@ -311,10 +313,7 @@ to formulate our inner boundary condition as
 \end{tabular}
 \end{center}
 
-
-
-
-\section{Updating the crust thickness and composition}
+\subsection{Updating the crust thickness and composition}
 
 \section{Element Conservation}
 
