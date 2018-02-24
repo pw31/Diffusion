@@ -255,7 +255,7 @@ plt.clf()
 
 #================== solid composition ===================
 ipos = np.where(nsolid>1.E-99)
-if (len(ipos)>1):
+if (len(ipos[0])>1):
   fig,ax = plt.subplots()
   count = 0
   for i in range(5+NELEM+NMOLE,5+NELEM+NMOLE+NDUST,1):
