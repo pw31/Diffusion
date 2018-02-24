@@ -788,10 +788,10 @@
           enddo
 !$omp critical(fort99)
           ilauf = ilauf+1
-          if (ilauf==1) write(99,'(A9,A10,A4,99(A10))') 
-     >          'Tg','n<H>','it',catm(1:nel)
-          write(99,'(0pF9.3,1pE10.3,I4,99(1pE10.3))') 
-     >          Tg,anHges,it,badness
+          !if (ilauf==1) write(99,'(A9,A10,A4,99(A10))') 
+     >    !      'Tg','n<H>','it',catm(1:nel)
+          !write(99,'(0pF9.3,1pE10.3,I4,99(1pE10.3))') 
+     >    !      Tg,anHges,it,badness
 !$omp end critical(fort99)
         endif  
 
