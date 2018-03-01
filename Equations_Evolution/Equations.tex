@@ -224,8 +224,8 @@ element abundances.
 
 \begin{table}
 \centering
-\caption{Different sets of element abundances normalised to hydrogen. 
-$A(-B)$ means $A\times 10^{-B}$.}
+\caption{Different sets of element abundances normalised to hydrogen
+  (need citations). $A(-B)$ means $A\times 10^{-B}$.}
 \label{tab:eps}
 \vspace*{2mm}
 \begin{tabular}{cccc}
@@ -302,16 +302,53 @@ boundary condition for the diffusion experiment, we need to solve $J$
 equations (Eq.~\ref{phaseEq}) for $K$ elements which is not possible
 if $N<K$. In order to solve this problem, we need to make a case
 differentiation and use the element stoichiometry of the consensates
-to formulate our inner boundary condition as
+to formulate our inner boundary condition as follows
 \begin{center}
 \begin{tabular}{lcl}
   1) element not affected by condensation &:& zero-flux boundary
                                               condition $j_k=0$,\\
   2) limiting element &:& fixed concentration $\ek$ from
             Eq.~(\ref{phaseEq}),\\
-  3) non-limiting element &:& derived flux $j_k\neq0$  \ .
+  3) non-limiting element &:& derived element flux $j_k\neq0$  \ .
 \end{tabular}
 \end{center}
+In order to compute the fluxes $j_k$ of the non-limiting elements,
+we first run the diffusion solver for the limiting elements 
+with fixed $\ek$ boundary condition, which results in the boundary
+element fluxes
+\begin{equation}
+  \mbox{limiting element $k=1,...,J$:}\quad\quad 
+   j_k = -\nH D \frac{d\ek}{dz}\Big|_{z=0} \ .
+\end{equation}
+Next, we reconstruct the changes of the crust column densities $N_j^{\rm
+  cond}$ from the $k=1,...,J$ limiting element boundary fluxes by
+solving the following system of linear equation 
+\begin{equation}
+  \sum_j s_{j,k} \frac{dN_j^{\rm cond}}{dt} ~=~ j_k \ ,
+\end{equation}
+which are $J$ equations for $J$ unknowns. Finally we compute the
+non-limiting element fluxes by using the stoichiometry of the 
+crust condensates
+\begin{equation}
+  \mbox{non-limiting element $k=J+1,...,K$:}\quad\quad 
+  j_k = \sum_j s_{j,k} \frac{dN_j^{\rm cond}}{dt}
+\end{equation}
+For example, let's assume we have MgSiO$_3$[s] and Mg$_2$SiO$_4$[s] as
+condensates ($J=2$), which are made of elements Mg, Si and O
+($K=3$). The least abundant elements in the gas phase will limit the
+growth of these condensates, here Mg and Si, whereas there is plenty
+of O available, so there is one non-limiting element ($N=1$). Using 
+the condition of phase equilibrium at the bottom of the atmosphere 
+is assumed to fix the element abundances $\ek$ of the limiting
+elements. These values are used as boundary conditions to run 
+the diffusion solver for Mg and Si, along with all other elements
+not involved in the condensation/outgassing process. As a result,
+the element fluxes through the inner boundary $j_{\rm Mg}$ and $j_{\rm
+  Si}$ are determined. To reconstruct the changes of column densities.    
+
+
+
+
 
 \subsection{Updating the crust thickness and composition}
 

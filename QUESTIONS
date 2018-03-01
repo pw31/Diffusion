@@ -1,3 +1,11 @@
+0) numerics
+   - how long do we need to compute a single model before it
+     becomes stationary ?
+     (( Compare init=0 to init=1 models! ))
+     (( Same answer as from diffuse atmos1.in? ))
+   - do the results converge for increasing number of grid points?
+   - how far up/down do we need to expand the model until the results
+     converge? 
 
 1) how does old static_weather compare to weather?
    - cloud thickness
@@ -15,10 +23,6 @@
 6) do we get secondary cloud layers (Na2S, KCl) ?
 
 7) other important dust kinds ?
-
-8) How long do we need to compute a single model -> stationary ?
-   Compare init=0 to init=1 models!
-   Same answer as diffuse atmos1.in ?
 
 9) how important is dust diffusion ?
    - upward diffusion of seed particles ?
