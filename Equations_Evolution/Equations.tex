@@ -162,18 +162,19 @@ diffusion of that total nuclei particle density is given by
 
 
 \section{Spatial Grid and Initial Conditions}
+\label{sec:init}
 
 We use an equidistant grid in $\{z_i\,|\,i\!=\!0,...,I\}$ to
 discretise the 1d-structure of the planetary atmosphere with fixed
-temperature and pressure points in hydrostatic equilibrium, $T(z_i)$
-and $p(z_i)$.  At the lower boundary $(z=0)$ of the model, the
-atmospheric gas is in contact with the crust. The crust is represented
-by column densities $N_j^{\rm cond}$ for a number of $j=1,...,J$
-condensed species.
+temperature and pressure points in hydrostatic equilibrium, $T_i=T(z_i)$
+and $p_i=p(z_i)$.  At the lower boundary $(z_0=0)$ of the model, the
+atmospheric gas is in physical contact with the crust. The crust is
+represented by column densities $N_j^{\rm cond}$ for a number of
+$j=1,...,J$ condensed species.
 
-At initialisation $(t=0)$, we consider one set of total (gas and
+At initialisation $(t=0)$, we consider a set of total (gas plus
 condensed) element abundances $\{\epsilon_k^0\}$ at temperature
-$T(z=0)$ and pressure $p(z=0)$ in phase equilibrium, using the {\sc
+$T_0$ and pressure $p_0$ in phase equilibrium, using the {\sc
   GGchem}-code \citep{Woitke2017}.  The total element abundances
 $\{\epsilon_k^0\}$ are chosen from one of the sets listed in
 Table~\ref{tab:eps}. The results of this phase equilibrium 
@@ -181,12 +182,12 @@ computation are
 \begin{itemize}
 \itemsep=-1pt
 \parsep=0pt
-  \item the number of simultaneously present condensates $J$,
-  \item the selection of condensates,
-  \item the volume density of units of the condensated species 
+  \item the identification of kind and number $J$ of simultaneously present 
+        condensates
+  \item the volume density of units of those condensates
         $n_j^{\rm cond}\ (j=1,...,J)\ \rm[cm^{-3}]$,
-  \item the element abundances $\{\epsilon_k^{\rm gas}\}$ of the gas
-        above the condensates
+  \item the remaining element abundances $\{\epsilon_k^{\rm gas}\}$ in the gas
+        phase above the condensates
 \end{itemize}
 We define the condensed element abundances as
 \begin{equation}
@@ -194,33 +195,33 @@ We define the condensed element abundances as
 \end{equation}
 where $s_{j,k}$ is the stoichiometric factor of element $k$ in
 condensate $j$, for example $s_{\rm Al_2O_3,O}=3$. The element
-conservation then reads as
+conservation is then given by
 \begin{equation}
   \epsilon_k^0 = \epsilon_k^{\rm gas} + \epsilon_k^{\rm cond} \ .
 \end{equation}
 At initialisation, we fill the lowest atmospheric cell with element
-composition $\epsilon_k^{\rm gas}$, and use the selection and ratio of
-condensed species to initialise the crust. There is one free constant
-in the phase equilibrium computations, namely the total amount of
-condensates. If we add an arbitrary amount of our mixture of
-condensates as
+composition $\epsilon_k^{\rm gas}$, and use the identification and
+ratio of condensed species in phase equilibrium with that gas to
+initialise the crust. At given pressure, there is a free constant in
+phase equilibrium, namely the total amount of condensates. We can add
+an arbitrary amount of the mixture of condensates as
 \begin{equation}
   \widetilde{\epsilon}_k^{\;0} = \epsilon_k^{\rm gas} 
                            + X\,\epsilon_k^{\rm cond} \ .
 \end{equation}
-and re-run the phase equilibrium computation for the same pressure
+and re-run the phase equilibrium computation at the same pressure
 and temperature, but now with $\{\widetilde\epsilon_k^{\;0}\}$ instead of
-$\{\epsilon_k^0\}$, all resulting gas properties including $\epsilon_k^{\rm
-  gas}$ stay the same.  This property of phase equilibrium allows us
+$\{\epsilon_k^0\}$ -- all resulting gas properties including $\epsilon_k^{\rm
+  gas}$ will stay the same.  This property of phase equilibrium allows us
 to consider the ``thickness of the active crust'' $D$ as a free 
 parameter. The initial column densities in the active crust are
 given by
 \begin{equation}
   N_j^{\rm cond} = D\,n_j^{\rm cond}
 \end{equation}
-All atmospheric cells above the bottom cell $(i=2,...,I)$ are finally
-filled with gas of solar abundances, or any other chosen atmospheric gas
-element abundances.
+All atmospheric cells above the bottom cell $(i=1,...,I)$ are finally
+filled with a gas of solar abundances, or any other chosen set 
+of element abundances.
 
 \begin{table}
 \centering
@@ -274,59 +275,62 @@ together to get the escaping element fluxes.
 \subsection{Lower boundary condition}
 \label{LowerBound}
 
-At the bottom of the atmosphere, the atmospheric gas is in contact
-with the crust. At pressures between fractions of a bar to
+At the bottom of the atmosphere, the atmospheric gas is in physical contact
+with the crust. At pressures of the order of a few tenth of a bar to
 several bars, the collision rates of gas particles with the crust are
 huge, leading to a fast relaxation towards phase equilibrium.  We will
 therefore assume that the gas at the bottom of the atmosphere is
-saturated (is in phase equilibrium) with respect to the solid/liquid 
+saturated (i.e.\ in phase equilibrium) with respect to the solid/liquid 
 materials present in the crust.
 \begin{equation}
   S_j(\ek)\Big|_{z=0} ~=~ 1
   \label{phaseEq}
 \end{equation}
-As shown in Appendix B of \citep{Woitke2017}, the number $J$ of
-simultaneously present condensates in phase equilibrium is limited
-and cannot exceed the number of elements $K$ contained in them,\\
+As shown in Appendix B of \citep{Woitke2017}, the number of
+simultaneously present condensates in phase equilibrium $J$ is limited
+by the number of elements $K$ contained in them,
+\smallskip
 \begin{center}
 \begin{tabular}{rcl}
   $J$ &$=$& number of condensates in crust $j=1,...,J$\\
-  $K$ &$=$& number of condensed elements in crust $k=1,...,K$ \\
-  $J$ &$\leq$ & $K$ \\
-  $N$ &$=$& $K-J~\geq~0$ ~number of non-limiting elements,
+  $K$ &$=$& number of condensed elements in crust $k=1,...,J,J+1,...,K$ \\
 \end{tabular}
 \end{center} 
 i.e.\ the number of condensing elements can (and usually will) exceed
-the number of condensates in the crust. In oder to formulate the inner
-boundary condition for the diffusion experiment, we need to solve $J$
-equations (Eq.~\ref{phaseEq}) for $K$ elements which is not possible
-if $N<K$. In order to solve this problem, we need to make a case
-differentiation and use the element stoichiometry of the consensates
-to formulate our inner boundary condition as follows
-\begin{center}
-\begin{tabular}{lcl}
+the number of condensates in the crust ($K\geq J$). To formulate the
+phase equilibrium inner boundary condition for the diffusion
+experiment, we would need to solve $J$ equations (Eq.~\ref{phaseEq})
+for $K$ elements which, however, is not possible if $K>J$. In order to solve
+this problem, we make a case differentiation between ``limiting'' and
+``non-limiting'' elements, and use the element stoichiometry of the
+consensates in the crust as an additional constraint. Our inner
+boundary condition is formulated as follows:
+\begin{equation}
+\mbox{\begin{tabular}{lcl}
   1) element not affected by condensation &:& zero-flux boundary
                                               condition $j_k=0$,\\
   2) limiting element &:& fixed concentration $\ek$ from
             Eq.~(\ref{phaseEq}),\\
   3) non-limiting element &:& derived element flux $j_k\neq0$  \ .
-\end{tabular}
-\end{center}
+\end{tabular}}
+\label{eq:innerBC}
+\end{equation}
 In order to compute the fluxes $j_k$ of the non-limiting elements,
 we first run the diffusion solver for the limiting elements 
-with fixed $\ek$ boundary condition, which results in the boundary
-element fluxes
+with fixed $\ek$ boundary condition, which results in the fluxes
+of the limiting elements through the inner boundary:
 \begin{equation}
   \mbox{limiting element $k=1,...,J$:}\quad\quad 
    j_k = -\nH D \frac{d\ek}{dz}\Big|_{z=0} \ .
+  \label{eq:diffuflux}
 \end{equation}
-Next, we reconstruct the changes of the crust column densities $N_j^{\rm
-  cond}$ from the $k=1,...,J$ limiting element boundary fluxes by
-solving the following system of linear equation 
+Next, we reconstruct the changes of the crust column densities
+$N_j^{\rm cond}$ from these fluxes by solving the following system of
+linear equations
 \begin{equation}
-  \sum_j s_{j,k} \frac{dN_j^{\rm cond}}{dt} ~=~ j_k \ ,
+  \sum_{j=1}^J s_{j,k} \frac{dN_j^{\rm cond}}{dt} ~=~ j_k \ ,
 \end{equation}
-which are $J$ equations for $J$ unknowns. Finally we compute the
+which are $J$ equations for $J$ unknowns. Finally, we derive the
 non-limiting element fluxes by using the stoichiometry of the 
 crust condensates
 \begin{equation}
@@ -337,20 +341,63 @@ For example, let's assume we have MgSiO$_3$[s] and Mg$_2$SiO$_4$[s] as
 condensates ($J=2$), which are made of elements Mg, Si and O
 ($K=3$). The least abundant elements in the gas phase will limit the
 growth of these condensates, here Mg and Si, whereas there is plenty
-of O available, so there is one non-limiting element ($N=1$). Using 
-the condition of phase equilibrium at the bottom of the atmosphere 
-is assumed to fix the element abundances $\ek$ of the limiting
-elements. These values are used as boundary conditions to run 
-the diffusion solver for Mg and Si, along with all other elements
-not involved in the condensation/outgassing process. As a result,
-the element fluxes through the inner boundary $j_{\rm Mg}$ and $j_{\rm
-  Si}$ are determined. To reconstruct the changes of column densities.    
+of O available, so there is one non-limiting element, namely
+O. Applying the condition of phase equilibrium at the bottom of the
+atmosphere, we calculate the element abundances $\epsilon_{\rm Mg}$
+and $\epsilon_{\rm Si}$ in phase equilibrium over the crust, and use
+these values as boundary conditions for the diffusion solver. As a
+result, the element fluxes through the inner boundary $j_{\rm Mg}$ and
+$j_{\rm Si}$ are determined via Eq.~(\ref{eq:diffuflux}). To calculate
+the respective changes of crust column densities, we solve
+\begin{equation}
+  \left(\begin{array}{cc} 1 & 2 \\ 
+                          1 & 1 \end{array}\right)
+  \left(\begin{array}{c} dN_{\rm MgSiO_3}^{\rm cond}/dt \\ 
+                         dN_{\rm Mg_2SiO_4}^{\rm cond}/dt \end{array}\right)
+  = 
+  \left(\begin{array}{c} j_{\rm Mg} \\ j_{\rm Si}\end{array}\right)
+\end{equation}
+for the unknowns $dN_{\rm MgSiO_3}^{\rm cond}/dt$ and $dN_{\rm Mg_2SiO_4}^{\rm
+  cond}/dt$. Finally the matching oxygen flux through the inner 
+boundary is found from the stoichiometry of the crust condensates as
+\begin{equation}
+  j_{\rm O} ~=~ 3\, \frac{dN_{\rm MgSiO_3}^{\rm cond}}{dt}
+             + 4\, \frac{dN_{\rm Mg_2SiO_4}^{\rm cond}}{dt}
+\end{equation}
+which, in the last step, is then used as boundary condition to simulate
+the diffusion of oxygen in the atmosphere.
 
-
-
+This inner phase-equilibrium boundary condition (Eq.~\ref{eq:innerBC}) can
+be used to simulate the deposit of new condensates on top of the crust
+as well as the outgasing of crust materials into the atmosphere. It can
+also be used for mixed cases, where for example one condensate
+outgases wheras, at the same time, other condensates grow on top of
+the crust.
 
 
 \subsection{Updating the crust thickness and composition}
+
+The diffusion experiment as described in Sections~(\ref{UpperBound})
+and (\ref{LowerBound}) is carried out for a timestep $\Delta t$ during
+which the crust column densities $N_j^{\rm cond}$ can slightly change, but we
+assume that the number and kind of stable condensates in the crust
+does not change during $\Delta t$.  After each time step, however, we
+re-examine whether this is still the case.  We first invert and then
+redo the procedure as discibed in Sect.~\ref{sec:init}.
+ 
+In the first step, we decompose all condensates in the crust
+and all molecules in the lowest atmospheric cell into elements as
+\begin{equation}
+  N_k = \nH\ek^{\rm gas}*\Delta z + \sum_{j=1}^J s_{j,k}N_j^{\rm cond} \ ,
+\end{equation}
+where $\Delta z$ is the vertical extent of the lowest atmospheric cell and 
+the $N_k$ are the element column densities in crust and lowest cell. We
+``load'' all these elements into th
+
+\begin{equation}
+  \ek^0 = N_k/N_{\rm H}
+\end{equation}
+
 
 \section{Element Conservation}
 
