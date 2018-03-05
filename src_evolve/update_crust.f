@@ -31,7 +31,7 @@
       nH = nHtot(0)
       dz = 0.5*(zz(1)-zz(0))
       eps0 = 0.Q0
-      NtotH = nH*dz + crust_Neps(H)
+      NtotH = nH*dz                       ! no!+ crust_Neps(H)
       do i=1,NELM
         if (i==iel) cycle
         el = elnum(i)
@@ -50,7 +50,7 @@
       do i=1,NDUST         
         if (eldust(i).le.0.Q0) cycle 
         crust_Ncond(i) = eldust(i)*NtotH
-        crust_Vol = crust_Vol + dust_vol(i)*eldust(i)*NtotH   ! Vol/area
+        crust_Vol = crust_Vol + crust_Ncond(i)*dust_vol(i)   ! Vol/area
         do j=1,dust_nel(i)
           el = dust_el(i,j)
           crust_Neps(el) =  crust_Neps(el) + dust_nu(i,j)*crust_Ncond(i)

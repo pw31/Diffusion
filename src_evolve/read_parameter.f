@@ -5,7 +5,7 @@
       use PARAMETERS,ONLY: elements_select,model_name,dustchem_file,
      >                     struc_file,Tfast,
      >                     tsim,dt_init,dt_increase,dt_max,heatrate,
-     >                     logg,Teff,vzconst,pconst,beta,Hp,
+     >                     logg,vzconst,pconst,beta,Hp,
      >                     gas_kind,crust_kind,crust_thickness,
      >                     pmin,pmax, bc_low,bc_high,implicit,
      >                     influx,outflux,inrate,outrate,vin,vout,

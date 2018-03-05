@@ -2,13 +2,13 @@
       SUBROUTINE READ_STRUCTURE
 **********************************************************************
       use NATURE,ONLY: bar,bk,amu,km,pi
-      use PARAMETERS,ONLY: struc_file,Teff,logg,Hp,vzconst,pconst,beta
+      use PARAMETERS,ONLY: struc_file,logg,Hp,vzconst,pconst,beta
       use READMODEL,ONLY: Rlay,Tlay,play,rholay,glay,vconvlay,
      >                    zlay,mulay,Difflay,Nlayers
       implicit none
       integer :: elementCount,i,j
       real :: mixLength,Hplay,pconv,grad,ngas,lmean,Dmicro,Kn,vth,vz
-      real :: dum
+      real :: Teff,dum
       integer,dimension(1000) :: flag_conv,Z
       logical :: conv
 
