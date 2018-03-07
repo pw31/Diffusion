@@ -81,7 +81,7 @@
       if ((num==0).or.(.not.ex)) then
         open(unit=12,file=trim(model_name)//'/col.out',
      >       status='replace') 
-        write(12,3010) 'time', ('N'//trim(short_name(i)),i=1,NDUST)
+        write(12,3000) 'time', ('N_'//trim(short_name(i)),i=1,NDUST)
       else   
         open(unit=12,file=trim(model_name)//'/col.out',
      >       position='append')
@@ -242,5 +242,6 @@
  1010 format(A4,0pF8.2,3(a6,1pE9.2),1(a11,1pE9.2))
  2000 format(9999(1x,A19))
  2010 format(0pF20.6,3(1pE20.6),9999(0pF20.7))
- 3010 format(9999(0pF20.7))
+ 3000 format(9999(A20))
+ 3010 format(9999(1pE20.7))
       end  
