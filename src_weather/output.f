@@ -18,13 +18,12 @@
       real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST),out(NDUST)
       real*8 :: pp,Tg,nH,nges,kT,mu,sumn,sumnm,stoichzz
       real*8 :: rhog,dustV,rhod,rhodust,amean,amax,g,xi,cT,nD,d1eps
-			real*8 :: vdrift0
-			real*8 :: LL(0:3)
-			real*8,dimension(0:3) :: vdrift
-			real*8,dimension(NDUST) :: numden
-			real*8,dimension(NDUST):: col
+      real*8 :: vdrift0
+      real*8 :: LL(0:3)
+      real*8,dimension(0:3) :: vdrift
+      real*8,dimension(NDUST):: col
       real*8 :: rhoL(0:3),Nst(NNUC),bmix(NDUST),effSat(NDUST)
-      real*8 :: jup(NEPS),jdown(NEPS),CLOSURE
+      real*8 :: jup(NEPS),jdown(NEPS),CLOSURE,numden
       integer :: i,j,ip,dk,e,NOUT
       character(len=200) :: line,filename
       character(len=20) :: name,short_name(NDUST)
@@ -73,9 +72,7 @@
      &               'dust/gas','dustVol/H','<a>[mic]',
      &               ('Jstar('//trim(nuc_nam(j))//')',j=1,NNUC),
      &               ('Nstar('//trim(nuc_nam(j))//')',j=1,NNUC),
-     &							 'vd0','vd1','vd2','vd3',
-     &               'vdrift0','log(rhodust)'
-
+     &               'vd0','vd1','vd2','vd3','vdrift0','log(rhodust)'
 
       !---------------------------------------
       ! ***  write total column densities  ***
@@ -84,24 +81,16 @@
       if ((num==0).or.(.not.ex)) then
         open(unit=12,file=trim(model_name)//'/col.out',
      >       status='replace') 
-        write(12,3010) 'time', 'nH', 
-     & ('n'//trim(short_name(i)),i=1,NDUST)
+        write(12,3010) 'time', ('N'//trim(short_name(i)),i=1,NDUST)
       else   
         open(unit=12,file=trim(model_name)//'/col.out',
      >       position='append')
       endif   
-      
-
-
 
       g  = 10.d0**logg
       xi = DSQRT(pi)/2.d0 * (3.d0/(4.d0*pi))**(1.d0/3.d0) * g
       amax = 0.d0
-
-			do j=1,NDUST
-		  	col(j)=0
-			end do
-
+      col = 0.d0
       do ip=1,Npoints
         ipoint = ip
 
@@ -109,8 +98,6 @@
         nH = nHtot(ip)
         Tg = Temp(ip) 
         kT = bk*Tg
-				
-		 
      
         !--- dust densities and volume mixing ratios ---
         rhoL(0:3) = rhoLj(0:3,ip)
@@ -125,12 +112,9 @@
         rhod = 0.0
         do j=1,NDUST
           eldust(j) = rhoL3(j,ip)/dust_Vol(j)/nH
-
           rhod = rhod + bmix(j)*dust_rho(j)
         enddo 
 					
-
-
         !--- compute chemistry, supersaturation, nucleation ---
         eps = eps0
         do i=1,NEPS
@@ -158,9 +142,8 @@
         enddo
         mu = sumnm/sumn  
         pp = sumn*bk*Tg
+        cT = SQRT(2.d0*kT/mu)
 
-
-        
         !--- compute element fluxes ---
         !jup(:) = 0.d0
         !jdown(:) = 0.d0
@@ -193,37 +176,33 @@
         !endif  
 
         !--- compute dust/gas mass ratio ---
-				
-				
-        rhog  = nH*muH
-        rhodust  = 0.0
+        rhog = nH*muH
+        rhodust = 0.0
         dustV = 0.0
         do j=1,NDUST
-          rhodust  = rhodust  + nH*eldust(j)*dust_mass(j)
+          rhodust = rhodust + nH*eldust(j)*dust_mass(j)
           dustV = dustV + eldust(j)*dust_Vol(j)
           out(j) = LOG10(MIN(1.Q+300,MAX(1.Q-300,effSat(j))))
-					
         enddo  
-				
 
-				!--- COMPUTE MEAN DRIFT VELOCITY ---
-				cT = DSQRT(2.d0*bk*Tg/mu)
-				vdrift0 = (SQRT(pi)*g*rhod*amean)/(2.0*rhog*cT)
-				LL(0:3) = rhoLj(0:3,ip)/rhog
-				LL(4) = CLOSURE(ip,LL(0),LL(1),LL(2),LL(3),0)
-        do j=0,3
-        	vdrift(j) = xi*rhod/cT*LL(j+1)/rhoLj(j,ip)
-				end do
-				
-
-				Do j=1,NDUST
-					numden(j) = dust_mass(j)*nH*eldust(j)*(zz(ip+1)-zz(ip))
-      		col(j) = col(j) + numden(j)
-				END DO
-					
-				
-				
-
+        !--- compute mean drift velocities ---
+        vdrift0 = (SQRT(pi)*g*rhod*amean)/(2.0*rhog*cT)
+        vdrift(:) = vdrift0
+        if (rhodust/rhog>1.E-50) then
+          LL(0:3) = rhoLj(0:3,ip)/rhog
+          LL(4) = CLOSURE(ip,LL(0),LL(1),LL(2),LL(3),0)
+          do j=0,3
+            vdrift(j) = xi*rhod/cT*LL(j+1)/rhoLj(j,ip)
+          enddo
+	endif
+			
+        !--- compute column densities ---
+        if (ip<Npoints) then
+          do j=1,NDUST
+            numden = dust_mass(j)*nH*eldust(j)*(zz(ip+1)-zz(ip))
+            col(j) = col(j) + numden
+          enddo
+        endif  
 
         write(70,2010) Tg,nH,pp,Diff(ip),
      &       LOG10(MAX(1.Q-300, nel)),   
@@ -239,24 +218,15 @@
      &       amean/mic,
      &      (LOG10(MAX(1.Q-300, Jst(j))),j=1,NNUC), 
      &      (MIN(999999.99999,Nst(j)),j=1,NNUC),
-     &      vdrift(0),
-     &      vdrift(1),
-     &      vdrift(2),
-     &      vdrift(3),
-     &      vdrift0,
-     &      (LOG10(MAX(1.Q-10,rhodust)))
-
-		 			
-        
+     &      vdrift(0:3),vdrift0,
+     &      (LOG10(MAX(1.Q-300,rhodust)))
         amax = max(amax,amean)
       enddo 
 
-	
-
-		 write(12,3010) time, nH,col(:)
-
+      write(12,3010) time,col(:)
       close(70)
-			close(12)
+      close(12)
+
       print'("amax[mic] =",1pE13.5)',amax
 
       open(70,file=trim(model_name)//'/restart.dat',
