@@ -192,6 +192,7 @@ computation are
 We define the condensed element abundances as
 \begin{equation}
   \nH\,\epsilon_k^{\rm cond} = \sum_{j=1}^J s_{j,k}\,n_j^{\rm cond}
+  \label{ekcond}
 \end{equation}
 where $s_{j,k}$ is the stoichiometric factor of element $k$ in
 condensate $j$, for example $s_{\rm Al_2O_3,O}=3$. The element
@@ -307,14 +308,19 @@ by the number of elements $K$ contained in them,
 \end{tabular}
 \end{center} 
 i.e.\ the number of condensing elements can (and usually will) exceed
-the number of condensates in the crust ($K\geq J$). To formulate our
+the number of condensates in the crust ($K\geq J$). To quantify our
 phase equilibrium inner boundary condition for the diffusion
-experiment, we would need to solve $J$ equations (Eq.~\ref{phaseEq})
-for $K$ elements which, however, is not possible if $K>J$. In order to
-solve this problem, we make a case differentiation between
-``limiting'' and ``non-limiting'' elements, and use the element
-stoichiometry of the consensates in the crust as an additional
-constraint. Our inner boundary condition is formulated as follows:
+experiment, we need to solve Eq.~(\ref{phaseEq}) for the unknown $K$
+gas element abundances in contact with the crust. As the diffusion
+experiment progresses, however, we have to make sure that the element
+fluxes through the inner boundary are consistent with the
+stoichiometry of a linear combination of the currently stable $J$ crust
+condensates. We achieve this in two steps. First, we make a case
+differentiation between ``limiting'' and ``non-limiting'' elements and
+determine the element fluxes of the limiting elements. Second, we then
+use the stoichiometry of the consensates in the crust as an additional
+constraint to determine the element fluxes of the non-limiting
+elements. Our inner boundary condition is formulated as follows:
 \begin{equation}
 \mbox{\begin{tabular}{lcl}
   1) element not affected by condensation &:& zero-flux boundary
@@ -381,9 +387,15 @@ boundary is found from the stoichiometry of the crust condensates as
 \begin{equation}
   j_{\rm O} ~=~ 3\, \frac{dN_{\rm MgSiO_3}^{\rm cond}}{dt}
              + 4\, \frac{dN_{\rm Mg_2SiO_4}^{\rm cond}}{dt}
+  \label{jdep}
 \end{equation}
-which is then finally used for the inner boundary condition to simulate
-the diffusion of oxygen in the atmosphere.
+which is then finally used as inner boundary condition to simulate
+the diffusion of oxygen in the atmosphere. Equation~(\ref{jdep})
+demonstrates that non-limiting elements must be treated separately. 
+If the three element fluxes ($j_{\rm Mg}$, $j_{\rm Si}$ and $j_{\rm
+  O}$) were all determined by independent diffusion experiments, it would
+generally be impossible to convert them into only two condensates
+(MgSiO$_3$ and Mg$_2$SiO$_4$). 
 
 This inner phase-equilibrium boundary condition (Eq.~\ref{eq:innerBC})
 can be used to simulate the deposit of new condensates on top of the
@@ -436,7 +448,13 @@ new ones can appear, or phase transitions between condensates in the
 crust can occur as the gas above it changes composition with time. The
 results of this procedure are used to update the crust column
 densities $N_j^{\rm cond}$ and the gas element abundances in the
-bottom atmospheric cell $\ek^{\rm gas}$.
+bottom atmospheric cell $\ek^{\rm gas}$. The updated crust 
+column densities and thickness are
+\begin{eqnarray}
+  N_j^{\rm cond} &=& n_j^{\rm cond}\Delta z \\
+              D &=& \sum_j N_j^{\rm cond} V_j \ .
+\end{eqnarray}
+
 
 \section{Element Conservation}
 
