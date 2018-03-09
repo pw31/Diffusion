@@ -8,6 +8,8 @@ plt.rcParams['axes.linewidth'] = 1.5
 pp = PdfPages('weather.pdf')
 import glob, os
 import sys
+#from matplotlib import rc
+#rc('text', usetex=True)   # makes it nice but VERY slow
 
 files = glob.glob("weather*.dat")
 files = sorted(files)
@@ -127,7 +129,7 @@ count = 3
 for i in range(8+2*NELEM+NMOLE+2*NDUST,8+2*NELEM+NMOLE+2*NDUST+NNUC,1):
   log10_Jstar = dat[:,i]
   ym = np.max(log10_Jstar)
-  plt.plot(lp,log10_Jstar,c=colo[count],color='black',linewidth=3,linestyle='solid',label=keyword[i])
+  plt.plot(lp,log10_Jstar,c=colo[count],lw=3,linestyle='solid',label=keyword[i])
   count = count+1
   ymax = np.max([ymax,ym])
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
@@ -185,93 +187,40 @@ if (ymax>0):
   plt.clf()
 
 #================== vdrift ====================
-
-
-label=(r'$v_{mean}$',r'$v0_{mean}$',r'$v1_{mean}$',r'$v2_{mean}$',r'$v3_{mean}$')
-key=('vdrift0','vd0','vd1','vd2','vd3')
 fig,ax = plt.subplots()
-
+label=(r'$\langle v_{\rm dr}^0\rangle$',r'$\langle v_{\rm dr}^1\rangle$',r'$\langle v_{\rm dr}^2\rangle$',r'$\langle v_{\rm dr}^3\rangle$')
+key=('vd0','vd1','vd2','vd3')
 fig,ax = plt.subplots()
 for k,l in zip(key,label):
-	ind = np.where(keyword==k)[0][0]
-	v = np.log10(dat[:,ind])
-	ymax = np.max(v)
-	plt.plot(lp,v,linewidth=2.0,label=l)
-
+  ind = np.where(keyword==k)[0][0]
+  logv = np.log10(dat[:,ind])
+  ymax = np.max(logv)
+  plt.plot(lp,logv,linewidth=2.0,label=l)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-plt.ylabel(r'$log_{10}\ v_{drift}\ [cm s^{-1}]$',fontsize=20)
-#plt.xlim(pmin,pmax)
-#plt.ylim(-.5*ymax,ymax*2)
-plt.legend()
-plt.tight_layout()
-plt.savefig(pp,format='pdf')
-plt.clf()
-
-label=(r'$v_{mean}$',r'$v1_{mean}$')
-key=('vdrift0','vd1')
-fig,ax = plt.subplots()
-
-fig,ax = plt.subplots()
-for k,l in zip(key,label):
-	ind = np.where(keyword==k)[0][0]
-	v = np.log10(dat[:,ind])
-	ymax = np.max(v)
-	plt.plot(lp,v,linewidth=2.0,label=l)
-
-plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-plt.ylabel(r'$log_{10}\ v_{drift}\ [cm s^{-1}]$',fontsize=20)
-#plt.xlim(pmin,pmax)
-#plt.ylim(-.5*ymax,ymax*2)
-plt.legend()
-plt.tight_layout()
-plt.savefig(pp,format='pdf')
-plt.clf()
-
-#================ Volume Ratio ===================
-fig,ax = plt.subplots()
-ind = np.where(keyword=='log(bmix)')[0][0]
-amean = dat[:,ind]
-ymax = np.max(amean)
-
-plt.plot(lp,amean,lw=4)
-plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-plt.ylabel(r'$\log_{10}\ bmix\ $',fontsize=20)
+plt.ylabel(r'$\log_{10}\ v_{drift}\ \mathrm{[cm\ s^{-1}]}$',fontsize=20)
 plt.xlim(pmin,pmax)
-#plt.ylim(-.5*ymax,ymax*2)
 plt.legend()
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
 
-#================ the gas phase element abundances ===================
-
-fig,ax = plt.subplots()
-count = 0
-ymax = -100.0
-for i in range(5+NELEM+NMOLE+2*NDUST,5+NELEM+NMOLE+2*NDUST+NELEM,1):
-  elm = keyword[i]
-  element = elm[3:]
-  yy = dat[:,i]               # log10 eps
-  ymax=np.max([ymax,np.max(yy)])            
-  plt.plot(lp,yy,c=colo[count],ls=styl[count],lw=widt[count],label=element)
-  count = count+1
-plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-plt.ylabel(r'$\log\,\epsilon_{\rm gas}$',fontsize=20)
-plt.xlim(pmin,pmax)
-plt.ylim(ymax-20,0.3)
-plt.tick_params(axis='both', labelsize=15)
-plt.tick_params('both', length=6, width=1.5, which='major')
-plt.tick_params('both', length=3, width=1, which='minor')
-#minorLocator = MultipleLocator(sep)
-#ax.xaxis.set_minor_locator(minorLocator)
-#minorLocator = MultipleLocator(1)
-#ax.yaxis.set_minor_locator(minorLocator)
-sz = np.min([11,1+195.0/count])
-leg = plt.legend(loc='upper left',fontsize=sz,fancybox=True)
-leg.get_frame().set_alpha(0.7)
-plt.tight_layout()
-plt.savefig(pp,format='pdf')
-plt.clf()
+#fig,ax = plt.subplots()
+#label=(r'$v_{mean}$',r'$v1_{mean}$')
+#key=('vdrift0','vd1')
+#fig,ax = plt.subplots()
+#for k,l in zip(key,label):
+#	ind = np.where(keyword==k)[0][0]
+#	v = np.log10(dat[:,ind])
+#	ymax = np.max(v)
+#	plt.plot(lp,v,linewidth=2.0,label=l)
+#
+#plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
+#plt.ylabel(r'$log_{10}\ v_{drift}\ [cm s^{-1}]$',fontsize=20)
+#plt.xlim(pmin,pmax)
+#plt.legend()
+#plt.tight_layout()
+#plt.savefig(pp,format='pdf')
+#plt.clf()
 
 #================== solid particle densities ===================
 col1 = ('Navy','DeepSkyBlue','Orange','Orange','Maroon','Maroon','Green','Green','Goldenrod')
@@ -297,7 +246,7 @@ for i,c,s in zip(range(i1,i2,1),col1,style1):
   #print solid,np.max(yy[iii]),ymax,ymin
   if (np.max(yy[iii])>ymin):
     plt.plot(lp[iii],yy[iii],c=c,ls=s,lw=widt[count],label=solid)
-  count = count + 1
+    count = count + 1
 plt.title('condensates',fontsize=20)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\mathrm{log}_{10}\ n_\mathrm{solid}/n_\mathrm{\langle H\rangle}$',fontsize=20)
@@ -315,38 +264,42 @@ plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
 
-#================== solid composition ===================
-ipos = np.where(nsolid>1.E-99)
-if (len(ipos[0])>1):
-  fig,ax = plt.subplots()
-  count = 0
-  for i in range(5+NELEM+NMOLE,5+NELEM+NMOLE+NDUST,1):
-    solid = keyword[i]
-    solid = solid[1:]
-    ind = np.where(keyword == 'n'+solid)[0]
-    if (np.size(ind) == 0): continue
-    ind = ind[0]
-    yy = 10**dat[:,ind]/nsolid               # log10 nsolid/ntotsolid
-    print solid,np.max(yy[ipos])
-    if (np.max(yy[ipos])>1.E-10):
-      plt.plot(lp[ipos],yy[ipos],c=colo[count],ls=styl[count],lw=widt[count],label=solid)
-      count = count + 1
-  plt.title('condensates',fontsize=20)
-  plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-  plt.ylabel(r'$\mathrm{log}_{10}\ b_\mathrm{mix}$',fontsize=20)
-  plt.yscale('log')
-  plt.xlim(pmin,pmax)
-  plt.ylim(10**(-10.0),10**(0.3))
-  plt.tick_params(axis='both', labelsize=14)
-  plt.tick_params('both', length=6, width=1.5, which='major')
-  plt.tick_params('both', length=3, width=1, which='minor')
-  sz = np.min([11,1+195.0/count])
-  leg = plt.legend(loc='lower left',fontsize=11,fancybox=True,
-                   handlelength=2.5,prop={'size':sz})
-  leg.get_frame().set_alpha(0.7)
-  plt.tight_layout()
-  plt.savefig(pp,format='pdf')
-  plt.clf()
+#================ volume ratios ===================
+fig,ax = plt.subplots()
+i1 = 5+NELEM+NMOLE
+i2 = 5+NELEM+NMOLE+NDUST
+count = 0
+ymin = -10.0
+for i,c,s in zip(range(i1,i2,1),col1,style1):
+  solid = keyword[i]
+  solid = solid[1:]
+  ind = np.where(keyword == 'bmix'+solid)[0]
+  if (np.size(ind) == 0): continue  
+  ind = ind[0]
+  yy  = dat[:,ind]               # log10 bmix
+  ind = np.where(keyword == 'n'+solid)[0]
+  ind = ind[0]
+  ns  = dat[:,ind]               # log10 nsolid/n<H>
+  ind = np.where(ns<-15)
+  yy[ind] = -99.
+  if (np.max(yy[iii])>ymin):
+    plt.plot(lp[iii],yy[iii],c=c,ls=s,lw=widt[count],label=solid)
+    count = count+1
+plt.title('solid volume composition',fontsize=20)
+plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
+plt.ylabel(r'$\log_{10}\ b_{\rm mix}\ $',fontsize=20)
+plt.xlim(pmin,pmax)
+plt.ylim(ymin,0.3)
+plt.tick_params(axis='both', labelsize=14)
+plt.tick_params('both', length=6, width=1.5, which='major')
+plt.tick_params('both', length=3, width=1, which='minor')
+sz = np.min([11,1+195.0/count])
+leg = plt.legend(loc='upper left',fontsize=11,fancybox=True,
+                 handlelength=2.5,prop={'size':sz})
+leg.get_frame().set_alpha(0.7)
+plt.tight_layout()
+plt.savefig(pp,format='pdf')
+plt.clf()
 
 #================== effective supersaturation ratios ===================
 fig,ax = plt.subplots()
@@ -375,6 +328,35 @@ if (count>30):
   col = 2
 leg = plt.legend(loc='lower left',fontsize=10,fancybox=True,
                  handlelength=3,prop={'size':sz},ncol=col)
+leg.get_frame().set_alpha(0.7)
+plt.tight_layout()
+plt.savefig(pp,format='pdf')
+plt.clf()
+
+#================ the gas phase element abundances ===================
+fig,ax = plt.subplots()
+count = 0
+ymax = -100.0
+for i in range(5+NELEM+NMOLE+2*NDUST,5+NELEM+NMOLE+2*NDUST+NELEM,1):
+  elm = keyword[i]
+  element = elm[3:]
+  yy = dat[:,i]               # log10 eps
+  ymax=np.max([ymax,np.max(yy)])            
+  plt.plot(lp,yy,c=colo[count],ls=styl[count],lw=widt[count],label=element)
+  count = count+1
+plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
+plt.ylabel(r'$\log\,\epsilon_{\rm gas}$',fontsize=20)
+plt.xlim(pmin,pmax)
+plt.ylim(ymax-20,0.3)
+plt.tick_params(axis='both', labelsize=15)
+plt.tick_params('both', length=6, width=1.5, which='major')
+plt.tick_params('both', length=3, width=1, which='minor')
+#minorLocator = MultipleLocator(sep)
+#ax.xaxis.set_minor_locator(minorLocator)
+#minorLocator = MultipleLocator(1)
+#ax.yaxis.set_minor_locator(minorLocator)
+sz = np.min([11,1+195.0/count])
+leg = plt.legend(loc='upper left',fontsize=sz,fancybox=True)
 leg.get_frame().set_alpha(0.7)
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
