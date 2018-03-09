@@ -33,15 +33,16 @@
         Tg  = Temp(ip)
         cT  = DSQRT(2.d0*bk*Tg/mu(ip))
         epsd = rhoLj(3,ip)/dust_Vol(1)/nHtot(ip)  ! cm^3/cm^3 / cm3 / cm-3   
+        !print*,ip,epsd
         if (epsd<1.E-15) then                     ! dust-free case
-          if (epsd>1.E-30) then
-            rhod = 3.0
-            vdrift = xi*rhod/cT/rho*(1.E-2*mic)
-            delz = ABS(zz(ip-1)-zz(ip)) 
-            dt = MIN(dt,0.6*delz/vdrift)
-            imin = ip
-            !print'(I3,99(1pE12.3))',ip,Tg,epsd,vdrift,dt
-          endif  
+          !if (epsd>1.E-20) then
+          !  rhod = 3.0
+          !  vdrift = xi*rhod/cT/rho*(1.E-2*mic)
+          !  delz = ABS(zz(ip-1)-zz(ip)) 
+          !  dt = MIN(dt,0.6*delz/vdrift)
+          !  imin = ip
+          !  !print'(I3,99(1pE12.3))',ip,Tg,epsd,vdrift,dt
+          !endif  
           cycle
         endif  
 

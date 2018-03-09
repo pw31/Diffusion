@@ -20,6 +20,7 @@ diffudrift
 diffuevo
 out.*
 output*
+Teff*
 movies/*.mpg
 database.dat
 dispol_selection.dat
