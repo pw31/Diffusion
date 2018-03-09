@@ -75,7 +75,7 @@ widt = [2]*Ncolor*10
 
 #================== temperature-pressure structure ====================
 fig,ax = plt.subplots()
-plt.plot(lp,Tg,lw=4)
+plt.plot(lp,Tg,color='black',linewidth=3,linestyle='solid')
 plt.title(out,fontsize=15)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$T\ \mathrm{[K]}$',fontsize=20)
@@ -92,7 +92,7 @@ plt.clf()
 
 #================== density-pressure structure ====================
 fig,ax = plt.subplots()
-plt.plot(lp,nHtot,lw=4)
+plt.plot(lp,nHtot,color='black',linewidth=3,linestyle='solid')
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$n_\mathrm{\langle H\rangle}\ \mathrm{[cm^{-3}]}$',fontsize=20)
 plt.xlim(pmin,pmax)
@@ -109,7 +109,7 @@ plt.clf()
 
 #================== the diffusion coefficient ====================
 fig,ax = plt.subplots()
-plt.plot(lp,np.log10(Diff),lw=4)
+plt.plot(lp,np.log10(Diff),color='black',linewidth=3,linestyle='solid')
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\log_{10}\ D\ \mathrm{[cm^{2}s^{-1}]}$',fontsize=20)
 plt.xlim(pmin,pmax)
@@ -127,7 +127,7 @@ count = 3
 for i in range(8+2*NELEM+NMOLE+2*NDUST,8+2*NELEM+NMOLE+2*NDUST+NNUC,1):
   log10_Jstar = dat[:,i]
   ym = np.max(log10_Jstar)
-  plt.plot(lp,log10_Jstar,c=colo[count],lw=4,label=keyword[i])
+  plt.plot(lp,log10_Jstar,c=colo[count],color='black',linewidth=3,linestyle='solid',label=keyword[i])
   count = count+1
   ymax = np.max([ymax,ym])
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
@@ -148,7 +148,7 @@ fig,ax = plt.subplots()
 ind = np.where(keyword=='dust/gas')[0][0]
 log10_dust_gas = dat[:,ind]
 ymax = np.max(log10_dust_gas)
-plt.plot(lp,10**log10_dust_gas,lw=4)
+plt.plot(lp,10**log10_dust_gas,color='black',linewidth=3,linestyle='solid')
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\mathrm{dust/gas}$',fontsize=20)
 plt.xlim(pmin,pmax)
@@ -184,7 +184,67 @@ if (ymax>0):
   plt.savefig(pp,format='pdf')
   plt.clf()
 
+#================== vdrift ====================
+
+
+label=(r'$v_{mean}$',r'$v0_{mean}$',r'$v1_{mean}$',r'$v2_{mean}$',r'$v3_{mean}$')
+key=('vdrift0','vd0','vd1','vd2','vd3')
+fig,ax = plt.subplots()
+
+fig,ax = plt.subplots()
+for k,l in zip(key,label):
+	ind = np.where(keyword==k)[0][0]
+	v = np.log10(dat[:,ind])
+	ymax = np.max(v)
+	plt.plot(lp,v,linewidth=2.0,label=l)
+
+plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
+plt.ylabel(r'$log_{10}\ v_{drift}\ [cm s^{-1}]$',fontsize=20)
+#plt.xlim(pmin,pmax)
+#plt.ylim(-.5*ymax,ymax*2)
+plt.legend()
+plt.tight_layout()
+plt.savefig(pp,format='pdf')
+plt.clf()
+
+label=(r'$v_{mean}$',r'$v1_{mean}$')
+key=('vdrift0','vd1')
+fig,ax = plt.subplots()
+
+fig,ax = plt.subplots()
+for k,l in zip(key,label):
+	ind = np.where(keyword==k)[0][0]
+	v = np.log10(dat[:,ind])
+	ymax = np.max(v)
+	plt.plot(lp,v,linewidth=2.0,label=l)
+
+plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
+plt.ylabel(r'$log_{10}\ v_{drift}\ [cm s^{-1}]$',fontsize=20)
+#plt.xlim(pmin,pmax)
+#plt.ylim(-.5*ymax,ymax*2)
+plt.legend()
+plt.tight_layout()
+plt.savefig(pp,format='pdf')
+plt.clf()
+
+#================ Volume Ratio ===================
+fig,ax = plt.subplots()
+ind = np.where(keyword=='log(bmix)')[0][0]
+amean = dat[:,ind]
+ymax = np.max(amean)
+
+plt.plot(lp,amean,lw=4)
+plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
+plt.ylabel(r'$\log_{10}\ bmix\ $',fontsize=20)
+plt.xlim(pmin,pmax)
+#plt.ylim(-.5*ymax,ymax*2)
+plt.legend()
+plt.tight_layout()
+plt.savefig(pp,format='pdf')
+plt.clf()
+
 #================ the gas phase element abundances ===================
+
 fig,ax = plt.subplots()
 count = 0
 ymax = -100.0
@@ -214,6 +274,8 @@ plt.savefig(pp,format='pdf')
 plt.clf()
 
 #================== solid particle densities ===================
+col1 = ('Navy','DeepSkyBlue','Orange','Orange','Maroon','Maroon','Green','Green','Goldenrod')
+style1 = ('solid','dotted','dotted','dashed','dashed','dashdot','dashdot','dashed','dashdot')
 solids = []
 ymax = -100.0
 fig,ax = plt.subplots()
@@ -224,7 +286,7 @@ i2 = 5+NELEM+NMOLE+NDUST
 ymax = np.max(dat[iii,i1+NDUST:i2+NDUST])
 ymin = ymax-8
 ymax = ymax+0.3
-for i in range(i1,i2,1):
+for i,c,s in zip(range(i1,i2,1),col1,style1):
   solid = keyword[i]
   solid = solid[1:]
   ind = np.where(keyword == 'n'+solid)[0]
@@ -234,7 +296,7 @@ for i in range(i1,i2,1):
   nsolid = nsolid + 10**yy
   #print solid,np.max(yy[iii]),ymax,ymin
   if (np.max(yy[iii])>ymin):
-    plt.plot(lp[iii],yy[iii],c=colo[count],ls=styl[count],lw=widt[count],label=solid)
+    plt.plot(lp[iii],yy[iii],c=c,ls=s,lw=widt[count],label=solid)
   count = count + 1
 plt.title('condensates',fontsize=20)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
