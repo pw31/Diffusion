@@ -191,16 +191,19 @@ fig,ax = plt.subplots()
 label=(r'$\langle v_{\rm dr}^0\rangle$',r'$\langle v_{\rm dr}^1\rangle$',r'$\langle v_{\rm dr}^2\rangle$',r'$\langle v_{\rm dr}^3\rangle$')
 key=('vd0','vd1','vd2','vd3')
 ymax = -99.0
+ymin = +99.0
 for k,l in zip(key,label):
   ind = np.where(keyword==k)[0][0]
   logv = np.log10(dat[:,ind])
-  ymax = np.max([ymax,np.max(logv)])
   ind = np.where(logv>-6)
+  ymax = np.max([ymax,np.max(logv)])
+  ymin = np.min([ymin,np.min(logv[ind])])
   plt.plot(lp[ind],logv[ind],linewidth=2.0,label=l)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\log_{10}\ v_{drift}\ \mathrm{[cm\ s^{-1}]}$',fontsize=20)
 plt.xlim(pmin,pmax)
-plt.ylim(ymax-5,ymax)
+ymin = np.min([ymin,ymax-2])
+plt.ylim(ymin,ymax+0.1)
 plt.legend()
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
@@ -235,7 +238,7 @@ nsolid = np.zeros(NPOINT)
 i1 = 5+NELEM+NMOLE
 i2 = 5+NELEM+NMOLE+NDUST
 ymax = np.max(dat[iii,i1+NDUST:i2+NDUST])
-ymin = ymax-8
+ymin = ymax-9
 ymax = ymax+0.3
 for i,c,s in zip(range(i1,i2,1),col1,style1):
   solid = keyword[i]
@@ -296,7 +299,7 @@ plt.tick_params(axis='both', labelsize=14)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
 sz = np.min([11,1+195.0/count])
-leg = plt.legend(loc='upper left',fontsize=11,fancybox=True,
+leg = plt.legend(loc='lower left',fontsize=11,fancybox=True,
                  handlelength=2.5,prop={'size':sz})
 leg.get_frame().set_alpha(0.7)
 plt.tight_layout()
