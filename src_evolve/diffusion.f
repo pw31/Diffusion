@@ -2,10 +2,10 @@
       subroutine DIFFUSION(time,deltat,verbose)
 ************************************************************************
       use PARAMETERS,ONLY: implicit
-      use GRID,ONLY: zz,xlower,xupper,dt_diff_ex
+      use GRID,ONLY: zz,xlower,xupper,dt_diff_ex,Npoints
       use STRUCT,ONLY: Temp,Diff,nHtot,nHeps,
      >                 crust_Neps,crust_Ncond,crust_gaseps
-      use ELEMENTS,ONLY: NELEM,elnam
+      use ELEMENTS,ONLY: NELEM,elnam,eps0
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
       use EXCHANGE,ONLY: nat,nmol
@@ -19,6 +19,9 @@
       integer :: i,j,e,el,emin,ecount(NELEM),esort(NELEM)
       integer :: isort,ipass,Ncrust  
       logical :: in_crust(NELEM),limiting(NELEM)
+      !** Alex Work
+      real(kind=qp),allocatable :: nmol_top(:),nat_top(:)
+      !***
 
       xlower = crust_gaseps
       eps(:) = nHeps(:,0)/nHtot(0)
@@ -73,6 +76,21 @@
         print'(A3,2(L2),2(1pE10.3))',elnam(el),in_crust(el),
      >                         limiting(i),rsort(i),eps(el) 
       enddo
+
+      !--------------------------------------------------------------------------
+      ! ***  call GGchem on top of atmosphere to get molecular particle dens. ***
+      !--------------------------------------------------------------------------
+      nH = nHtot(Npoints) !Concentration at top of atmosphere
+      Tg = Temp(Npoints) !Temperature at top of atmosphere
+      eps = eps0 !Set element abundance to default
+      do i=1,NELEM !Sum over all elements
+        eps(i) = nHeps(i,Npoints)/nH !Calculate element abundance
+      enddo         
+      call GGCHEM(nH,Tg,eps,.false.,0) 
+      nmol_top = nmol !Saving nmolecules and natom incase future development changes these
+      nat_top = nat
+      print*,"Height",xupper(Npoints)
+      !*******
 
       if (implicit.and.deltat>30*dt_diff_ex) then
         if (verbose>0) then
@@ -222,7 +240,8 @@
           else if (bc_high==2) then   
             xx(N) = (-outflux/nD - d1l(N)*xx(N-2) - d1m(N)*xx(N-1))
      >            /d1r(N)                     ! constant flux 
-          else if (bc_high==3) then   
+          else if (bc_high==3) then 
+              
             outflux = nHtot(N)*xx(N)*outrate*vout  
             xx(N) = -(d1l(N)*xx(N-2) + d1m(N)*xx(N-1))
      >           /(d1r(N) + outrate*vout/Diff(N))
