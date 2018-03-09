@@ -225,6 +225,7 @@
         amax = max(amax,amean)
       enddo 
 
+			!write column densities
       write(12,3010) time,col(:)
       close(70)
       close(12)
