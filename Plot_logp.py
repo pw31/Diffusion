@@ -170,7 +170,7 @@ ind = np.where(keyword=='<a>[mic]')[0][0]
 amean = dat[:,ind]
 ymax = np.max(amean)
 if (ymax>0):
-  plt.plot(lp,amean,lw=4)
+  plt.plot(lp,amean,color='black',linewidth=3)
   plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
   plt.ylabel(r'$\langle a\rangle\ \mathrm{[\mu m]}$',fontsize=20)
   plt.xlim(pmin,pmax)
@@ -190,15 +190,17 @@ if (ymax>0):
 fig,ax = plt.subplots()
 label=(r'$\langle v_{\rm dr}^0\rangle$',r'$\langle v_{\rm dr}^1\rangle$',r'$\langle v_{\rm dr}^2\rangle$',r'$\langle v_{\rm dr}^3\rangle$')
 key=('vd0','vd1','vd2','vd3')
-fig,ax = plt.subplots()
+ymax = -99.0
 for k,l in zip(key,label):
   ind = np.where(keyword==k)[0][0]
   logv = np.log10(dat[:,ind])
-  ymax = np.max(logv)
-  plt.plot(lp,logv,linewidth=2.0,label=l)
+  ymax = np.max([ymax,np.max(logv)])
+  ind = np.where(logv>-6)
+  plt.plot(lp[ind],logv[ind],linewidth=2.0,label=l)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\log_{10}\ v_{drift}\ \mathrm{[cm\ s^{-1}]}$',fontsize=20)
 plt.xlim(pmin,pmax)
+plt.ylim(ymax-5,ymax)
 plt.legend()
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
@@ -264,7 +266,7 @@ plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
 
-#================ volume ratios ===================
+#================ solid volume composition ===================
 fig,ax = plt.subplots()
 i1 = 5+NELEM+NMOLE
 i2 = 5+NELEM+NMOLE+NDUST
@@ -280,7 +282,7 @@ for i,c,s in zip(range(i1,i2,1),col1,style1):
   ind = np.where(keyword == 'n'+solid)[0]
   ind = ind[0]
   ns  = dat[:,ind]               # log10 nsolid/n<H>
-  ind = np.where(ns<-15)
+  ind = np.where(ns<-30)
   yy[ind] = -99.
   if (np.max(yy[iii])>ymin):
     plt.plot(lp[iii],yy[iii],c=c,ls=s,lw=widt[count],label=solid)
