@@ -72,7 +72,8 @@
      &               'dust/gas','dustVol/H','<a>[mic]',
      &               ('Jstar('//trim(nuc_nam(j))//')',j=1,NNUC),
      &               ('Nstar('//trim(nuc_nam(j))//')',j=1,NNUC),
-     &               'vd0','vd1','vd2','vd3','vdrift0','log(rhodust)'
+     &               'vd0','vd1','vd2','vd3','vdrift0',
+     &               'log(rhodust)', 'log(bmix)'
 
       !---------------------------------------
       ! ***  write total column densities  ***
@@ -219,7 +220,8 @@
      &      (LOG10(MAX(1.Q-300, Jst(j))),j=1,NNUC), 
      &      (MIN(999999.99999,Nst(j)),j=1,NNUC),
      &      vdrift(0:3),vdrift0,
-     &      (LOG10(MAX(1.Q-300,rhodust)))
+     &      (LOG10(MAX(1.Q-300,rhodust))),
+     &      (LOG10(MAX(1.Q-300,bmix(ip))))
         amax = max(amax,amean)
       enddo 
 
