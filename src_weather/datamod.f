@@ -13,7 +13,7 @@
       character(len=200) :: struc_file
       real :: logg,Teff,vzconst,pconst,beta,Hp,pmin,pmax,Nl,Vl
       real :: influx,outflux,inrate,outrate,vin,vout
-      real :: Tfast,tfac,outtime(50),tsim
+      real :: Tfast,tfac,outtime(50),tsim,dtfix,precision
       integer :: bc_low,bc_high,init,Nout,abund_pick,evap_model,verbose
       logical :: implicit,tindep,dust_diffuse
       end

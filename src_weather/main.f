@@ -1,9 +1,9 @@
       program DiffuDrift
-      use PARAMETERS,ONLY: init,tsim,verbose
+      use PARAMETERS,ONLY: init,tsim,verbose,dtfix
       use GRID,ONLY: dt_diff_ex
       use EXCHANGE,ONLY: chemcall,chemiter
       implicit none
-      real*8  :: time,dt
+      real*8  :: time,dt,dt_settle,dt_dustform
       integer :: it,nout,next
 
       call INIT_NATURE
@@ -21,6 +21,7 @@
       time = 0.d0
       dt   = 1.E-3*dt_diff_ex
       call INITIAL_CONDITIONS(nout,time,dt)
+      if (dtfix>0.0) dt=dtfix
       next = nout
       if (next>=100) next=next+1
       if (next>=300) next=next+3
@@ -36,9 +37,9 @@
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
         call DIFFUSION(time,0.5*dt,verbose)
-        call SETTLING(time,dt,verbose)   ! changes dt
+        call SETTLING(time,dt,dt_settle,verbose)   
         call DIFFUSION(time,0.5*dt,verbose)
-        call DUSTFORM(time,dt,verbose)
+        call DUSTFORM(time,dt,dt_dustform,verbose)
         time = time+dt
         nout = nout + 1
         if (nout>next) then
@@ -55,6 +56,7 @@
           if (next>=1000000) next=next+500
           if (next>=3000000) next=next+1000
         endif  
+        call TIMESTEP(dt_settle,dt_dustform,dt)
         if (time>tsim) exit
       enddo  
 
@@ -62,6 +64,7 @@
       print'("         smchem calls = ",I12)',chemcall
       print'("      iterations/call = ",0pF12.3)',
      >                     REAL(chemiter)/REAL(chemcall)
+      call OUTPUT(nout,time,dt)
 
       end
 

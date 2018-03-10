@@ -1,8 +1,8 @@
 ************************************************************************
-      SUBROUTINE SETTLING(time,deltat,verbose)
+      SUBROUTINE SETTLING(time,deltat,dt_settle,verbose)
 ************************************************************************
       use NATURE,ONLY: pi,bk,amu,mic
-      use PARAMETERS,ONLY: logg
+      use PARAMETERS,ONLY: logg,Vl
       use ELEMENTS,ONLY: NEPS,muH
       use DUST_DATA,ONLY: NDUST,dust_rho,dust_vol
       use GRID,ONLY: Npoints,zz
@@ -10,10 +10,11 @@
       implicit none
       integer,intent(in) :: verbose
       real*8,intent(in) :: time
-      real*8,intent(inout) :: deltat
-      real*8 :: g,xi,rho,Tg,rhod,cT,bsum,vdrift,delz,dt,tpass,epsd
+      real*8,intent(in) :: deltat
+      real*8,intent(out) :: dt_settle
+      real*8 :: g,xi,rho,Tg,rhod,cT,bsum,vdrift,delz,tpass,epsd
       real*8 :: LL(0:4),bmix(NDUST),jj(4+NDUST,Npoints)
-      real*8 :: jin(4+NDUST),jout(4+NDUST),CLOSURE
+      real*8 :: jin(4+NDUST),jout(4+NDUST),CLOSURE,amin
       integer :: ip,i,imin
 
       if (verbose>1) then
@@ -24,7 +25,8 @@
 
       g  = 10.d0**logg
       xi = DSQRT(pi)/2.d0 * (3.d0/(4.d0*pi))**(1.d0/3.d0) * g
-      dt = 1.d+99
+      dt_settle = 1.d+99
+      amin = (3.0/(4.d0*pi)*Vl)**(1.0/3.0)
       imin = 0
 
       jj(:,:) = 0.d0
@@ -33,17 +35,18 @@
         Tg  = Temp(ip)
         cT  = DSQRT(2.d0*bk*Tg/mu(ip))
         epsd = rhoLj(3,ip)/dust_Vol(1)/nHtot(ip)  ! cm^3/cm^3 / cm3 / cm-3   
-        if (epsd<1.E-15) then                     ! dust-free case
-          if (epsd>1.E-30) then
-            rhod = 3.0
-            vdrift = xi*rhod/cT/rho*(1.E-2*mic)
-            delz = ABS(zz(ip-1)-zz(ip)) 
-            dt = MIN(dt,0.6*delz/vdrift)
-            imin = ip
-            !print'(I3,99(1pE12.3))',ip,Tg,epsd,vdrift,dt
-          endif  
-          cycle
-        endif  
+        !print*,ip,epsd
+        if (epsd<1.E-99) cycle                    ! dust-free case
+          !if (epsd<1.E-15) then                
+          !if (epsd>1.E-30) then
+          !  rhod = 3.0
+          !  vdrift = xi*rhod/cT/rho*amin
+          !  delz = ABS(zz(ip-1)-zz(ip)) 
+          !  dt = MIN(dt,0.6*delz/vdrift)
+          !  imin = ip
+          !  print'(I3,99(1pE12.3))',ip,Tg,epsd,vdrift,dt
+          !endif  
+          !cycle
 
         !--- closure condition ---
         LL(0:3) = rhoLj(0:3,ip)/rho               ! [cm^j/g]
@@ -72,10 +75,10 @@
           !jj(i+1,ip) = vdrift*rhoLj(i,ip)
           if (ip>1) then
             delz = ABS(zz(ip-1)-zz(ip)) 
-            tpass = 0.6*delz/vdrift
+            tpass = 0.5*delz/vdrift
             !print'(I4,I4,99(1pE10.2))',ip,i,delz,xi,rhod,cT,vdrift
-            if (tpass<dt) then
-              dt = tpass                          ! limit timestep
+            if (tpass<dt_settle) then
+              dt_settle = tpass                   ! suggested timestep
               imin = ip
               !print'(2(I3),99(1pE12.3))',ip,i,epsd,LL,vdrift
             endif  
@@ -87,8 +90,7 @@
           jj(4+i,ip) = vdrift*rhoL3(i,ip)
         enddo
       enddo  
-      deltat = min(2.0*deltat,dt)
-      print'(" SETTLING: ",I3,"  Dt =",2(1pE10.3))',imin,dt,deltat
+      print'(" SETTLING:",I3,"  Dt =",2(1pE10.3))',imin,deltat,dt_settle
 
       do ip=1,Npoints
         jout(:) = jj(:,ip)                        ! upwind scheme 
