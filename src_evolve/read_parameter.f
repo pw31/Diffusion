@@ -148,6 +148,8 @@
           heatrate = heatrate/yr
         else if (index(line,"! verbose")>0) then   
           read(line,*) verbose
+	else if (index(line,"! Rplanet")>0) then
+	  read(line,*) Rplanet
         else if (index(line,"! dispol_file2")>0) then 
           i = index(line,"!")
           read(line(1:i-1),*)  dispol_file(2)
