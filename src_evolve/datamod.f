@@ -11,7 +11,7 @@
 ************************************************************************
       character(len=200) :: elements_select,model_name,dustchem_file
       character(len=200) :: struc_file
-      real :: logg,Tcrust,pmin,pmax,Hp
+      real :: logg,Tcrust,pmin,pmax,Hp,Rplanet
       real :: vzconst,pconst,beta
       integer :: gas_kind,crust_kind
       real :: crust_thickness

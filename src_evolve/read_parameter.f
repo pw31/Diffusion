@@ -1,11 +1,11 @@
 ************************************************************************
       subroutine READ_PARAMETER
 ************************************************************************
-      use NATURE,ONLY: bar,yr
+      use NATURE,ONLY: bar,yr,km
       use PARAMETERS,ONLY: elements_select,model_name,dustchem_file,
      >                     struc_file,Tfast,
      >                     tsim,dt_init,dt_increase,dt_max,heatrate,
-     >                     logg,vzconst,pconst,beta,Hp,
+     >                     logg,vzconst,pconst,beta,Hp,Rplanet,
      >                     gas_kind,crust_kind,crust_thickness,
      >                     pmin,pmax, bc_low,bc_high,implicit,
      >                     influx,outflux,inrate,outrate,vin,vout,
@@ -43,6 +43,7 @@
       pconst     = 0.1*bar  ! 100 mbar
       vzconst    = 10.0     ! 10 cm/s
       Hp         = 1.0
+      Rplanet    = 6371.0*km
       bc_low     = 1        ! fixed conc.
       bc_high    = 1        ! fixed conc.
       influx     = 0.0      
@@ -148,8 +149,8 @@
           heatrate = heatrate/yr
         else if (index(line,"! verbose")>0) then   
           read(line,*) verbose
-	else if (index(line,"! Rplanet")>0) then
-	  read(line,*) Rplanet
+        else if (index(line,"! Rplanet")>0) then
+          read(line,*) Rplanet
         else if (index(line,"! dispol_file2")>0) then 
           i = index(line,"!")
           read(line(1:i-1),*)  dispol_file(2)
