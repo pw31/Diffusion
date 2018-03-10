@@ -257,7 +257,7 @@
             if (xx(i)<0.d0) then
               print*,"*** negative elem.abund. in diffusion." 
               print*,elnam(el),i
-              if (verbose>0) read'(A1)',char1
+!              if (verbose>0) read'(A1)',char1
               if (i==N) then 
                 nHeps(el,i) = nHtot(i)*xx(N-1)
               else  
@@ -290,7 +290,7 @@
           dt = dt/2.0
           nHeps(:,:) = nHold(:,:) 
           crust_Neps(:) = crust_Nold(:)
-          if (verbose>0) read'(A1)',char1
+!          if (verbose>0) read'(A1)',char1
           goto 100
         endif  
 
@@ -477,7 +477,7 @@
           crust_Neps(:) = crust_Nold(:)
           call INIT_DIFFUSION(N,1,dt,BB_1)
           call INIT_DIFFUSION(N,2,dt,BB_2)
-          if (verbose>0) read'(A1)',char1
+!          if (verbose>0) read'(A1)',char1
           goto 100
         endif  
 
