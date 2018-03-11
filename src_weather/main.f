@@ -1,5 +1,5 @@
       program DiffuDrift
-      use PARAMETERS,ONLY: init,tsim,verbose,dtfix
+      use PARAMETERS,ONLY: init,tsim,verbose,dtfix,dnfix
       use GRID,ONLY: dt_diff_ex
       use EXCHANGE,ONLY: chemcall,chemiter
       implicit none
@@ -31,6 +31,7 @@
       if (next>=30000) next=next+50
       if (next>=100000) next=next+100
       if (next>=300000) next=next+300
+      if (dnfix>0) next=nout-1+dnfix
       do 
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
@@ -51,6 +52,7 @@
           if (next>=30000) next=next+50
           if (next>=100000) next=next+100
           if (next>=300000) next=next+300
+          if (dnfix>0) next=nout-1+dnfix
         endif  
         if (time>tsim) exit
         call TIMESTEP(dt_settle,dt_dustform,dt)

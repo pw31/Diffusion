@@ -6,7 +6,7 @@
      >                     struc_file,Tfast,tsim,verbose,
      >                     logg,Teff,vzconst,pconst,beta,Hp,
      >                     pmin,pmax,Nl,Vl,evap_model,dtfix,precision,
-     >                     bc_low,bc_high,init,implicit,tindep,
+     >                     bc_low,bc_high,init,implicit,tindep,dnfix,
      >                     influx,outflux,inrate,outrate,vin,vout,
      >                     abund_pick,Nout,outtime,tfac,dust_diffuse
       use CHEMISTRY,ONLY: NewBackIt,NewFullIt,NewBackFac,dispol_file
@@ -58,6 +58,7 @@
       outtime(1:8) = (/0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5/)
       tfac = 10.0
       dtfix = 0.0
+      dnfix = 0
       precision = 0.3
       verbose = 1
 
@@ -145,6 +146,10 @@
           struc_file = line(1:i-1)
         else if (index(line,"! tsim")>0) then   
           read(line,*) tsim
+        else if (index(line,"! dtfix")>0) then   
+          read(line,*) dtfix
+        else if (index(line,"! dnfix")>0) then   
+          read(line,*) dnfix
         else if (index(line,"! verbose")>0) then   
           read(line,*) verbose
         else if (index(line,"! dust_diffuse")>0) then   
@@ -154,8 +159,6 @@
           Vl = 3.d-23*Nl
         else if (index(line,"! evap_model")>0) then   
           read(line,*) evap_model
-        else if (index(line,"! dtfix")>0) then   
-          read(line,*) dtfix
         else if (index(line,"! precision")>0) then   
           read(line,*) precision
         else if (index(line,"! dispol_file2")>0) then 
