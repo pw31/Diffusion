@@ -90,7 +90,8 @@
           jj(4+i,ip) = vdrift*rhoL3(i,ip)
         enddo
       enddo  
-      print'(" SETTLING:",I3,"  Dt =",2(1pE10.3))',imin,deltat,dt_settle
+      print'(" SETTLING: ",I5,"  time=",1pE11.4,"  Dt=",2(1pE11.4))',
+     >       imin,time,deltat,dt_settle
 
       do ip=1,Npoints
         jout(:) = jj(:,ip)                        ! upwind scheme 

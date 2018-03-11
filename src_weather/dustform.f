@@ -29,6 +29,9 @@
         print*,"====================="
       endif  
       NN = 4+NDUST+NEPS
+      maxchange = 0.0
+      echange = 1
+      zchange = 0
 
 !$omp parallel 
 !$omp& default(none)
@@ -43,9 +46,6 @@
       if (.not.allocated(nmol)) then
         allocate(nmol(NMOLE),Jst(NNUC),chi(NDUST),inactive(NMOLE))
       endif
-      maxchange = 0.0
-      echange = 0
-      zchange = 0
 
 !$omp do schedule(dynamic,1)
       do ip=2,Npoints-1        ! ip=1 and Npoints will be overrules by
@@ -134,13 +134,12 @@
         enddo
 
 !$omp critical(update)
-        !print*
-        !print*,ip,mchange,elnam(elnr(echange))
         if (mchange>maxchange) then
           maxchange = mchange
-          zchange = ip
+          zchange = ipoint
           echange = emax
         endif  
+        !write(97,*) ip,elnam(elnr(emax)),mchange,maxchange
         nHeps(1:NEPS,ip) = yy(5+NDUST:NN)            ! element abundances
         if (evap) then
           if (has_dust.and.verbose>1) print*," all dust evaporated"
@@ -180,16 +179,16 @@
       enddo
 !$omp end parallel      
 
-      if (verbose==1) then
-        print'(" DUSTFORM: "I8,"  time=",1pE11.4,"  Dt=",1pE11.4)',
-     >       Npoints-1,time,deltat
-        print'("   maxchange =",0pF8.5," p[bar]=",1pE9.2,A3)',
-     >       maxchange,press(zchange)/bar,elnam(elnr(echange))
-      endif 
       if (maxchange==0.0) then
         dt_dustform = 1.E+99
       else  
         dt_dustform = deltat*precision/maxchange
       endif  
+      if (verbose==1) then
+        print'(" DUSTFORM: ",I5,"  time=",1pE11.4,"  Dt=",2(1pE11.4))',
+     >       zchange,time,deltat,dt_dustform
+        print'("   maxchange =",0pF8.5,I3," p[bar]=",1pE9.2,A3)',
+     >       maxchange,zchange,press(zchange)/bar,elnam(elnr(echange))
+      endif 
 
       end
