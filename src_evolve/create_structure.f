@@ -9,7 +9,7 @@
       use ELEMENTS,ONLY: NELEM,elnr,elcode,elnam,eps0,mass,muH
       use CHEMISTRY,ONLY: NELM,NMOLE,elnum,cmol,catm,el,charge,molmass
       use DUST_DATA,ONLY: NDUST
-      use EXCHANGE,ONLY: nel,nat,nion,nmol,chi,inactive
+      use EXCHANGE,ONLY: nel,nat,nion,nmol,chi,inactive,N,O
       implicit none
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       integer :: i,it,iz
@@ -18,25 +18,28 @@
       real(kind=qp) :: eps(NELEM)
       integer,dimension(1000) :: flag_conv,Z
       logical :: conv
+      character :: CR = CHAR(13)
 
       if (.not.allocated(nmol)) then
         allocate(nmol(NMOLE),chi(NDUST),inactive(NMOLE))
       endif  
 
       print*
-      print'(" create structure Tcrust=",0pF6.1,"K psurf=",
-     >       0pF7.3,"bar")',Tcrust,pmax
-      print*,"================================================="
+      print'(" create structure  Tcrust=",0pF6.1," K  psurf=",
+     >       0pF7.3," bar")',Tcrust,pmax
+      print*,"====================================================="
 
       !--- solve hydrostatic equilibrium ---
+      eps0(N) = 80.0
+      eps0(O) = 20.0
       eps = eps0
-      pp  = pmax*bar
+      pp  = 2.0*pmax*bar
       mu  = 2.3*amu
       zz  = 0.d0
       gg  = 10.d0**logg
       Mpl = gg*Rplanet**2/grav
       muH = 1.4*amu
-      print'(A4,A12,A12,A10)',"iz","z[km]","p[bar]","T[K]"
+      !print'(A4,A12,A12,A10)',"iz","z[km]","p[bar]","T[K]"
 
       do iz=5000,1,-1
         Tg = TATMOS(pp)
@@ -61,7 +64,8 @@
           nH    = nH*pp/pwork
           if (ABS(pp/pwork-1.d0)<1.E-8) exit
         enddo  
-        print'(I4,2(1pE12.3),0pF10.2)',iz,zz/km,pp/bar,Tg
+        write(*,'(".",$)') 
+        !print'(I4,2(1pE12.3),0pF10.2)',iz,zz/km,pp/bar,Tg
         glay(iz) = gg
         zlay(iz) = zz
         Rlay(iz) = Rplanet+zz
@@ -85,7 +89,9 @@
         Tg = TATMOS(pp)
         nH = mu*pwork/(bk*Tg)
       enddo
-      print'(I4," layers created. pmin/bar =",1pE11.4)',Nlayers,pp/bar
+      print*
+      print'(I4," layers created. pmin/bar =",1pE11.4," pmax/bar =",
+     >       1pE11.4)',Nlayers,pp/bar,2*pmax
       print'(4x,"atmosphere extension dR/R =",1pE11.4)',zz/Rplanet
 
 *     -------------------------
@@ -93,7 +99,6 @@
 *     -------------------------
       do i=1,Nlayers
         iz = 5000-Nlayers+i
-        !print*,i,iz
         glay(i) = glay(iz)
         zlay(i) = zlay(iz)
         Rlay(i) = Rlay(iz)
@@ -102,6 +107,7 @@
         play(i) = play(iz)
         rholay(i) = rholay(iz)
         mulay(i) = mulay(iz)
+        !print*,i,Rlay(i),zlay(i)
       enddo  
 
 *     -----------------------------------------
@@ -144,7 +150,10 @@
       end
 
 
+***********************************************************************
       real*8 function TATMOS(p)
+***********************************************************************
+      use NATURE,ONLY: bar
       use PARAMETERS,ONLY: pmax,Tcrust
       implicit none
       real*8,intent(IN) :: p    ! pressure in dyn/cm2

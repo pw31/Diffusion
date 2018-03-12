@@ -80,17 +80,16 @@
       !--------------------------------------------------------------------------
       ! ***  call GGchem on top of atmosphere to get molecular particle dens. ***
       !--------------------------------------------------------------------------
-      nH = nHtot(Npoints) !Concentration at top of atmosphere
-      Tg = Temp(Npoints) !Temperature at top of atmosphere
-      eps = eps0 !Set element abundance to default
-      do i=1,NELEM !Sum over all elements
-        eps(i) = nHeps(i,Npoints)/nH !Calculate element abundance
+      nH  = nHtot(Npoints)            ! concentration at top of atmosphere
+      Tg  = Temp(Npoints)             ! temperature at top of atmosphere
+      eps = eps0                      ! set element abundances to default
+      do i=1,NELEM                    
+        eps(i) = nHeps(i,Npoints)/nH  ! use element abundance at top
       enddo         
       call GGCHEM(nH,Tg,eps,.false.,0) 
       nmol_top = nmol !Saving nmolecules and natom incase future development changes these
       nat_top = nat
       print*,"Height",xupper(Npoints)
-      !*******
 
       if (implicit.and.deltat>30*dt_diff_ex) then
         if (verbose>0) then

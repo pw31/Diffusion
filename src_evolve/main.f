@@ -16,7 +16,7 @@
       call INIT_ELEMENTS1
       call INIT_CHEMISTRY
       call INIT_DUSTCHEM
-      if (struc_file=='none') then
+      if (struc_file == 'none') then
         call CREATE_STRUCTURE
       else  
         call READ_STRUCTURE

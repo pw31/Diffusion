@@ -11,7 +11,7 @@
       use PARAMETERS,ONLY: Hp,pmin,pmax
       implicit none
       integer :: i,j
-      real*8 :: fac1,fac2,hmin,hmax,h1,h2,df,dz,int,norm
+      real*8 :: fac,fac1,fac2,hmin,hmax,h1,h2,df,dz,int,norm
       real*8 :: hr(-2:N),hl(-2:N),f0(-2:N),f1(-2:N),f2(-2:N)
       logical :: test=.false.
 
@@ -28,10 +28,16 @@
       hmax = 0.0
       do j=1,Nlayers
         !print*,j,zlay(j),play(j)/bar 
-        if (play(j)>pmin*bar.and.hmax==0.0) hmax=zlay(j) 
-        if (play(j)>pmax*bar.and.hmin==0.0) hmin=zlay(j) 
+        if (play(j)>pmin*bar.and.hmax==0.0) then
+          fac  = LOG(play(j)/(pmin*bar))/LOG(play(j)/play(j-1))
+          hmax = zlay(j)+(zlay(j-1)-zlay(j))*fac 
+        endif  
+        if (play(j)>pmax*bar.and.hmin==0.0) then
+          fac  = LOG(play(j)/(pmax*bar))/LOG(play(j)/play(j-1))
+          hmin = zlay(j)+(zlay(j-1)-zlay(j))*fac 
+        endif  
       enddo   
-      !write(*,*) hmin,hmax
+      write(*,*) hmin,hmax
       do i=-2,N
         zz(i) = hmin+(hmax-hmin)*(REAL(i)/REAL(N))**1.0
       enddo
@@ -64,8 +70,7 @@
         write(*,1010) i,j,(zz(i)-zz(0))/km,press(i)/bar,Temp(i),
      >                mu(i)/amu,Diff(i)
       enddo
-      zz(:) = zz(:)-zz(1)
-      stop
+      zz(:) = zz(:)-zz(0)
 
       !---- integration weights ----
       zweight(:) = 0.d0
