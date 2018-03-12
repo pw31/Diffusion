@@ -49,7 +49,7 @@ pmin  = np.min(lp)
 pmax  = np.max(lp)
 print "pressure range",pmin,pmax
 #pmin  = -5.3
-#pmax  = +2.1
+#pmax  = +1.7
 iii   = np.where((lp>pmin) & (lp<pmax))[0]
 Tmin  = np.min(Tg[iii])
 Tmax  = np.max(Tg[iii])
