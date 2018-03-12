@@ -139,7 +139,7 @@ TiO2
 
 involved gas species
 ====================
-35
+36
 t t 0 Mg
 t t 0 Fe
 t t 0 Al
@@ -179,6 +179,9 @@ f t 2 MGCL2
 f t 2 FEO
  1 Fe
  1 O
+f t 2 FES
+ 1 Fe
+ 1 S
 f t 3 FE(OH)2
  1 Fe
  2 O
@@ -223,7 +226,7 @@ f f 2 H2O
  1 O
 f f 1 H2
  2 H
- f t 2 CAO
+f t 2 CAO
  1 Ca
  1 O
 f t 3 CA(OH)2
@@ -233,7 +236,6 @@ f t 3 CA(OH)2
 f t 2 CAS
  1 Ca
  1 S
-
 
 growth reactions : alle Buchstaben gross in MolekNamen!!
 ================
@@ -386,73 +388,73 @@ growth reactions : alle Buchstaben gross in MolekNamen!!
  1 H2
  1 SiO[s] 
  1 H2O
-1 1
+1 1  1.0
  1 FES
  1 FeS[s]
-2 2
+2 2  1.0
  1 Fe
  1 H2S
  1 FeS[s]
  1 H2
-2 2
+2 2  1.0
  1 FEO
  1 H2S
  1 FeS[s]
  1 H2O
-2 2
+2 2  1.0
  1 FE(OH)2
  1 H2S
  1 FeS[s]
  2 H2O
-3 2
+3 2  1.0
  1 Ca
  1 Ti 
  3 H2O
  1 CaTiO3[s]
  3 H2
-3 2
+3 2  1.0
  1 Ca
  1 TIO
  2 H2O
  1 CaTiO3[s]
  2 H2
-3 2
+3 2  1.0
  1 Ca
  1 TIO2
  1 H2O
  1 CaTiO3[s]
  1 H2
-3 2
+3 2  1.0
  1 CAO
  1 Ti
  2 H2O
  1 CaTiO3[s]
  2 H2
-3 2
+3 2  1.0
  1 CAO
  1 TIO
  1 H2O
  1 CaTiO3[s]
  1 H2
-2 1 
+2 1  1.0 
  1 CAO
  1 TIO2
  1 CaTiO3[s]
-3 3
+3 3  1.0
  1 CAS
  1 Ti
  3 H2O
  1 CaTiO3[s]
  1 H2S
  2 H2
-3 3
+3 3  1.0
  1 CAS
  1 TIO
  2 H2O
  1 CaTiO3[s]
  1 H2S
  1 H2
-3 2
+3 2  1.0
  1 CAS
  1 TIO2
  1 H2O
