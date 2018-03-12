@@ -62,6 +62,7 @@ OBJECTS  = datamod.o \
 	   gauss16.o \
            slatec_routines.o \
 	   linpack_q.o \
+	   timestep.o \
            main.o
 
 .SUFFIXES : .o .f .F .f90

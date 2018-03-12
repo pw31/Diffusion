@@ -9,13 +9,7 @@ pp = PdfPages('tdep.pdf')
 import glob, os
 import sys
 
-files = glob.glob("col.out")
-files = sorted(files)
-Narg  = len(sys.argv)
-last  = len(files)-1 
-if (Narg>1):  last=int(sys.argv[1])-1
-print Narg,last,len(files)
-file  = files[last]
+file  = "col.out"
 print file
 data   = open(file)
 header = data.readline()
@@ -23,7 +17,20 @@ data.close()
 keyword = np.array(header.split())
 dat = np.loadtxt(file,skiprows=1)
 
-  #colo = ['blue','black','silver','red','darkorange','gold','darkorchid','aqua','cadetblue','darkkhaki','pink','moccasin','cornflowerblue','chartreuse','limegreen','darkgreen','chocolate','darkgoldenrod']
+indt = np.where(keyword=='time')[0][0]
+t = dat[:,indt]
+yr = 365.25*24*3600. 
+tmin = np.min(t/yr)
+tmax = np.max(t/yr)
+Narg  = len(sys.argv)
+#print Narg,sys.argv[1],sys.argv[2]
+print tmin,tmax
+if (Narg>1): tmin=np.float(sys.argv[1])
+if (Narg>2): tmax=np.float(sys.argv[2])
+print tmin,tmax
+
+
+#colo = ['blue','black','silver','red','darkorange','gold','darkorchid','aqua','cadetblue','darkkhaki','pink','moccasin','cornflowerblue','chartreuse','limegreen','darkgreen','chocolate','darkgoldenrod']
 #'darkolivegreen','darkmagenta','aquamarine','coral','burlywood',
 #'beige','darkorange','crimson','darkcyan','bisque'
 
@@ -36,14 +43,14 @@ label = (r'$N_{TiO_2}$',r'$N_{Al_{2}O_{3}}$',r'$N_{MgSiO_{3}}$',r'$N_{MgSiO_{4}}
 
 for l,m,c,lin in zip(label,material,colours,style):
 	fig,ax = plt.subplots()
-	indt = np.where(keyword=='time')[0][0]
-	t=dat[:,indt]
 	indn = np.where(keyword==m)[0][0]
 	n=dat[:,indn]
-	plt.plot(t,n,label=l,color=c,linestyle = lin,linewidth = 3)
-	plt.xlabel(r'$time [s]$',fontsize=20)
-	plt.ylabel(l,fontsize=20)
-	plt.legend(loc='lower right')
+        lab = l+" $\mathrm{[10^{-5}g\,cm^{-2}]}$" 
+	plt.plot(t/yr,n/1.E-5,label=l,color=c,linestyle=lin,linewidth=3)
+	plt.xlabel(r'$time\ \mathrm{[yrs]}$',fontsize=20)
+	plt.ylabel(lab,fontsize=20)
+        plt.xlim(tmin,tmax)
+	#plt.legend(loc='lower right')
 	plt.tight_layout()
 	plt.savefig(pp,format='pdf')
 	plt.clf()
@@ -51,16 +58,16 @@ for l,m,c,lin in zip(label,material,colours,style):
 
 fig,ax = plt.subplots()
 for l,m,c,lin in zip(label,material,colours,style):
-	indt = np.where(keyword=='time')[0][0]
-	t=dat[:,indt]
+        lab = "r'column densities\ $\mathrm{[10^{-5}g\,cm^{-2}]}$" 
 	indn = np.where(keyword==m)[0][0]
 	n=dat[:,indn]
-	plt.plot(t,n,label=l,color=c,linestyle = lin,linewidth = 3)
-
-plt.yscale('log')
+	plt.plot(t/yr,n/1.E-5,label=l,color=c,linestyle=lin,linewidth=3)
+plt.xlabel(r'$time\ \mathrm{[yrs]}$',fontsize=20)
+plt.ylabel(lab,fontsize=20)
+plt.xlim(tmin,tmax)
+#plt.yscale('log')
 plt.xlabel(r'$time [s]$',fontsize=20)
-plt.ylabel(l,fontsize=20)
-plt.legend(loc='lower right')
+plt.legend(loc='upper right')
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
