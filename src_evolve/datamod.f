@@ -122,8 +122,8 @@
       module READMODEL
 ************************************************************************
       integer :: Nlayers
-      real,dimension(1000) :: Rlay,Tlay,play,rholay,glay
-      real,dimension(1000) :: zlay,mulay,vconvlay,Difflay
+      real,dimension(5000) :: Rlay,Tlay,play,rholay,glay
+      real,dimension(5000) :: zlay,mulay,vconvlay,Difflay
       end
 
 ************************************************************************

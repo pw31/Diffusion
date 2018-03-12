@@ -21,7 +21,9 @@
       real(kind=qp) :: sum_beta,fac
       integer :: i,j,el,it,verbose=0
 
-      allocate(nmol(NMOLE),chi(NDUST),inactive(NMOLE))
+      if (.not.allocated(nmol)) then
+        allocate(nmol(NMOLE),chi(NDUST),inactive(NMOLE))
+      endif  
       Tg = Temp(0)
       nH = nHtot(0)
       if (crust_kind==1) then

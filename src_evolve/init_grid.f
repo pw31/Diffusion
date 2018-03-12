@@ -65,6 +65,7 @@
      >                mu(i)/amu,Diff(i)
       enddo
       zz(:) = zz(:)-zz(1)
+      stop
 
       !---- integration weights ----
       zweight(:) = 0.d0

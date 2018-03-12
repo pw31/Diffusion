@@ -3,7 +3,7 @@
 ************************************************************************
       use NATURE,ONLY: bar,yr,km
       use PARAMETERS,ONLY: elements_select,model_name,dustchem_file,
-     >                     struc_file,Tfast,
+     >                     struc_file,Tfast,Tcrust,
      >                     tsim,dt_init,dt_increase,dt_max,heatrate,
      >                     logg,vzconst,pconst,beta,Hp,Rplanet,
      >                     gas_kind,crust_kind,crust_thickness,
@@ -20,7 +20,7 @@
       ! ***  default values  ***
       !-------------------------
       model_name = 'output'
-      struc_file = '2Drift_1800.data'
+      struc_file = 'none'
       dustchem_file = 'DustChem.dat'
       dispol_file(1) = 'dispol_BarklemCollet.dat'
       dispol_file(2) = 'dispol_StockKitzmann_withoutTsuji.dat'
@@ -40,12 +40,14 @@
       pmax       = 100.d0*bar
       beta       = 1.5
       Npoints    = 100
-      pconst     = 0.1*bar  ! 100 mbar
-      vzconst    = 10.0     ! 10 cm/s
+      pconst     = 0.1*bar    ! 100 mbar
+      vzconst    = 10.0       ! 10 cm/s
       Hp         = 1.0
-      Rplanet    = 6371.0*km
-      bc_low     = 1        ! fixed conc.
-      bc_high    = 1        ! fixed conc.
+      Tcrust     = 1000.0     ! surface temperature [K]
+      Rplanet    = 6371.0*km  ! planet radius [cm]
+      logg       = 9.81*100.0 ! surface gravity [cm/s2]
+      bc_low     = 1          ! fixed conc.
+      bc_high    = 1          ! fixed conc.
       influx     = 0.0      
       outflux    = 0.0
       inrate     = 0.0
@@ -149,8 +151,12 @@
           heatrate = heatrate/yr
         else if (index(line,"! verbose")>0) then   
           read(line,*) verbose
+        else if (index(line,"! Tcrust")>0) then
+          read(line,*) Tcrust
         else if (index(line,"! Rplanet")>0) then
           read(line,*) Rplanet
+        else if (index(line,"! logg")>0) then
+          read(line,*) logg
         else if (index(line,"! dispol_file2")>0) then 
           i = index(line,"!")
           read(line(1:i-1),*)  dispol_file(2)
