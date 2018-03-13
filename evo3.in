@@ -3,7 +3,7 @@ H He C N O Na Mg Si Fe Ni Ca Al Ti S Cl K el
 none                       ! struc_file
 DustChem_ALL.dat           ! dustchem_file
 
--1       ! gas_kind   (0=empty,1=solar,2=meteor,3=EarthCrust,4=crust)
+1        ! gas_kind   (0=empty,1=solar,2=meteor,3=EarthCrust,4=crust)
 3        ! crust_kind         (1=solar,2=meteor,3=EarthCrust,4=FeS)
 1.E+1    ! crust_thickness    [cm]
 0.8      ! beta
@@ -12,7 +12,7 @@ DustChem_ALL.dat           ! dustchem_file
 1.2      ! dt_increase        (factor to increase timestep)
 1.E+99   ! dt_max             (maximum timestep)
 
-550      ! Tcrust
+700      ! Tcrust
 1.0      ! pmax
 1.E-7    ! pmin
 3.0      ! logg

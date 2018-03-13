@@ -42,24 +42,26 @@ material = ('N_TiO2','N_Al2O3','N_MgSiO3','N_Mg2SiO4','N_SiO', 'N_SiO2','N_Fe','
 label = (r'$N_{TiO_2}$',r'$N_{Al_{2}O_{3}}$',r'$N_{MgSiO_{3}}$',r'$N_{MgSiO_{4}}$',r'$N_{SiO}$',r'$N_{SiO_2}$',r'$N_{Fe}$',r'$N_{FeO}$',r'$N_{MgO}$', r'$N_{KCl}$',r'$N_{NaCl}$',r'$N_{Na_2S}$')
 
 for l,m,c,lin in zip(label,material,colours,style):
-	fig,ax = plt.subplots()
-	indn = np.where(keyword==m)[0][0]
-	n=dat[:,indn]
-        lab = l+" $\mathrm{[10^{-5}g\,cm^{-2}]}$" 
-	plt.plot(t[iii]/yr,n[iii]/1.E-5,label=l,color=c,linestyle=lin,linewidth=3)
-	plt.xlabel(r'$time\ \mathrm{[yrs]}$',fontsize=20)
-	plt.ylabel(lab,fontsize=20)
-        plt.xlim(tmin,tmax)
-	#plt.legend(loc='lower right')
-	plt.tight_layout()
-	plt.savefig(pp,format='pdf')
-	plt.clf()
+  fig,ax = plt.subplots()
+  indn = np.where(keyword==m)[0]
+  if (len(indn)==1):
+    n=dat[:,indn[0]]
+    lab = l+" $\mathrm{[10^{-5}g\,cm^{-2}]}$" 
+    plt.plot(t[iii]/yr,n[iii]/1.E-5,label=l,color=c,linestyle=lin,linewidth=3)
+    plt.xlabel(r'$time\ \mathrm{[yrs]}$',fontsize=20)
+    plt.ylabel(lab,fontsize=20)
+    plt.xlim(tmin,tmax)
+    #plt.legend(loc='lower right')
+    plt.tight_layout()
+    plt.savefig(pp,format='pdf')
+    plt.clf()
 
 fig,ax = plt.subplots()
 for l,m,c,lin in zip(label,material,colours,style):
-	indn = np.where(keyword==m)[0][0]
-	n=dat[:,indn]
-	plt.plot(t[iii]/yr,n[iii]/1.E-5,label=l,color=c,linestyle=lin,linewidth=3)
+  indn = np.where(keyword==m)[0]
+  if (len(indn)==1):
+    n=dat[:,indn[0]]
+    plt.plot(t[iii]/yr,n[iii]/1.E-5,label=l,color=c,linestyle=lin,linewidth=3)
 plt.xlabel(r'$time\ \mathrm{[yrs]}$',fontsize=20)
 plt.ylabel(r'$\mathrm{col.dens.\ [10^{-5}g\,cm^{-2}]}$',fontsize=20)
 plt.xlim(tmin,tmax)

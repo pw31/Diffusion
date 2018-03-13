@@ -1,12 +1,12 @@
-***********************************************************************
+************************************************************************
       SUBROUTINE CREATE_STRUCTURE
-***********************************************************************
+************************************************************************
       use NATURE,ONLY: bar,bk,amu,km,pi,mel,grav,Mearth
       use PARAMETERS,ONLY: Tcrust,pmin,pmax,logg,Rplanet,Hp,
      >                     vzconst,pconst,beta
       use READMODEL,ONLY: Rlay,Tlay,play,rholay,glay,vconvlay,
      >                    zlay,mulay,Difflay,Nlayers
-      use ELEMENTS,ONLY: NELEM,elnr,elcode,elnam,eps0,mass,muH
+      use ELEMENTS,ONLY: NELEM,elnr,elcode,elnam,eps0,eps_solar,mass,muH
       use CHEMISTRY,ONLY: NELM,NMOLE,elnum,cmol,catm,el,charge,molmass
       use DUST_DATA,ONLY: NDUST
       use EXCHANGE,ONLY: nel,nat,nion,nmol,chi,inactive,N,O
@@ -31,15 +31,16 @@
       print*,"====================================================="
 
       !--- solve hydrostatic equilibrium ---
-      eps0(N) = 80.0
-      eps0(O) = 20.0
-      eps = eps0
+      eps_solar(N) = 80.0
+      eps_solar(O) = 20.0
+      eps0= eps_solar
+      eps = eps_solar
       pp  = 2.0*pmax*bar
       mu  = 2.3*amu
       zz  = 0.d0
       gg  = 10.d0**logg
       Mpl = gg*Rplanet**2/grav
-      muH = 1.4*amu
+      muH = 28*amu
       !print'(A4,A12,A12,A10)',"iz","z[km]","p[bar]","T[K]"
 
       do iz=5000,1,-1
@@ -152,11 +153,53 @@
 
 
 ***********************************************************************
-      real*8 function TATMOS(p)
+      real*8 function TATMOS(pdyn)
+***********************************************************************
+***  parameteric T(p) structure according to Blecic+2017            ***
+***  (http://adsabs.harvard.edu/abs/2017ApJ...848..127B),           ***
+***  Appendix A, Parametrization Scheme II. In her paper,           ***
+***  primary parameters are p0,p1,p2,p3,T3,a1,a2, whereas here      ***
+***  primary parameters are p0,p1,p2,p3,T0,T1,T3.                   ***  
 ***********************************************************************
       use NATURE,ONLY: bar
-      use PARAMETERS,ONLY: pmax,Tcrust
+      use PARAMETERS,ONLY: pmin,pmax,Tcrust  ! [bar],[bar],[K]
       implicit none
-      real*8,intent(IN) :: p    ! pressure in dyn/cm2
-      TATMOS = Tcrust
+      real*8,intent(IN) :: pdyn              ! p[dyn/cm2]
+      real*8 :: p,dp,Tsum
+      real*8,save :: T0,T1,T2,T3,p0,p1,p2,p3,a1,a2 
+      logical,save :: firstCall=.true.
+      integer :: j,nsmooth
+
+      if (firstCall==.true.) then
+        p3 = pmax      ! surface 
+        p2 = 0.0       ! tropopause - computed below
+        p1 = p3*1.E-5  ! stratopause
+        p0 = pmin      ! exobase
+
+        T3 = Tcrust    ! surface
+        T2 = 0.7*T3    ! tropopause
+        T1 = 2.0*T3    ! stratopause      
+        T0 = T1-0.1    ! exobase
+
+        a1 = LOG(p1/p0)/SQRT(T1-T0)
+        a2 = LOG(p3/p1)/(SQRT(T1-T2)+SQRT(T3-T2))
+        p2 = p1*EXP(a2*SQRT(T1-T2))
+        firstCall = .false.
+      endif  
+
+      dp = LOG(p3/p0)/1000.0
+      Tsum = 0.0
+      nsmooth = 50
+      do j=-nsmooth,nsmooth
+        p = EXP(LOG(pdyn/bar)+j*dp)
+        if (p<p1) then
+          Tsum = Tsum + T0 + (LOG(p/p0)/a1)**2
+        else if (p<p3) then
+          Tsum = Tsum + T2 + (LOG(p/p2)/a2)**2
+        else
+          Tsum = Tsum + T3
+        endif  
+      enddo
+
+      TATMOS = Tsum/(2.0*nsmooth+1.0)
       end

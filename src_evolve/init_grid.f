@@ -7,7 +7,7 @@
       use READMODEL,ONLY: Nlayers,zlay,Tlay,play,rholay,glay,Difflay
       use STRUCT,ONLY: Diff,rho,nHtot,Temp,Temp0,press,mu,mols,atms
       use CHEMISTRY,ONLY: NMOLE
-      use ELEMENTS,ONLY: NELEM
+      use ELEMENTS,ONLY: NELEM,muH
       use PARAMETERS,ONLY: Hp,pmin,pmax
       implicit none
       integer :: i,j
@@ -64,7 +64,7 @@
         Temp0(i) = Temp(i)
         press(i) = EXP(LOG(play(j))*fac1 + LOG(play(j-1))*fac2)
         rho(i)   = EXP(LOG(rholay(j))*fac1 + LOG(rholay(j-1))*fac2)
-        nHtot(i) = rho(i)/(1.4*amu)
+        nHtot(i) = rho(i)/muH
         Diff(i)  = EXP(LOG(Difflay(j))*fac1 + LOG(Difflay(j-1))*fac2)
         mu(i)    = rho(i)/press(i)*bk*Temp(i)
         write(*,1010) i,j,(zz(i)-zz(0))/km,press(i)/bar,Temp(i),

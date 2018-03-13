@@ -1,5 +1,5 @@
 
-      program DiffuDrift
+      program DiffuEvo
 
       use PARAMETERS,ONLY: struc_file,tsim,dt_init,dt_increase,
      >                     dt_max,verbose
@@ -25,13 +25,13 @@
       call INIT_GRID
       call INIT_TIMESTEP
       call INIT_CRUST
-      goto 200
 
       nout = 0
       time = 0.d0
       dt   = dt_init
       call INITIAL_CONDITIONS(nout,time,dt)
       call OUTPUT(nout,time,dt)
+      goto 200
       next = nout
 
       do it=1,999999
