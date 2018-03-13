@@ -1,0 +1,29 @@
+H He C N O Na Mg Si Fe Ni Ca Al Ti S Cl K el
+
+none                       ! struc_file
+DustChem_ALL.dat           ! dustchem_file
+
+-1       ! gas_kind   (0=empty,1=solar,2=meteor,3=EarthCrust,4=crust)
+3        ! crust_kind         (1=solar,2=meteor,3=EarthCrust,4=FeS)
+1.E+1    ! crust_thickness    [cm]
+0.8      ! beta
+5.E+8    ! tsim               (maximum simulation time)
+1.E-3    ! dt_init            (initial time step)
+1.2      ! dt_increase        (factor to increase timestep)
+1.E+99   ! dt_max             (maximum timestep)
+
+550      ! Tcrust
+1.0      ! pmax
+1.E-7    ! pmin
+3.0      ! logg
+101      ! Npoints
+2        ! bc_high    
+0.0      ! outflux
+0        ! verbose
+
+9900.0   ! Tfast
+.true.   ! NewFullIt
+7        ! NewBackIt
+1.E+5    ! NewBackFac
+1        ! NewFastLevel
+

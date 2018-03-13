@@ -49,7 +49,7 @@ pmin  = np.min(lp)
 pmax  = np.max(lp)
 print "pressure range",pmin,pmax
 #pmin  = -5.3
-#pmax  = +2.1
+#pmax  = +1.7
 iii   = np.where((lp>pmin) & (lp<pmax))[0]
 Tmin  = np.min(Tg[iii])
 Tmax  = np.max(Tg[iii])
@@ -170,7 +170,7 @@ ind = np.where(keyword=='<a>[mic]')[0][0]
 amean = dat[:,ind]
 ymax = np.max(amean)
 if (ymax>0):
-  plt.plot(lp,amean,lw=4)
+  plt.plot(lp,amean,color='black',linewidth=3)
   plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
   plt.ylabel(r'$\langle a\rangle\ \mathrm{[\mu m]}$',fontsize=20)
   plt.xlim(pmin,pmax)
@@ -190,15 +190,20 @@ if (ymax>0):
 fig,ax = plt.subplots()
 label=(r'$\langle v_{\rm dr}^0\rangle$',r'$\langle v_{\rm dr}^1\rangle$',r'$\langle v_{\rm dr}^2\rangle$',r'$\langle v_{\rm dr}^3\rangle$')
 key=('vd0','vd1','vd2','vd3')
-fig,ax = plt.subplots()
+ymax = -99.0
+ymin = +99.0
 for k,l in zip(key,label):
   ind = np.where(keyword==k)[0][0]
   logv = np.log10(dat[:,ind])
-  ymax = np.max(logv)
-  plt.plot(lp,logv,linewidth=2.0,label=l)
+  ind = np.where(logv>-6)
+  ymax = np.max([ymax,np.max(logv)])
+  ymin = np.min([ymin,np.min(logv[ind])])
+  plt.plot(lp[ind],logv[ind],linewidth=2.0,label=l)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\log_{10}\ v_{drift}\ \mathrm{[cm\ s^{-1}]}$',fontsize=20)
 plt.xlim(pmin,pmax)
+ymin = np.min([ymin,ymax-2])
+plt.ylim(ymin,ymax+0.1)
 plt.legend()
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
@@ -233,7 +238,7 @@ nsolid = np.zeros(NPOINT)
 i1 = 5+NELEM+NMOLE
 i2 = 5+NELEM+NMOLE+NDUST
 ymax = np.max(dat[iii,i1+NDUST:i2+NDUST])
-ymin = ymax-8
+ymin = ymax-9
 ymax = ymax+0.3
 for i,c,s in zip(range(i1,i2,1),col1,style1):
   solid = keyword[i]
@@ -264,7 +269,7 @@ plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
 
-#================ volume ratios ===================
+#================ solid volume composition ===================
 fig,ax = plt.subplots()
 i1 = 5+NELEM+NMOLE
 i2 = 5+NELEM+NMOLE+NDUST
@@ -280,7 +285,7 @@ for i,c,s in zip(range(i1,i2,1),col1,style1):
   ind = np.where(keyword == 'n'+solid)[0]
   ind = ind[0]
   ns  = dat[:,ind]               # log10 nsolid/n<H>
-  ind = np.where(ns<-15)
+  ind = np.where(ns<-30)
   yy[ind] = -99.
   if (np.max(yy[iii])>ymin):
     plt.plot(lp[iii],yy[iii],c=c,ls=s,lw=widt[count],label=solid)
@@ -294,7 +299,7 @@ plt.tick_params(axis='both', labelsize=14)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
 sz = np.min([11,1+195.0/count])
-leg = plt.legend(loc='upper left',fontsize=11,fancybox=True,
+leg = plt.legend(loc='lower left',fontsize=11,fancybox=True,
                  handlelength=2.5,prop={'size':sz})
 leg.get_frame().set_alpha(0.7)
 plt.tight_layout()

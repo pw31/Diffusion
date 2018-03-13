@@ -2,13 +2,14 @@
       subroutine DIFFUSION(time,deltat,verbose)
 ************************************************************************
       use PARAMETERS,ONLY: implicit
-      use GRID,ONLY: zz,xlower,xupper,dt_diff_ex
+      use GRID,ONLY: zz,xlower,xupper,dt_diff_ex,Npoints
       use STRUCT,ONLY: Temp,Diff,nHtot,nHeps,
      >                 crust_Neps,crust_Ncond,crust_gaseps
-      use ELEMENTS,ONLY: NELEM,elnam
+      use ELEMENTS,ONLY: NELEM,elnam,eps0
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
-      use EXCHANGE,ONLY: nat,nmol
+      use EXCHANGE,ONLY: nat,nmol,nel
+      use JEANS_ESCAPE,ONLY: NMOLE,nel_top,nat_top,nmol_top
       implicit none
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real*8,intent(in) :: time
@@ -20,6 +21,7 @@
       integer :: isort,ipass,Ncrust  
       logical :: in_crust(NELEM),limiting(NELEM)
 
+      if (.not.allocated(nmol_top)) allocate(nmol_top(NMOLE))
       xlower = crust_gaseps
       eps(:) = nHeps(:,0)/nHtot(0)
 
@@ -73,6 +75,20 @@
         print'(A3,2(L2),2(1pE10.3))',elnam(el),in_crust(el),
      >                         limiting(i),rsort(i),eps(el) 
       enddo
+
+      !--------------------------------------------------------------------------
+      ! ***  call GGchem on top of atmosphere to get molecular particle dens. ***
+      !--------------------------------------------------------------------------
+      nH  = nHtot(Npoints)               ! density at top of atmosphere
+      Tg  = Temp(Npoints)                ! temperature at top of atmosphere
+      eps = eps0                         ! set element abundances to default
+      do i=1,NELEM                    
+        eps(i) = nHeps(i,Npoints)/nH     ! use element abundance at top
+      enddo         
+      call GGCHEM(nH,Tg,eps,.false.,0) 
+      nmol_top = nmol                    ! store results in module JEANS_ESCAPE
+      nat_top  = nat
+      nel_top  = nel
 
       if (implicit.and.deltat>30*dt_diff_ex) then
         if (verbose>0) then
@@ -222,7 +238,8 @@
           else if (bc_high==2) then   
             xx(N) = (-outflux/nD - d1l(N)*xx(N-2) - d1m(N)*xx(N-1))
      >            /d1r(N)                     ! constant flux 
-          else if (bc_high==3) then   
+          else if (bc_high==3) then 
+              
             outflux = nHtot(N)*xx(N)*outrate*vout  
             xx(N) = -(d1l(N)*xx(N-2) + d1m(N)*xx(N-1))
      >           /(d1r(N) + outrate*vout/Diff(N))
@@ -238,7 +255,7 @@
             if (xx(i)<0.d0) then
               print*,"*** negative elem.abund. in diffusion." 
               print*,elnam(el),i
-              if (verbose>0) read'(A1)',char1
+!              if (verbose>0) read'(A1)',char1
               if (i==N) then 
                 nHeps(el,i) = nHtot(i)*xx(N-1)
               else  
@@ -271,7 +288,7 @@
           dt = dt/2.0
           nHeps(:,:) = nHold(:,:) 
           crust_Neps(:) = crust_Nold(:)
-          if (verbose>0) read'(A1)',char1
+!          if (verbose>0) read'(A1)',char1
           goto 100
         endif  
 
@@ -458,7 +475,7 @@
           crust_Neps(:) = crust_Nold(:)
           call INIT_DIFFUSION(N,1,dt,BB_1)
           call INIT_DIFFUSION(N,2,dt,BB_2)
-          if (verbose>0) read'(A1)',char1
+!          if (verbose>0) read'(A1)',char1
           goto 100
         endif  
 

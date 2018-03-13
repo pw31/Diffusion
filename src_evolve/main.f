@@ -1,7 +1,8 @@
 
       program DiffuDrift
 
-      use PARAMETERS,ONLY: tsim,dt_init,dt_increase,dt_max,verbose
+      use PARAMETERS,ONLY: struc_file,tsim,dt_init,dt_increase,
+     >                     dt_max,verbose
       use GRID,ONLY: dt_diff_ex
       use EXCHANGE,ONLY: chemcall,chemiter,ieqcond,ieqconditer,
      >                   itransform
@@ -15,11 +16,16 @@
       call INIT_ELEMENTS1
       call INIT_CHEMISTRY
       call INIT_DUSTCHEM
-      call READ_STRUCTURE
+      if (struc_file == 'none') then
+        call CREATE_STRUCTURE
+      else  
+        call READ_STRUCTURE
+      endif  
       call INIT_ELEMENTS2
       call INIT_GRID
       call INIT_TIMESTEP
       call INIT_CRUST
+      goto 200
 
       nout = 0
       time = 0.d0
@@ -54,7 +60,7 @@
      >                  REAL(ieqconditer)/REAL(ieqcond)
       print'("      transform calls = ",I8)',itransform
       NLAST=0         ! also save replaced database entries
-      call SAVE_DBASE
+ 200  call SAVE_DBASE
       
       end
 

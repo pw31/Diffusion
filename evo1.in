@@ -3,7 +3,7 @@ H He C N O Na Mg Si Fe Ni Ca Al Ti S Cl K el
 2Drift_1400.data           ! struc_file
 DustChem_ALL.dat           ! dustchem_file
 
--1        ! gas_kind   (0=empty,1=solar,2=meteor,3=EarthCrust,4=crust)
+1        ! gas_kind   (0=empty,1=solar,2=meteor,3=EarthCrust,4=crust)
 2        ! crust_kind         (1=solar,2=meteor,3=EarthCrust,4=FeS)
 1.E-1    ! crust_thickness    [cm]
 0.8      ! beta
@@ -11,7 +11,7 @@ DustChem_ALL.dat           ! dustchem_file
 1.E-3    ! dt_init            (initial time step)
 1.2      ! dt_increase        (factor to increase timestep)
 3.E+6    ! dt_max             (maximum timestep)
-100.0    ! heatrate           (heating rate [K/yr])
+0.0    ! heatrate           (heating rate [K/yr])
 
 301      ! Npoints
 1.E-7    ! pmin
@@ -24,4 +24,4 @@ DustChem_ALL.dat           ! dustchem_file
 .true.   ! NewFullIt
 5        ! NewBackIt
 1.E+3    ! NewBackFac
-
+6.052+6  ! Rplanet (Radius of planet [venus])

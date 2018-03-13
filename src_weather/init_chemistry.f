@@ -14,7 +14,7 @@
       character(len=2) :: cel(40),elnam
       character(len=20) :: molname,upper,leer='                    '
       character(len=200) :: line,filename,frmt
-      logical :: found,charged
+      logical :: found,charged,vb=.false.
       real*8 :: fiterr
 
       print*
@@ -155,15 +155,17 @@
             error(ret)= error(i)
             write(line,'(I4,A20,1x,99(I3,1x,A2,1x))')
      &           ret,trim(cmol(ret)),(m_anz(j,ret),cel(j),j=1,iel)
-            !print*,trim(line)//"    OVERWRITE" 
+            if (vb) print*,trim(line)//"    OVERWRITE" 
           else  
             write(line,'(I4,A20,1x,99(I3,1x,A2,1x))')
      &            i,trim(cmol(i)),(m_anz(j,i),catm(m_kind(j,i)),j=1,iel)
-            !if (loop==1) then
-            !  print*,trim(line)
-            !else
-            !  print*,trim(line)//"    --> NEW" 
-            !endif   
+            if (vb) then
+              if (loop==1) then
+                print*,trim(line)
+              else
+                print*,trim(line)//"    --> NEW" 
+              endif   
+            endif  
             if (iel==2.and.
      >       ((m_kind(1,i)==el.and.m_anz(1,i)==-1.and.m_anz(2,i)==1).or.
      >        (m_kind(2,i)==el.and.m_anz(2,i)==-1.and.m_anz(1,i)==1))
@@ -193,12 +195,12 @@
         !print'(A16,0pF10.3)',cmol(i),molmass(i)/amu
       enddo  
 
-      !if (loop>1) then
-      !  print* 
-      !  do i=1,NMOLE
-      !    print*,i,cmol(i),' ->  '//trim(dispol_file(source(i)))
-      !  enddo
-      !endif  
+      if (vb) then
+        print* 
+        do i=1,NMOLE
+          print*,i,cmol(i),' ->  '//trim(dispol_file(source(i)))
+        enddo
+      endif  
   
       !open(unit=1,file='chemicals.tex')
       !write(1,*) NMOLE
@@ -251,6 +253,7 @@
         print'(1x,99(A4))',(trim(cmol(elion(j))),j=1,el-1),'  ',
      >                     (trim(cmol(elion(j))),j=el+1,NELM)
       endif  
+      if (vb) stop
 
  3000 format(I4," & ",A12," & (",I1,") & ",I1," & ",
      &       5(1pE12.5," & "),"$\pm$",0pF4.2,"\\")

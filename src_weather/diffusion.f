@@ -148,7 +148,7 @@
         if (time.ge.deltat) exit
 
       enddo  
-      if (verbose>0) print'(" DIFFUSION:",I8,"  time=",1pE11.4,
+      if (verbose>0) print'(" DIFFUSION:",I5,"  time=",1pE11.4,
      >               "  Dt=",1pE11.4)',it,time0,time
 
       end

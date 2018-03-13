@@ -168,7 +168,7 @@
       write(70) crust_Neps
       write(70) crust_gaseps
       close(70)
-      if (verbose>=2) read'(A1)',char1
+!      if (verbose>=2) read'(A1)',char1
 
  1000 format(4(' eps(',a2,') = ',1pD8.2))
  1010 format(A4,0pF8.2,3(a6,1pE9.2),1(a11,1pE9.2))

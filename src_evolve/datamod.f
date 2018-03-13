@@ -11,7 +11,7 @@
 ************************************************************************
       character(len=200) :: elements_select,model_name,dustchem_file
       character(len=200) :: struc_file
-      real :: logg,Tcrust,pmin,pmax,Hp
+      real :: logg,Tcrust,pmin,pmax,Hp,Rplanet
       real :: vzconst,pconst,beta
       integer :: gas_kind,crust_kind
       real :: crust_thickness
@@ -122,8 +122,8 @@
       module READMODEL
 ************************************************************************
       integer :: Nlayers
-      real,dimension(1000) :: Rlay,Tlay,play,rholay,glay
-      real,dimension(1000) :: zlay,mulay,vconvlay,Difflay
+      real,dimension(5000) :: Rlay,Tlay,play,rholay,glay
+      real,dimension(5000) :: zlay,mulay,vconvlay,Difflay
       end
 
 ************************************************************************
@@ -187,4 +187,15 @@
       integer*8 :: ieqconditer=0,Fcall=0,Jcall=0
       logical,allocatable :: inactive(:)
 !$omp threadprivate(nel,nat,nion,nmol,Jst,chi,ipoint,inactive)
+      end
+
+************************************************************************
+      module JEANS_ESCAPE
+************************************************************************
+      use CHEMISTRY,ONLY: NMOLE
+      use ELEMENTS,ONLY: NELEM
+      integer,parameter :: qp = selected_real_kind ( 33, 4931 )
+      real(kind=qp) :: nel_top,nat_top(NELEM),nion_top(NELEM)
+      real(kind=qp),allocatable :: nmol_top(:)
+!$omp threadprivate(nel_top,nat_top,nion_top,nmol_top)
       end

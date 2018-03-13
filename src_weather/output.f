@@ -194,7 +194,7 @@
           LL(0:3) = rhoLj(0:3,ip)/rhog
           LL(4) = CLOSURE(ip,LL(0),LL(1),LL(2),LL(3),0)
           do j=0,3
-            vdrift(j) = xi*rhod/cT*LL(j+1)/rhoLj(j,ip)
+            vdrift(j) = xi*rhod/cT/rhog*(LL(j+1)/LL(j))
           enddo
 	endif
 			

@@ -1,9 +1,11 @@
 ************************************************************************
-      SUBROUTINE DUSTFORM(time,deltat,verbose)
+      SUBROUTINE DUSTFORM(time,deltat,dt_dustform,verbose)
 ************************************************************************
+      use NATURE,ONLY: bar
+      use PARAMETERS,ONLY: precision
       use GRID,ONLY: Npoints
-      use STRUCT,ONLY: nHtot,Temp,nHeps,rhoLj,rhoL3,mols,atms,elec
-      use ELEMENTS,ONLY: NEPS,elnam,elcode
+      use STRUCT,ONLY: nHtot,Temp,nHeps,press,rhoLj,rhoL3,mols,atms,elec
+      use ELEMENTS,ONLY: NEPS,elnam,elcode,elnr
       use CHEMISTRY,ONLY: NMOLE
       use DUST_DATA,ONLY: NDUST,dust_Vol,dust_nam,
      >                    dust_nel,dust_el,dust_nu
@@ -12,9 +14,11 @@
       implicit none
       integer,intent(in) :: verbose
       real*8,intent(in) :: time,deltat
+      real*8,intent(out) :: dt_dustform
       real*8,allocatable :: yy(:),FF(:)
       real*8 :: tt,dt,corr,y0,y1,y2,y3,bb,cc,epsd,nHeldust,stoich
-      integer :: i,j,ip,el,NN,ifail
+      real*8 :: change,mchange,maxchange
+      integer :: i,j,ip,el,NN,ifail,emax,echange,zchange
       logical :: has_dust,has_rate,evap
       character(len=1) :: char1
       character :: CR=CHAR(13)
@@ -25,15 +29,19 @@
         print*,"====================="
       endif  
       NN = 4+NDUST+NEPS
+      maxchange = 0.0
+      echange = 1
+      zchange = 0
 
 !$omp parallel 
 !$omp& default(none)
 !$omp& shared(NN,NNUC,NDUST,NPOINTS,NEPS,NMOLE,CR,dust_Vol,verbose)
-!$omp& shared(rhoLj,rhoL3,nHtot,nHeps,Temp,time,deltat,elcode,elnam)
+!$omp& shared(rhoLj,rhoL3,nHtot,nHeps,Temp,time,deltat)
 !$omp& shared(dust_nam,dust_nel,dust_el,dust_nu,mols,atms,elec)
+!$omp& shared(elcode,elnr,elnam,maxchange,zchange,echange)
 !$omp& private(i,j,ip,yy,FF,has_dust,has_rate,evap,char1)
 !$omp& private(tt,dt,corr,y0,y1,y2,y3,bb,cc,epsd,ifail)
-!$omp& private(el,nHeldust,stoich)
+!$omp& private(el,nHeldust,stoich,mchange,emax,change)
       allocate(yy(NN),FF(NN))
       if (.not.allocated(nmol)) then
         allocate(nmol(NMOLE),Jst(NNUC),chi(NDUST),inactive(NMOLE))
@@ -114,7 +122,24 @@
         endif  
 
  100    continue
+        mchange = 0.0
+        emax = 0
+        do el=1,NEPS
+          change = yy(4+NDUST+el)/nHeps(el,ip)-1.0
+          !print*,elnam(elnr(el)),change
+          if (ABS(change)>mchange) then
+            mchange = ABS(change)
+            emax = el
+          endif
+        enddo
+
 !$omp critical(update)
+        if (mchange>maxchange) then
+          maxchange = mchange
+          zchange = ipoint
+          echange = emax
+        endif  
+        !write(97,*) ip,elnam(elnr(emax)),mchange,maxchange
         nHeps(1:NEPS,ip) = yy(5+NDUST:NN)            ! element abundances
         if (evap) then
           if (has_dust.and.verbose>1) print*," all dust evaporated"
@@ -154,7 +179,16 @@
       enddo
 !$omp end parallel      
 
-      if (verbose==1) print'(" DUSTFORM: "I8,"  time=",1pE11.4,
-     >                "  Dt=",1pE11.4)',Npoints-1,time,deltat
+      if (maxchange==0.0) then
+        dt_dustform = 1.E+99
+      else  
+        dt_dustform = deltat*precision/maxchange
+      endif  
+      if (verbose==1) then
+        print'(" DUSTFORM: ",I5,"  time=",1pE11.4,"  Dt=",2(1pE11.4))',
+     >       zchange,time,deltat,dt_dustform
+        print'("   maxchange =",0pF8.5,I3," p[bar]=",1pE9.2,A3)',
+     >       maxchange,zchange,press(zchange)/bar,elnam(elnr(echange))
+      endif 
 
       end
