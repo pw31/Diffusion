@@ -8,7 +8,8 @@
       use ELEMENTS,ONLY: NELEM,elnam,eps0
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
-      use EXCHANGE,ONLY: nat,nmol
+      use EXCHANGE,ONLY: nat,nmol,nel
+      use JEANS_ESCAPE,ONLY: NMOLE,nel_top,nat_top,nmol_top
       implicit none
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real*8,intent(in) :: time
@@ -19,10 +20,8 @@
       integer :: i,j,e,el,emin,ecount(NELEM),esort(NELEM)
       integer :: isort,ipass,Ncrust  
       logical :: in_crust(NELEM),limiting(NELEM)
-      !** Alex Work
-      real(kind=qp),allocatable :: nmol_top(:),nat_top(:)
-      !***
 
+      if (.not.allocated(nmol_top)) allocate(nmol_top(NMOLE))
       xlower = crust_gaseps
       eps(:) = nHeps(:,0)/nHtot(0)
 
@@ -80,16 +79,16 @@
       !--------------------------------------------------------------------------
       ! ***  call GGchem on top of atmosphere to get molecular particle dens. ***
       !--------------------------------------------------------------------------
-      nH  = nHtot(Npoints)            ! concentration at top of atmosphere
-      Tg  = Temp(Npoints)             ! temperature at top of atmosphere
-      eps = eps0                      ! set element abundances to default
+      nH  = nHtot(Npoints)               ! density at top of atmosphere
+      Tg  = Temp(Npoints)                ! temperature at top of atmosphere
+      eps = eps0                         ! set element abundances to default
       do i=1,NELEM                    
-        eps(i) = nHeps(i,Npoints)/nH  ! use element abundance at top
+        eps(i) = nHeps(i,Npoints)/nH     ! use element abundance at top
       enddo         
       call GGCHEM(nH,Tg,eps,.false.,0) 
-      nmol_top = nmol !Saving nmolecules and natom incase future development changes these
-      nat_top = nat
-      print*,"Height",xupper(Npoints)
+      nmol_top = nmol                    ! store results in module JEANS_ESCAPE
+      nat_top  = nat
+      nel_top  = nel
 
       if (implicit.and.deltat>30*dt_diff_ex) then
         if (verbose>0) then

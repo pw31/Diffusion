@@ -25,6 +25,7 @@
       call INIT_GRID
       call INIT_TIMESTEP
       call INIT_CRUST
+      goto 200
 
       nout = 0
       time = 0.d0
@@ -59,7 +60,7 @@
      >                  REAL(ieqconditer)/REAL(ieqcond)
       print'("      transform calls = ",I8)',itransform
       NLAST=0         ! also save replaced database entries
-      call SAVE_DBASE
+ 200  call SAVE_DBASE
       
       end
 

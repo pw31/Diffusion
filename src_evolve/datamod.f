@@ -188,3 +188,14 @@
       logical,allocatable :: inactive(:)
 !$omp threadprivate(nel,nat,nion,nmol,Jst,chi,ipoint,inactive)
       end
+
+************************************************************************
+      module JEANS_ESCAPE
+************************************************************************
+      use CHEMISTRY,ONLY: NMOLE
+      use ELEMENTS,ONLY: NELEM
+      integer,parameter :: qp = selected_real_kind ( 33, 4931 )
+      real(kind=qp) :: nel_top,nat_top(NELEM),nion_top(NELEM)
+      real(kind=qp),allocatable :: nmol_top(:)
+!$omp threadprivate(nel_top,nat_top,nion_top,nmol_top)
+      end

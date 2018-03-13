@@ -22,6 +22,7 @@
 
       if (.not.allocated(nmol)) then
         allocate(nmol(NMOLE),chi(NDUST),inactive(NMOLE))
+        inactive = .false.
       endif  
 
       print*

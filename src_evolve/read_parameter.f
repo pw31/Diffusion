@@ -10,7 +10,8 @@
      >                     pmin,pmax, bc_low,bc_high,implicit,
      >                     influx,outflux,inrate,outrate,vin,vout,
      >                     useDatabase,verbose
-      use CHEMISTRY,ONLY: NewBackIt,NewFullIt,NewBackFac,dispol_file
+      use CHEMISTRY,ONLY: NewBackIt,NewFullIt,NewBackFac,NewFastLevel,
+     >                    dispol_file
       use GRID,ONLY: Npoints
       implicit none
       integer :: i,iarg,iline,dispol_set
@@ -31,6 +32,7 @@
       NewFullIt  = .true.
       NewBackIt  = 5
       NewBackFac = 1.E+2
+      NewFastLevel = 0
       tsim       = 300.0    ! 5 minutes
       dt_init    = 1.E-3    ! 1 milli-sec
       dt_increase= 1.3      ! factor for dt increase
@@ -90,6 +92,8 @@
           read(line,*) NewBackIt
         else if (index(line,"! NewFullIt")>0) then 
           read(line,*) NewFullIt
+        else if (index(line,"! NewFastLevel")>0) then 
+          read(line,*) NewFastLevel
         else if (index(line,"! Npoints")>0) then   
           read(line,*) Npoints
         else if (index(line,"! pmin")>0) then   
