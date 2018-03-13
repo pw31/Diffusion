@@ -1,6 +1,6 @@
 dust species
 ============
-11
+12
 
 TiO2[s]        RUTILE
 4.23
@@ -132,7 +132,7 @@ CaTiO3[s]      PEROVSKITE
 # Sharp & Huebner (1990):
   1  1.19107E+04 -7.30327E+05  1.75930E+02 -2.84630E-03  1.10392E-07
 
-Fe2O3[s]                 HEMATITE
+Fe2O3[s]       HEMATITE
  5.27
 2
  2 Fe
@@ -459,7 +459,7 @@ growth reactions : alle Buchstaben gross in MolekNamen!!
  1 H2S
  1 FeS[s]
  1 H2O
-2 2
+2 2  1.0
  1 FE(OH)2
  1 H2S
  1 FeS[s]
