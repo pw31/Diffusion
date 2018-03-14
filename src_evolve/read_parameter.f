@@ -9,7 +9,7 @@
      >                     gas_kind,crust_kind,crust_thickness,
      >                     pmin,pmax, bc_low,bc_high,implicit,
      >                     influx,outflux,inrate,outrate,vin,vout,
-     >                     useDatabase,verbose
+     >                     useDatabase,verbose,immediateEnd
       use CHEMISTRY,ONLY: NewBackIt,NewFullIt,NewBackFac,NewFastLevel,
      >                    dispol_file
       use GRID,ONLY: Npoints
@@ -62,6 +62,7 @@
       crust_thickness = 100.0  ! 1 metre
       useDatabase = .true.
       verbose = 1
+      immediateEnd = .false.
 
       !-------------------------------------------
       ! ***  change parameters via input file  ***
@@ -155,10 +156,13 @@
           heatrate = heatrate/yr
         else if (index(line,"! verbose")>0) then   
           read(line,*) verbose
+        else if (index(line,"! immediateEnd")>0) then   
+          read(line,*) immediateEnd
         else if (index(line,"! Tcrust")>0) then
           read(line,*) Tcrust
         else if (index(line,"! Rplanet")>0) then
           read(line,*) Rplanet
+          Rplanet = Rplanet*km
         else if (index(line,"! logg")>0) then
           read(line,*) logg
         else if (index(line,"! dispol_file2")>0) then 

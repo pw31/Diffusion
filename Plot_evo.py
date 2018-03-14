@@ -8,6 +8,8 @@ plt.rcParams['axes.linewidth'] = 1.5
 pp = PdfPages('structure.pdf')
 import glob, os
 import sys
+#from matplotlib import rc
+#rc('text',usetex=True)   # makes it nice but VERY slow
 
 files = glob.glob("structure*.dat")
 files = sorted(files)
@@ -102,10 +104,11 @@ plt.xlim(-0.6,Ncond-0.4)
 Nmax = np.log10(np.max(crust_Ncond)*1.5)
 Nmin = np.log10(np.min(crust_Ncond)*0.5)
 plt.ylim(Nmin,Nmax)
-plt.xticks(xpos, crust_dname, rotation=70,fontsize=16)
-plt.ylabel(r'$\log\ N_{\rm cond}\ \rm[cm^{-2}]$',fontsize=20)
+plt.xticks(xpos, crust_dname, rotation=70,fontsize=13)
+plt.ylabel(r'$\log\ N_{\rm cond}\ \rm[cm^{-2}]$',fontsize=16)
 titel2 = "crust column densities,   thickness = %10.3e m" %(crust_thick/100.0)
-plt.title(titel2)
+plt.title(titel2,fontsize=15)
+plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
 
@@ -113,11 +116,11 @@ plt.clf()
 fig,ax = plt.subplots()
 plt.plot(lp,Tg,lw=4)
 plt.title(out,fontsize=15)
-plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-plt.ylabel(r'$T\ \mathrm{[K]}$',fontsize=20)
+plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=16)
+plt.ylabel(r'$T\ \mathrm{[K]}$',fontsize=16)
 plt.xlim(pmin,pmax)
 plt.ylim(Tmin,Tmax)
-plt.tick_params(axis='both', labelsize=15)
+plt.tick_params(axis='both', labelsize=13)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
 #minorLocator = MultipleLocator(sep)
@@ -129,12 +132,12 @@ plt.clf()
 #================== density-pressure structure ====================
 fig,ax = plt.subplots()
 plt.plot(lp,nHtot,lw=4)
-plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-plt.ylabel(r'$n_\mathrm{\langle H\rangle}\ \mathrm{[cm^{-3}]}$',fontsize=20)
+plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=16)
+plt.ylabel(r'$n_\mathrm{\langle H\rangle}\ \mathrm{[cm^{-3}]}$',fontsize=16)
 plt.xlim(pmin,pmax)
 plt.ylim(nHmin,nHmax)
 if (nHmax>nHmin*5): plt.yscale('log')
-plt.tick_params(axis='both', labelsize=15)
+plt.tick_params(axis='both', labelsize=13)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
 #minorLocator = MultipleLocator(sep)
@@ -146,10 +149,10 @@ plt.clf()
 #================== the diffusion coefficient ====================
 fig,ax = plt.subplots()
 plt.plot(lp,np.log10(Diff),lw=4)
-plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-plt.ylabel(r'$\log_{10}\ D\ \mathrm{[cm^{2}s^{-1}]}$',fontsize=20)
+plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=16)
+plt.ylabel(r'$\log_{10}\ D\ \mathrm{[cm^{2}s^{-1}]}$',fontsize=16)
 plt.xlim(pmin,pmax)
-plt.tick_params(axis='both', labelsize=15)
+plt.tick_params(axis='both', labelsize=13)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
 plt.tight_layout()
@@ -167,17 +170,17 @@ for i in range(5+NELEM+NMOLE+NDUST,5+NELEM+NMOLE+NDUST+NELEM,1):
   ymax=np.max([ymax,np.max(yy)])            
   plt.plot(lp,yy,c=colo[count],ls=styl[count],lw=widt[count],label=element)
   count = count+1
-plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-plt.ylabel(r'$\log\,\epsilon_{\rm gas}$',fontsize=20)
+plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=16)
+plt.ylabel(r'$\log\,\epsilon_{\rm gas}$',fontsize=16)
 plt.xlim(pmin,pmax)
-plt.ylim(ymax-20,0.3)
-plt.tick_params(axis='both', labelsize=15)
+plt.ylim(ymax-20,ymax+0.3)
+plt.tick_params(axis='both', labelsize=13)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
-#minorLocator = MultipleLocator(sep)
-#ax.xaxis.set_minor_locator(minorLocator)
-#minorLocator = MultipleLocator(1)
-#ax.yaxis.set_minor_locator(minorLocator)
+loc = MultipleLocator(5)
+ax.yaxis.set_major_locator(loc)
+loc = MultipleLocator(1)
+ax.yaxis.set_minor_locator(loc)
 sz = np.min([11,1+195.0/count])
 leg = plt.legend(loc='upper left',fontsize=sz,fancybox=True)
 leg.get_frame().set_alpha(0.7)
@@ -187,6 +190,7 @@ plt.clf()
 
 #================== supersaturation ratios ===================
 fig,ax = plt.subplots()
+plt.subplots_adjust(left=0.18, right=0.98, top=0.93, bottom=0.15)
 count = 0
 for i in range(5+NELEM+NMOLE,5+NELEM+NMOLE+NDUST,1):
   solid = keyword[i]
@@ -195,14 +199,15 @@ for i in range(5+NELEM+NMOLE,5+NELEM+NMOLE+NDUST,1):
   if (np.size(ind) == 0): continue
   ind = ind[0]
   logS = dat[:,ind]              # log10 S
-  plt.plot(lp,logS,c=colo[count],ls=styl[count],lw=widt[count],label=solid)
-  count = count + 1
-plt.title('supersaturation ratios',fontsize=20)
-plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-plt.ylabel(r'$\mathrm{log}_{10}\ S$',fontsize=20)
+  if (np.max(logS)>-1):
+    plt.plot(lp,logS,c=colo[count],ls=styl[count],lw=widt[count],label=solid)
+    count = count + 1
+plt.title('supersaturation ratios',fontsize=16)
+plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=16)
+plt.ylabel(r'$\mathrm{log}_{10}\ S$',fontsize=16)
 plt.xlim(pmin,pmax)
 plt.ylim(-10,10)
-plt.tick_params(axis='both', labelsize=14)
+plt.tick_params(axis='both', labelsize=13)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
 sz = np.min([13,1+195.0/count])
@@ -210,10 +215,10 @@ col = 1
 if (count>30): 
   sz = np.min([13,1+195.0/count*2])
   col = 2
-leg = plt.legend(loc='lower left',fontsize=10,fancybox=True,
+leg = plt.legend(loc='upper left',fontsize=10,fancybox=True,
                  handlelength=3,prop={'size':sz},ncol=col)
 leg.get_frame().set_alpha(0.7)
-plt.tight_layout()
+#plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
 
@@ -236,12 +241,12 @@ for i in range(4,5+NELEM+NMOLE):
   if (np.max(yy[iii])>crit):
     plt.plot(lp,yy,c=colo[count],ls=styl[count],lw=widt[count],label=mol)
     count = count + 1
-plt.title('important molecules',fontsize=20)
-plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-plt.ylabel(r'$\mathrm{log}_{10}\ n_\mathrm{mol}/n_\mathrm{tot}$',fontsize=20)
+plt.title('important molecules',fontsize=16)
+plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=16)
+plt.ylabel(r'$\mathrm{log}_{10}\ n_\mathrm{mol}/n_\mathrm{tot}$',fontsize=16)
 plt.xlim(pmin,pmax)
 plt.ylim(-6.2,0.2)
-plt.tick_params(axis='both', labelsize=14)
+plt.tick_params(axis='both', labelsize=13)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
 leg = plt.legend(loc='lower right',fontsize=11,fancybox=True)
@@ -308,12 +313,12 @@ for i in range(0,30):
       print molname,abu
       plt.plot(lp,yy,c=colo[count],ls=styl[count],lw=widt[count],label=molname)
       count = count + 1
-  plt.title(titel,fontsize=20)
-  plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-  plt.ylabel(r'$\mathrm{log}_{10}\ n_\mathrm{mol}/n_\mathrm{\langle H\rangle}$',fontsize=20)
+  plt.title(titel,fontsize=16)
+  plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=16)
+  plt.ylabel(r'$\mathrm{log}_{10}\ n_\mathrm{mol}/n_\mathrm{\langle H\rangle}$',fontsize=16)
   plt.xlim(pmin,pmax)
   plt.ylim(nmin,nmax+1)
-  plt.tick_params(axis='both', labelsize=14)
+  plt.tick_params(axis='both', labelsize=13)
   plt.tick_params('both', length=6, width=1.5, which='major')
   plt.tick_params('both', length=3, width=1, which='minor')
   if (Tmax/Tmin>10):

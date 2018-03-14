@@ -18,7 +18,7 @@
       real :: influx,outflux,inrate,outrate,vin,vout
       real :: Tfast,tsim,dt_init,dt_max,dt_increase,heatrate
       integer :: bc_low,bc_high,verbose
-      logical :: implicit,useDatabase
+      logical :: implicit,useDatabase,immediateEnd
       end
 
 ************************************************************************

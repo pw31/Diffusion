@@ -1263,8 +1263,8 @@
       ! ***  save result to database  ***
       !----------------------------------
       if (qual<1.Q-10.and.useDatabase) then
-       !call PUT_DATA(nHtot,T,eps,ddust,qread,iread,active)
-        call PUT_DATA(nHtot,T,eps,ddust,1.E-4,iread,active)  ! replace
+        qread = MAX(qread,1.E-6)   ! new or replace 
+        call PUT_DATA(nHtot,T,eps,ddust,qread,iread,active)
       endif  
       ieqcond = ieqcond + 1
       ieqconditer = ieqconditer + it

@@ -26,7 +26,7 @@
       endif  
 
       print*
-      print'(" create structure  Tcrust=",0pF6.1," K  psurf=",
+      print'(" create structure  Tcrust =",0pF6.1," K  psurf =",
      >       0pF7.3," bar")',Tcrust,pmax
       print*,"====================================================="
 
@@ -41,6 +41,7 @@
       gg  = 10.d0**logg
       Mpl = gg*Rplanet**2/grav
       muH = 28*amu
+      !print*,gg,Rplanet,Mpl/MEarth
       !print'(A4,A12,A12,A10)',"iz","z[km]","p[bar]","T[K]"
 
       do iz=5000,1,-1

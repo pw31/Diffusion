@@ -2,7 +2,7 @@
       program DiffuEvo
 
       use PARAMETERS,ONLY: struc_file,tsim,dt_init,dt_increase,
-     >                     dt_max,verbose
+     >                     dt_max,verbose,immediateEnd
       use GRID,ONLY: dt_diff_ex
       use EXCHANGE,ONLY: chemcall,chemiter,ieqcond,ieqconditer,
      >                   itransform
@@ -31,7 +31,7 @@
       dt   = dt_init
       call INITIAL_CONDITIONS(nout,time,dt)
       call OUTPUT(nout,time,dt)
-      goto 200
+      if (immediateEnd) goto 100
       next = nout
 
       do it=1,999999
@@ -60,7 +60,7 @@
      >                  REAL(ieqconditer)/REAL(ieqcond)
       print'("      transform calls = ",I8)',itransform
       NLAST=0         ! also save replaced database entries
- 200  call SAVE_DBASE
+ 100  call SAVE_DBASE
       
       end
 

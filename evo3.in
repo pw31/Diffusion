@@ -11,11 +11,13 @@ DustChem_ALL.dat           ! dustchem_file
 1.E-3    ! dt_init            (initial time step)
 1.2      ! dt_increase        (factor to increase timestep)
 1.E+99   ! dt_max             (maximum timestep)
+.true.   ! immediateEnd
 
-700      ! Tcrust
+2.992    ! logg
+300.0    ! Tcrust [K]
+6371.0   ! Rplanet [km] 
 1.0      ! pmax
 1.E-7    ! pmin
-3.0      ! logg
 101      ! Npoints
 2        ! bc_high    
 0.0      ! outflux
