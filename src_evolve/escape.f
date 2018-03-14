@@ -2,10 +2,10 @@
       subroutine ESCAPE
 ************************************************************************
       use PARAMETERS,ONLY: implicit
-      use GRID,ONLY: zz,hr,N=>Npoints
+      use GRID,ONLY: zz,N=>Npoints
       use STRUCT,ONLY: Temp
       use ELEMENTS,ONLY: mass
-      use CHEMISTRY,ONLY: NELM,molmass,elnum,iel
+      use CHEMISTRY,ONLY: NELM,molmass,elnum
       use NATURE,ONLY: amu,bk,pi
 
       implicit none

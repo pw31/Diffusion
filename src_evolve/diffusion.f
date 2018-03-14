@@ -1,14 +1,15 @@
 ************************************************************************
       subroutine DIFFUSION(time,deltat,verbose)
 ************************************************************************
-      use PARAMETERS,ONLY: implicit
+      use PARAMETERS,ONLY: implicit,Rplanet,logg
       use GRID,ONLY: zz,xlower,xupper,dt_diff_ex,Npoints
       use STRUCT,ONLY: Temp,Diff,nHtot,nHeps,
      >                 crust_Neps,crust_Ncond,crust_gaseps
       use ELEMENTS,ONLY: NELEM,elnam,eps0
-      use CHEMISTRY,ONLY: NELM,elnum,iel=>el
+      use CHEMISTRY,ONLY: NELM,elnum,iel=>el,molmass,NMOLE,cmol
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
       use EXCHANGE,ONLY: nat,nmol,nel
+      use NATURE, ONLY: bk,pi
       use JEANS_ESCAPE,ONLY: NMOLE,nel_top,nat_top,nmol_top
       implicit none
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
@@ -16,10 +17,12 @@
       real*8,intent(inout) :: deltat
       integer,intent(in) :: verbose
       real(kind=qp) :: eps(NELEM),Sat(NDUST)
-      real*8 :: nH,Tg,flux,fmin,dz,bsum,Ncol,rsort(NELEM)
+      real*8 :: nH,Tg,flux,fmin,dz,bsum,Ncol,rsort(NELEM),ztop,vesc
+      real*8 :: gravity
       integer :: i,j,e,el,emin,ecount(NELEM),esort(NELEM)
       integer :: isort,ipass,Ncrust  
       logical :: in_crust(NELEM),limiting(NELEM)
+      real(kind=qp) :: vmol_top(NMOLE),Jeans(NMOLE)
 
       if (.not.allocated(nmol_top)) allocate(nmol_top(NMOLE))
       xlower = crust_gaseps
@@ -89,6 +92,45 @@
       nmol_top = nmol                    ! store results in module JEANS_ESCAPE
       nat_top  = nat
       nel_top  = nel
+
+      
+      !--------------------------------------------------------------------------
+      ! ***  Escape velocity of the planet at top of atmosphere. ***
+      !--------------------------------------------------------------------------
+
+      !call READ_PARAMETER !Using values from input file
+      ztop = zz(Npoints) !Height of top of atmosphere in meters
+      gravity = 10**(logg-2.d0) !Changing unit of gravity from cm/s2 to m/s2
+      vesc = Sqrt((2.d0*gravity*Rplanet**2.d0)/(Rplanet+ztop)) !Escape vel of planet
+
+      !--------------------------------------------------------------------------
+      ! ***  Particle velocity at top of atmosphere. ***
+      !--------------------------------------------------------------------------
+
+      do i=1,NMOLE !Over all molecules
+	vmol_top(i) = Sqrt((2.d0*bk*Tg)/molmass(i)) !Particle vel at top of atmos
+      enddo
+
+      !--------------------------------------------------------------------------
+      ! ***  Jeans Escape ***
+      !--------------------------------------------------------------------------
+
+      do i=1,NMOLE !Sum over all molecules
+	Jeans(i) = ((nmol(i)*vmol_top(i))/(2.d0*Sqrt(pi)))*((vesc**2.d0/
+&vmol_top(i)**2.d0)+1.d0)*Exp(-(vesc**2.d0/vmol_top(i)**2.d0))
+      enddo
+
+      !--------------------------------------------------------------------------
+      ! ***  Jeans Escape plot ***
+      !--------------------------------------------------------------------------
+
+      !Writing out Jeans escape per molecule for plotting
+      open(unit=75,file='jeans.dat',status='replace')
+
+      do i=1,NMOLE
+      	write(75,*) (trim(cmol(i))),Jeans(i)
+      enddo
+      close(75)
 
       if (implicit.and.deltat>30*dt_diff_ex) then
         if (verbose>0) then

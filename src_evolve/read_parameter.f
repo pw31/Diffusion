@@ -56,6 +56,7 @@
       outrate    = 0.0
       vin        = 1.0
       vout       = 1.0
+      logg       = 5.0
       implicit   = .true.
       gas_kind = 1             ! 0=empty, 1=solar, 2=meteor, 3=EarthCrust
       crust_kind = 1           ! 1=solar, 2=meteor, 3=EarthCrust
