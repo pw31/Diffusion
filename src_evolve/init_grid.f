@@ -165,6 +165,6 @@
         stop
       endif  
 
- 1000 format(A8,A11,A11,A11,A9,99(A12))
- 1010 format(I4,I4,0pF11.3,1pE11.3,0pF11.2,0pF9.3,99(1pE12.3))
+ 1000 format(A10,A11,A11,A11,A9,99(A12))
+ 1010 format(I4,I6,0pF11.3,1pE11.3,0pF11.2,0pF9.3,99(1pE12.3))
       end

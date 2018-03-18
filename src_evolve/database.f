@@ -157,13 +157,13 @@
       logical,intent(out) :: active(0:NDUST)
       integer,intent(in) :: verbose
       real*8 :: ln,lT,seps,lnread,lTread,sepsread,qgood,qual,pot
-      real*8 :: rsort(NEPS)
+      real*8 :: rsort(NEPS),sort
       real(kind=qp) :: check(NELEM),error,errmax,neweps,dmin
       real(kind=qp) :: stoich(NEPS,NEPS),xx(NEPS),rest(NEPS)
       integer :: i,j,k,it,el,elworst,Ncond,Nact,sp,iloop,imin
-      integer :: isort(NEPS),dact(NDUST),OK
+      integer :: isort(NEPS),dact(NDUST),OK,ecount(NELEM)
       character(len=1) :: char
-      logical :: found,eact(NELEM)
+      logical :: found,eact(NELEM),epure(NELEM)
       logical,save :: firstCall=.true.
       
       if (firstCall) then
@@ -247,14 +247,19 @@
       do iloop=1,5
         !--- 1. determine active condensates and involved elements ---
         Ncond = 0
-        eact = .false.        
+        eact = .false.
+        epure = .false.
+        ecount = 0
         do i=1,NDUST
           if (ddust(i)>0.Q0) then
             active(i)=.true.
             Ncond = Ncond+1
             dact(Ncond) = i
             do j=1,dust_nel(i)
-              eact(dust_el(i,j))=.true.
+              el = dust_el(i,j) 
+              eact(el) = .true.
+              ecount(el) = ecount(el)+1
+              if (dust_nel(i)==1) epure(el)=.true.
             enddo
           endif  
         enddo
@@ -286,13 +291,15 @@
         do i=1,NEPS
           el = elnr(i)
           if (.not.eact(el)) cycle
+          sort = eps(el)
+          if (epure(el).and.ecount(el)==1) sort=0.0
           do j=NEPS+1,2,-1
-            if (eps(el)>rsort(j-1)) exit
+            if (sort>rsort(j-1)) exit
           enddo  
           isort(j+1:NEPS) = isort(j:NEPS-1)
           rsort(j+1:NEPS) = rsort(j:NEPS-1)
           isort(j) = el
-          rsort(j) = eps(el)
+          rsort(j) = sort
           Nact = Nact+1
         enddo
         do j=1,Nact
@@ -353,6 +360,7 @@
         ddust(imin) = 0.Q0
         print*,"switching off "//trim(dust_nam(imin))//" ..."
       enddo  
+      if (OK.ne.0) goto 200
       !--- 5. correct non-involved and dependent element abundances ---
       do el=1,NELEM
         if (.not.eact(el)) then
@@ -398,6 +406,7 @@
       !print*,"worst element conservation "//elnam(elworst),errmax
       if (errmax>1.Q-20) OK=-3
 
+ 200  continue
       if (OK==-1) then
         print*,"*** negative dust abundances in database.f"
       else if (OK==-2) then

@@ -31,7 +31,7 @@
       time = 0.d0
       dt   = dt_init
       call INITIAL_CONDITIONS(nout,time,dt)
-      call OUTPUT(nout,time,dt)
+      if (nout==0) call OUTPUT(nout,time,dt)
       if (immediateEnd) goto 100
       next = nout
 

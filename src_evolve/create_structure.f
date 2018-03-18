@@ -13,8 +13,9 @@
       implicit none
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       integer :: i,it,iz
-      real :: pwork,pp,nH,Tg,gg,Hplay,pconv,grad,ngas,lmean,Dmicro
-      real :: sumn,sumnm,mu,Kn,vth,vz,TATMOS,Mpl,zz,dz,gmean
+      real :: pp,nH,Tg,gg,Hplay,pconv,grad,ngas,lmean,Dmicro
+      real :: sumn,sumnm,mu,Kn,vth,vz,TATMOS,Mpl,zz,dz
+      real :: g1,g2,p2,Twork,pwork,dlnp,err
       real(kind=qp) :: eps(NELEM),xH2O,xCO2,xN2
       integer,dimension(1000) :: flag_conv,Z
       logical :: conv
@@ -39,6 +40,7 @@
       eps0= eps_solar
       eps = eps_solar
       pp  = 2.0*pmax*bar
+      Tg  = TATMOS(pp)
       mu  = 2.3*amu
       zz  = 0.d0
       gg  = 10.d0**logg
@@ -50,7 +52,6 @@
      >!     "iz","z[km]","p[bar]","T[K]","mu[amu]","rho[g/cm3]"
 
       do iz=5000,1,-1
-        Tg = TATMOS(pp)
         nH = mu*pp/(bk*Tg)/muH
         !--- iterate chemistry for given pressure ---
         do it=1,99
@@ -75,9 +76,9 @@
         write(*,'(".",$)') 
         !print'(I4,2(1pE12.3),2(0pF10.4),1pE12.3)',
      >  !     iz,zz/km,pp/bar,Tg,mu/amu,sumnm
-        glay(iz) = gg
         zlay(iz) = zz
         Rlay(iz) = Rplanet+zz
+        glay(iz) = grav*Mpl/Rlay(iz)**2
         zlay(iz) = zz
         Tlay(iz) = Tg
         play(iz) = pp
@@ -86,18 +87,31 @@
         Nlayers = 5001-iz
         if (pp<pmin*bar) exit      
         
-        gg = grav*Mpl/Rlay(iz)**2
-        gmean = 0.5*(gg+glay(iz))
-        Hp = bk*Tg/(gmean*mu) 
+        Hp = bk*Tg/(glay(iz)*mu) 
         if (iz==1) then
           print'("  planet mass =",0pF10.2," Mearth")',Mpl/Mearth
           print'(" scale height =",0pF10.2," km")',Hp/km
         endif  
         dz = Hp/50.0
         zz = zz+dz
-        pp = EXP(LOG(pp)-dz/Hp)
-        Tg = TATMOS(pp)
-        nH = mu*pwork/(bk*Tg)
+        g1 = glay(iz)
+        g2 = grav*Mpl/(Rlay(iz)+dz)**2
+        p2 = pp
+        Twork = Tg
+        !----- solve hydrostatic equilibrium with trapezian rule -----
+        !----- neglecting the change of mu between z and z+dz:   -----
+        !----- d(lnp) = -0.5*mu/k*[g(r)/T(r)+g(r+dz)/T(r+dz)]*dz -----
+        do it=1,99
+          dlnp  = -0.5*mu/bk*(g1/Tg+g2/Twork)*dz 
+          pwork = EXP(LOG(pp)+dlnp)
+          Twork = TATMOS(pwork)
+          err = ABS(pwork/p2-1.0)
+          !print*,it,pwork,err
+          if (err<1.E-10) exit
+          p2 = pwork
+        enddo
+        pp = pwork
+        Tg = Twork
       enddo
       print*
       print'(I4," layers created. pmin/bar =",1pE11.4," pmax/bar =",
