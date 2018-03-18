@@ -5,6 +5,7 @@
 ! ***  atmosphere.  The result is the crust solid composition and the  ***
 ! ***  element abundances in the gas above the crust.                  ***
 !-------------------------------------------------------------------------
+      use PARAMETERS,ONLY: verbose
       use GRID,ONLY: zz
       use STRUCT,ONLY: Temp,nHtot,nHeps,crust_depth,crust_beta,
      >                 crust_Neps,crust_Ncond,crust_gaseps
@@ -19,9 +20,9 @@
       real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST)
       real(kind=qp) :: sum_beta,Natmos,Ncrust,NtotH,crust_Vol
       character(len=500) :: line
-      integer :: i,j,el,verb,verbose=2
+      integer :: i,j,el,verb
 
-      if (verbose>1) then
+      if (verbose>=0) then
         print*
         print*,"entering UPDATE_CRUST ..."
         print*,"========================="
@@ -57,7 +58,7 @@
         enddo
       enddo  
       crust_depth = crust_Vol             ! thickness of crust
-      if (verbose>1) then
+      if (verbose>0) then
         print*,"crust depth[cm] = ",crust_depth
       endif  
 
@@ -73,12 +74,14 @@
       crust_beta = crust_beta/sum_beta
       nHeps(:,0) = nH*crust_gaseps(:)
 
-      print*
-      print*,"active condensates ..."      
-      print*,trim(line)
-      print*
-      print'(3x,4(A15))',"eps0","eps","Ngas[cm-2]","Ncrust[cm-2]"
+      if (verbose>0) then
+        print*
+        print*,"active condensates ..."      
+        print*,trim(line)
+        print*
+      endif  
       if (verbose>1) then
+        print'(3x,4(A15))',"eps0","eps","Ngas[cm-2]","Ncrust[cm-2]"
         do i=1,NELM
           if (i==iel) cycle
           el = elnum(i)

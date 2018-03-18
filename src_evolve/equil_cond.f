@@ -228,7 +228,7 @@
       !--------------------------------------------
       ! ***  load initial state from database?  ***
       !--------------------------------------------
-      call GET_DATA(nHtot,T,epsread,ddustread,qread,iread,act_read,0)
+      call GET_DATA(nHtot,T,epsread,ddustread,qread,iread,act_read,1)
       Nact = 0
       verbose = 0
       if (qread.lt.0.5.and.useDatabase) then

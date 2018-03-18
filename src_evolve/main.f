@@ -2,7 +2,7 @@
       program DiffuEvo
 
       use PARAMETERS,ONLY: struc_file,tsim,dt_init,dt_increase,
-     >                     dt_max,verbose,immediateEnd
+     >                     dt_max,immediateEnd
       use GRID,ONLY: dt_diff_ex
       use EXCHANGE,ONLY: chemcall,chemiter,ieqcond,ieqconditer,
      >                   itransform
@@ -10,6 +10,7 @@
       implicit none
       real*8  :: time,dt
       integer :: it,nout,next
+      logical :: reduced
 
       call INIT_NATURE
       call READ_PARAMETER
@@ -34,10 +35,10 @@
       if (immediateEnd) goto 100
       next = nout
 
-      do it=1,999999
+      do it=1,300
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
-        call DIFFUSION(time,dt,verbose)
+        call DIFFUSION(time,dt,reduced)
         time = time+dt
         call WARM_UP(time)
         call UPDATE_CRUST
@@ -45,7 +46,7 @@
         if (nout>next) then
           call OUTPUT(nout,time,dt)
           next = nout
-          dt = MIN(dt_max,dt*dt_increase)
+          if (.not.reduced) dt = MIN(dt_max,dt*dt_increase)
         endif  
         if (time>tsim) exit
       enddo  

@@ -9,13 +9,13 @@
       use ELEMENTS,ONLY: NELEM,elnr,elcode,elnam,eps0,eps_solar,mass,muH
       use CHEMISTRY,ONLY: NELM,NMOLE,elnum,cmol,catm,el,charge,molmass
       use DUST_DATA,ONLY: NDUST
-      use EXCHANGE,ONLY: nel,nat,nion,nmol,chi,inactive,N,O
+      use EXCHANGE,ONLY: nel,nat,nion,nmol,chi,inactive,N,O,C
       implicit none
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       integer :: i,it,iz
       real :: pwork,pp,nH,Tg,gg,Hplay,pconv,grad,ngas,lmean,Dmicro
-      real :: sumn,sumnm,mu,Kn,vth,vz,TATMOS,Mpl,zz,dz
-      real(kind=qp) :: eps(NELEM)
+      real :: sumn,sumnm,mu,Kn,vth,vz,TATMOS,Mpl,zz,dz,gmean
+      real(kind=qp) :: eps(NELEM),xH2O,xCO2,xN2
       integer,dimension(1000) :: flag_conv,Z
       logical :: conv
       character :: CR = CHAR(13)
@@ -31,8 +31,11 @@
       print*,"====================================================="
 
       !--- solve hydrostatic equilibrium ---
-      eps_solar(N) = 80.0
-      eps_solar(O) = 20.0
+      xCO2 = 96.5
+      xN2 = 3.5
+      eps_solar(N) = 2*xN2
+      eps_solar(O) = 2*xCO2
+      eps_solar(C) = 1*xCO2
       eps0= eps_solar
       eps = eps_solar
       pp  = 2.0*pmax*bar
@@ -40,9 +43,11 @@
       zz  = 0.d0
       gg  = 10.d0**logg
       Mpl = gg*Rplanet**2/grav
-      muH = 28*amu
+      !muH = 28*amu
+      muH = 2.3*amu
       !print*,gg,Rplanet,Mpl/MEarth
-      !print'(A4,A12,A12,A10)',"iz","z[km]","p[bar]","T[K]"
+      !print'(A4,A12,A12,A10,A10,A12)',
+     >!     "iz","z[km]","p[bar]","T[K]","mu[amu]","rho[g/cm3]"
 
       do iz=5000,1,-1
         Tg = TATMOS(pp)
@@ -68,7 +73,8 @@
           if (ABS(pp/pwork-1.d0)<1.E-8) exit
         enddo  
         write(*,'(".",$)') 
-        !print'(I4,2(1pE12.3),0pF10.2)',iz,zz/km,pp/bar,Tg
+        !print'(I4,2(1pE12.3),2(0pF10.4),1pE12.3)',
+     >  !     iz,zz/km,pp/bar,Tg,mu/amu,sumnm
         glay(iz) = gg
         zlay(iz) = zz
         Rlay(iz) = Rplanet+zz
@@ -81,7 +87,8 @@
         if (pp<pmin*bar) exit      
         
         gg = grav*Mpl/Rlay(iz)**2
-        Hp = bk*Tg/(gg*mu) 
+        gmean = 0.5*(gg+glay(iz))
+        Hp = bk*Tg/(gmean*mu) 
         if (iz==1) then
           print'("  planet mass =",0pF10.2," Mearth")',Mpl/Mearth
           print'(" scale height =",0pF10.2," km")',Hp/km

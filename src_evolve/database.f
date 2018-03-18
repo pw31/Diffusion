@@ -158,9 +158,9 @@
       integer,intent(in) :: verbose
       real*8 :: ln,lT,seps,lnread,lTread,sepsread,qgood,qual,pot
       real*8 :: rsort(NEPS)
-      real(kind=qp) :: check(NELEM),error,errmax,neweps
+      real(kind=qp) :: check(NELEM),error,errmax,neweps,dmin
       real(kind=qp) :: stoich(NEPS,NEPS),xx(NEPS),rest(NEPS)
-      integer :: i,j,k,it,el,elworst,Ncond,Nact,sp,iloop
+      integer :: i,j,k,it,el,elworst,Ncond,Nact,sp,iloop,imin
       integer :: isort(NEPS),dact(NDUST),OK
       character(len=1) :: char
       logical :: found,eact(NELEM)
@@ -332,20 +332,26 @@
         call GAUSS16( NEPS, Ncond, stoich, xx, rest)
         !-------------------------------------------
         OK = 0
+        imin = 0
+        dmin = 9.e+99
         do i=1,Ncond
           sp = dact(i)
           if (verbose>0) print'(A15,1pE16.8," ->",1pE16.8)',
      >                       dust_nam(sp),ddust(sp),xx(i)
-          ddust(sp) = xx(i)
           if (xx(i)<0.Q0) then
             OK = -1
-            active(sp) = .false.    
-            ddust(sp) = 0.Q0
-            print*,"switching off "//trim(dust_nam(sp))//" ..."
-            exit
+            if (ddust(sp)<dmin) then
+              dmin = ddust(sp)
+              imin = sp
+            endif  
+          else
+            ddust(sp) = xx(i)  
           endif  
         enddo
         if (OK==0) exit
+        active(imin) = .false.    
+        ddust(imin) = 0.Q0
+        print*,"switching off "//trim(dust_nam(imin))//" ..."
       enddo  
       !--- 5. correct non-involved and dependent element abundances ---
       do el=1,NELEM
@@ -404,6 +410,6 @@
         active(j) = .false.
         qbest = 9.d+99
       endif  
-      if (verbose>0) read(*,'(A1)') char
+      if (verbose>1) read(*,'(A1)') char
           
       end

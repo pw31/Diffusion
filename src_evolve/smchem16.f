@@ -733,9 +733,9 @@
               fs = fs + coeff(l)*l**2*pat**(l-1)
             enddo
             delta = f/fs
-            pat = pat-delta
             if (verbose>1) print'(A2,1pE25.15,1pE10.2)',
      >                            catm(e),pat,delta/pat
+            pat = pat-delta
             if (ABS(delta)<finish*ABS(pat)) exit 
           enddo  
           if (piter>=99) then
@@ -851,7 +851,7 @@
  1000 continue
       open(unit=12,file='fatal.case')
       do i=1,nel
-        write(12,'(A2,1x,0pF30.26)') catm(i),12+log10(eps(i))
+        write(12,'(A2,1x,0pF35.26)') catm(i),12+log10(eps(i))
       enddo  
       write(12,*) anhges,Tg
       close(12)

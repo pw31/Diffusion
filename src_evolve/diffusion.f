@@ -1,7 +1,7 @@
 ************************************************************************
-      subroutine DIFFUSION(time,deltat,verbose)
+      subroutine DIFFUSION(time,deltat,reduced)
 ************************************************************************
-      use PARAMETERS,ONLY: implicit,Rplanet,logg
+      use PARAMETERS,ONLY: implicit,Rplanet,logg,verbose
       use GRID,ONLY: zz,xlower,xupper,dt_diff_ex,Npoints
       use STRUCT,ONLY: Temp,Diff,nHtot,nHeps,
      >                 crust_Neps,crust_Ncond,crust_gaseps
@@ -15,7 +15,7 @@
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real*8,intent(in) :: time
       real*8,intent(inout) :: deltat
-      integer,intent(in) :: verbose
+      logical,intent(out) :: reduced
       real(kind=qp) :: eps(NELEM),Sat(NDUST)
       real*8 :: nH,Tg,flux,fmin,dz,bsum,Ncol,rsort(NELEM),ztop,vesc
       real*8 :: gravity
@@ -73,11 +73,13 @@
       enddo
       limiting(:) = .true.
       limiting(isort+1-Ncrust:isort) = .false.
-      do i=1,isort
-        el = esort(i) 
-        print'(A3,2(L2),2(1pE10.3))',elnam(el),in_crust(el),
-     >                         limiting(i),rsort(i),eps(el) 
-      enddo
+      if (verbose>0) then
+        do i=1,isort
+          el = esort(i) 
+          print'(A3,2(L2),2(1pE10.3))',elnam(el),in_crust(el),
+     >                           limiting(i),rsort(i),eps(el) 
+        enddo
+      endif  
 
       !--------------------------------------------------------------------------
       ! ***  call GGchem on top of atmosphere to get molecular particle dens. ***
@@ -133,33 +135,33 @@
       close(75)
 
       if (implicit.and.deltat>30*dt_diff_ex) then
-        if (verbose>0) then
+        if (verbose>=0) then
           print*
           print*,"entering IMPLICIT DIFFUSION ..."
           print*,"==============================="
         endif  
         call DIFFUSION_IMPLICIT(time,deltat,isort,ipass,esort,
-     >                          in_crust,limiting,verbose)
+     >                          in_crust,limiting,reduced)
       else
-        if (verbose>1) then
+        if (verbose>=0) then
           print*
           print*,"entering EXPLICIT DIFFUSION ..."
           print*,"==============================="
         endif  
         call DIFFUSION_EXPLICIT(time,deltat,isort,ipass,esort,
-     >                          in_crust,limiting,verbose)
+     >                          in_crust,limiting,reduced)
       endif
       end
 
 
 ************************************************************************
       subroutine DIFFUSION_EXPLICIT(time0,deltat,isort,ipass,esort,
-     >                              in_crust,limiting,verbose)
+     >                              in_crust,limiting,reduced)
 ************************************************************************
       use NATURE,ONLY: pi
       use GRID,ONLY: N=>Npoints,zz,zweight,d1l,d1m,d1r,d2l,d2m,d2r,
      >               dt_diff_ex,xlower,xupper
-      use PARAMETERS,ONLY: bc_low,bc_high,
+      use PARAMETERS,ONLY: bc_low,bc_high,verbose,dt_increase,
      >                     outflux,inrate,outrate,vin,vout
       use STRUCT,ONLY: Diff,nHtot,nHeps,
      >                 crust_Neps,crust_Ncond,crust_gaseps
@@ -169,17 +171,20 @@
       implicit none
       real*8,intent(in) :: time0
       real*8,intent(inout) :: deltat
-      logical,intent(in) :: in_crust(NELEM),limiting(NELEM)
-      integer,intent(in) :: isort,ipass,esort(NELEM),verbose
+      logical,intent(in)  :: in_crust(NELEM),limiting(NELEM)
+      integer,intent(in)  :: isort,ipass,esort(NELEM)
+      logical,intent(out) :: reduced
       integer :: i,it,e,el,round
       real*8,dimension(-2:N) :: xx,xold,rate
-      real*8 :: influx(NELEM)
+      real*8 :: influx(NELEM),Natmos
       real*8 :: D,nD,d1,d2,d1nD,time,dt,dz,dNcol,xl,xm,xr
       real*8 :: nHold(NELEM,-2:N),crust_Nold(NELEM)
       character :: CR = CHAR(13)
       character(len=1) :: char1
       logical :: IS_NAN,exhausted,toomuch
 
+      exhausted = .false.
+      reduced = .false.
       time = 0.d0
 
       do it=1,9999999
@@ -202,10 +207,11 @@
             nHeps(el,-1) = nHeps(el,1)/nHtot(1)*nHtot(-1)
           endif
         enddo  
-        
         nHold(:,:) = nHeps(:,:)
         crust_Nold(:) = crust_Neps(:)
+
  100    continue
+        if (verbose>0) print*,"dt=",dt
         round = 1
         influx(:) = 0.d0
         toomuch = .false.
@@ -308,7 +314,6 @@
 
         enddo  
 
-        exhausted = .false.
         do e=1,isort
           el = esort(e)
           !----------------------------------------
@@ -320,24 +325,31 @@
             crust_Neps(el) = crust_Neps(el) - influx(el)*dt
             if (crust_Neps(el)<0.Q0) then
               exhausted = .true. 
+              reduced = .true.
               print*,elnam(el),"*** negative crust column density"
+              Natmos = nHeps(el,0)*zweight(0)
+              print*,"column densities:",Natmos,REAL(crust_Neps(el))
+              if (ABS(crust_Neps(el))>0.5*Natmos) then
+                print*,"*** too large timestep" 
+                toomuch = .true. 
+              endif  
             endif  
           endif  
-
         enddo  
 
         if (toomuch) then
-          dt = dt/2.0
+          dt = dt/dt_increase
           nHeps(:,:) = nHold(:,:) 
           crust_Neps(:) = crust_Nold(:)
-!          if (verbose>0) read'(A1)',char1
+          reduced = .true.
+          if (verbose>0) read'(A1)',char1
           goto 100
         endif  
 
         time = time + dt
         if (verbose>0) write(*,'(TL10," DIFFUSION:",I8,A,$)') it,CR
         if (time.ge.deltat) exit
-        if (exhausted) exit
+        if (exhausted.or.reduced) exit
 
       enddo  
 
@@ -350,11 +362,11 @@
 
 ************************************************************************
       subroutine DIFFUSION_IMPLICIT(time0,deltat,isort,ipass,esort,
-     >                              in_crust,limiting,verbose)
+     >                              in_crust,limiting,reduced)
 ************************************************************************
       use GRID,ONLY: N=>Npoints,zz,zweight,d1l,d1m,d1r,d2l,d2m,d2r,
      >               dd1l,dd1m,dd1r,dt_diff_im,xlower,xupper
-      use PARAMETERS,ONLY: bc_low,bc_high,
+      use PARAMETERS,ONLY: bc_low,bc_high,verbose,
      >                     outflux,inrate,outrate,vin,vout
       use STRUCT,ONLY: Diff,nHtot,nHeps,crust_Neps,crust_Ncond
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
@@ -364,7 +376,8 @@
       real*8,intent(IN) :: time0
       real*8,intent(INOUT) :: deltat
       logical,intent(in) :: limiting(NELEM),in_crust(NELEM)
-      integer,intent(in) :: isort,ipass,esort(NELEM),verbose
+      integer,intent(in) :: isort,ipass,esort(NELEM)
+      logical,intent(out) :: reduced
       integer :: i,j,it,e,el,Nstep,round
       real*8,dimension(0:N) :: xx,xnew,rest
       real*8,dimension(N+1,N+1) :: BB_1,BB_2,BB
@@ -374,6 +387,9 @@
       character :: CR = CHAR(13)
       character(len=1) :: char1
       logical :: exhausted,toomuch
+
+      exhausted = .false.
+      reduced = .false.
 
       Nstep = 20
       time  = 0.d0
@@ -488,7 +504,6 @@
           endif
         enddo     
 
-        exhausted = .false.
         do e=1,NELM
           if (e==iel) cycle
           el = elnum(e)
@@ -500,6 +515,7 @@
             crust_Neps(el) = crust_Neps(el) - influx(el)*dt
             if (crust_Neps(el)<0.Q0) then
               exhausted = .true. 
+              reduced = .true.
               print*,elnam(el)," *** negative crust column density"
               Natmos = nHeps(el,0)*zweight(0)
               print*,"column densities:",Natmos,REAL(crust_Neps(el))
@@ -513,6 +529,7 @@
 
         if (toomuch) then
           dt = dt/2.0
+          reduced = .true.
           nHeps(:,:) = nHold(:,:) 
           crust_Neps(:) = crust_Nold(:)
           call INIT_DIFFUSION(N,1,dt,BB_1)
@@ -523,7 +540,7 @@
 
         time = time + dt
         if (verbose>0) write(*,'(TL10," DIFFUSION:",I8,A,$)') it,CR
-        if (exhausted) exit
+        if (exhausted.or.reduced) exit
 
       enddo
 
@@ -537,6 +554,7 @@
 ************************************************************************
       SUBROUTINE INFLUXES(influx,isort,ipass,esort,limiting) 
 ************************************************************************
+      use PARAMETERS,ONLY: verbose
       use STRUCT,ONLY: crust_Neps,crust_Ncond
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
       use ELEMENTS,ONLY: NELEM,elnam
@@ -570,19 +588,21 @@
         do s=1,NDUST
           if (crust_Ncond(s)<=0.Q0) cycle
           jj = jj+1
-          if (e==i1) print*,jj,dust_nam(s)
+          if (e==i1.and.verbose>1) print*,jj,dust_nam(s)
           Neq2 = jj
           do i=1,dust_nel(s)
             el2 = dust_el(s,i)
             if (el==el2) AA(ii,jj) = dust_nu(s,i)
           enddo
         enddo
-        print*,ii,elnam(el)
+        if (verbose>1) print*,ii,elnam(el)
       enddo  
-      print*,Neq1,Neq2
-      do i=1,Neq1
-        print'(99(I3))',int(AA(i,1:Neq2))
-      enddo  
+      if (verbose>1) then
+        print*,Neq1,Neq2
+        do i=1,Neq1
+          print'(99(I3))',int(AA(i,1:Neq2))
+        enddo  
+      endif  
       if (Neq1.ne.Neq2) stop "Neq1<>Neq2 in diffusion."
 
       !--------------------------------
@@ -613,12 +633,14 @@
             endif  
           enddo
         enddo
-        if (limiting(e)) then
-          qual = ABS(influx(el)/check(el)-1.d0) 
-          print'(A3,"  influx=",1pE12.4,"  check=",1pE9.2)',
-     >                 elnam(el),influx(el),qual
-        else
-          print'(A3,"  influx=",1pE12.4)',elnam(el),influx(el)
+        if (verbose>0) then
+          if (limiting(e)) then
+            qual = ABS(influx(el)/check(el)-1.d0) 
+            print'(A3,"  influx=",1pE12.4,"  check=",1pE9.2)',
+     >                   elnam(el),influx(el),qual
+          else
+           print'(A3,"  influx=",1pE12.4)',elnam(el),influx(el)
+          endif  
         endif  
       enddo  
 
