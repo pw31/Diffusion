@@ -16,10 +16,11 @@
       use EXCHANGE,ONLY: inactive,nmol,chi,H,S,Fe,He
       implicit none
       integer,parameter  :: qp = selected_real_kind ( 33, 4931 )
-      real*8  :: Tg,nH,p,dz,PRESSURE
-      real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST)
+      real*8  :: Tg,nH,p,dz,PRESSURE,NtotH,Natmos,Ncrust
+      real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST),ddust(NDUST)
       real(kind=qp) :: sum_beta,fac
       integer :: i,j,el,it,verbose=0
+      logical :: active(0:NDUST)
 
       if (.not.allocated(nmol)) then
         allocate(nmol(NMOLE),chi(NDUST),inactive(NMOLE))
@@ -32,6 +33,7 @@
         eps0 = eps_meteor
       else if (crust_kind==3) then 
         eps0 = eps_crust
+        eps0(H) = 1.E-3*eps0(H)
       else if (crust_kind==4) then 
         !Tg = 500.d0
         eps0(:) = 1.E-99
@@ -48,19 +50,17 @@
         print'(" iter=",I2," press=",2(1pE15.8)," eps0(H)=",1pE10.3)',
      >       it,p,press(0),eps0(H)
         fac = press(0)/p
-        fac = MIN(3.0,MAX(0.3,fac))
+        fac = MIN(1.4,MAX(0.7,fac))
         eps0 = eps0*fac
         if (ABS(1.d0-fac).lt.1.E-8) exit
       enddo  
 
       crust_gaseps = 0.Q0                      ! element abund. over crust
-      print*
-      print'(3x,2(A15))',"eps0","eps"
       do i=1,NELM
         if (i==iel) cycle
         el = elnum(i) 
         crust_gaseps(el) = eps(el) 
-        print'(A3,2(1pE15.7))',elnam(el),eps0(el),eps(el)
+        !print'(A3,2(1pE15.7))',elnam(el),eps0(el),eps(el)
       enddo 
 
       crust_beta(:) = 0.Q0                     ! crust volume composition
@@ -83,6 +83,27 @@
           crust_Neps(el) = crust_Neps(el) + dust_nu(i,j)*crust_Ncond(i)
         enddo
       enddo  
+
+      print*
+      print'(3x,2(A15))',"eps0","eps"
+      dz = 0.5*(zz(1)-zz(0))
+      eps0 = 0.Q0
+      NtotH = nH*dz         
+      do i=1,NELM
+        if (i==iel) cycle
+        el = elnum(i)
+        Natmos = nH*eps(el)*dz
+        Ncrust = crust_Neps(el)
+        eps0(el) = (Natmos+Ncrust)/NtotH
+        print'(A3,2(1pE15.7))',elnam(el),eps0(el),eps(el)
+      enddo  
+      active = .false.
+      do i=1,NDUST
+        if (crust_Ncond(i)==0.Q0) cycle
+        active(i) = .true. 
+        ddust(i) = crust_Ncond(i)/(nH*dz)
+      enddo  
+      call PUT_DATA(nH,Tg,eps,ddust,1.0,0,active)
 
       print*
       print*," INIT_CRUST with crust_kind =",crust_kind

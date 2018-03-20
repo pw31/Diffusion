@@ -158,7 +158,7 @@
       integer,intent(in) :: verbose
       real*8 :: ln,lT,seps,lnread,lTread,sepsread,qgood,qual,pot
       real*8 :: rsort(NEPS),sort
-      real(kind=qp) :: check(NELEM),error,errmax,neweps,dmin
+      real(kind=qp) :: check(NELEM),error,errmax,neweps,dd,dmin
       real(kind=qp) :: stoich(NEPS,NEPS),xx(NEPS),rest(NEPS)
       integer :: i,j,k,it,el,elworst,Ncond,Nact,sp,iloop,imin
       integer :: isort(NEPS),dact(NDUST),OK,ecount(NELEM)
@@ -343,19 +343,28 @@
         dmin = 9.e+99
         do i=1,Ncond
           sp = dact(i)
-          if (verbose>0) print'(A15,1pE16.8," ->",1pE16.8)',
-     >                       dust_nam(sp),ddust(sp),xx(i)
+          dd = 0.0
+          do k=1,dust_nel(sp)
+            el = dust_el(sp,k)
+            dd = MAX(dd,dust_nu(sp,k)*ddust(sp)/eps0(el))
+          enddo  
+          if (verbose>0) print'(A15,1pE9.2,1pE16.8," ->",1pE16.8)',
+     >                       dust_nam(sp),dd,ddust(sp),xx(i)
           if (xx(i)<0.Q0) then
             OK = -1
-            if (ddust(sp)<dmin) then
-              dmin = ddust(sp)
+            if (dd<dmin) then
+              dmin = dd 
               imin = sp
             endif  
-          else
-            ddust(sp) = xx(i)  
           endif  
         enddo
-        if (OK==0) exit
+        if (OK==0) then
+          do i=1,Ncond
+            sp = dact(i)
+            ddust(sp) = xx(i)  
+          enddo  
+          exit
+        endif
         active(imin) = .false.    
         ddust(imin) = 0.Q0
         print*,"switching off "//trim(dust_nam(imin))//" ..."
