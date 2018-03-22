@@ -6,8 +6,8 @@ F90LINKER    = ifort
 # for IFORT-Compiler
 #===================
 DEFS      = -D IFORT -D CHECK_NAN -diag-disable 8290,8291 
-FFLAGS   = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -fopenmp
-#FFLAGS    = -r8 -g -traceback -O3 -xHOST -prec-div -fp-model source -fopenmp
+#FFLAGS   = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -fopenmp
+FFLAGS    = -r8 -g -traceback -O3 -xHOST -prec-div -fp-model source -fopenmp
 INCLUDES  = 
 LFLAGS    = $(FFLAGS)
 
@@ -41,6 +41,7 @@ OBJECTS  = datamod.o \
            smchem8.o \
            smchem16.o \
 	   equil_cond.o \
+           escape.o \
 	   pressure.o \
 	   output.o \
 	   database.o \

@@ -16,9 +16,9 @@
       real :: pp,nH,Tg,gg,Hplay,pconv,grad,ngas,lmean,Dmicro
       real :: sumn,sumnm,mu,Kn,vth,vz,TATMOS,Mpl,zz,dz
       real :: g1,g2,p2,Twork,pwork,dlnp,err
-      real(kind=qp) :: eps(NELEM),xH2O,xCO2,xN2
+      real(kind=qp) :: eps(NELEM),xH2O,xCO2,xN2,xO2
       integer,dimension(1000) :: flag_conv,Z
-      logical :: conv
+      logical :: conv,info
       character :: CR = CHAR(13)
 
       if (.not.allocated(nmol)) then
@@ -32,11 +32,18 @@
       print*,"====================================================="
 
       !--- solve hydrostatic equilibrium ---
-      xCO2 = 96.5
-      xN2 = 3.5
+      !xCO2 = 96.5  !Venus
+      !xN2  = 3.5
+      !xO2  = 0.0
+      !xH20 = 0.0
+      !-----------
+      xN2  = 79.0  !Earth
+      xO2  = 20.0
+      xCO2 = 0.04
+      xH2O = 1.0
       eps_solar(N) = 2*xN2
-      eps_solar(O) = 2*xCO2
-      eps_solar(C) = 1*xCO2
+      eps_solar(O) = 2*xCO2 +2*xO2 +1*xH2O
+      eps_solar(C) = 1*xCO2 
       eps0= eps_solar
       eps = eps_solar
       pp  = 2.0*pmax*bar
@@ -45,8 +52,8 @@
       zz  = 0.d0
       gg  = 10.d0**logg
       Mpl = gg*Rplanet**2/grav
-      !muH = 28*amu
-      muH = 2.3*amu
+      muH = 2.3*amu                      ! initial estimate
+      info= .true.
       !print*,gg,Rplanet,Mpl/MEarth
       !print'(A4,A12,A12,A10,A10,A12)',
      >!     "iz","z[km]","p[bar]","T[K]","mu[amu]","rho[g/cm3]"
@@ -73,9 +80,9 @@
           nH    = nH*pp/pwork
           if (ABS(pp/pwork-1.d0)<1.E-8) exit
         enddo  
-        write(*,'(".",$)') 
-        !print'(I4,2(1pE12.3),2(0pF10.4),1pE12.3)',
-     >  !     iz,zz/km,pp/bar,Tg,mu/amu,sumnm
+        !write(*,'(".",$)') 
+        print'(I4,2(1pE12.3),2(0pF10.4),1pE12.3)',
+     >       iz,zz/km,pp/bar,Tg,mu/amu,sumnm
         zlay(iz) = zz
         Rlay(iz) = Rplanet+zz
         glay(iz) = grav*Mpl/Rlay(iz)**2
@@ -86,19 +93,21 @@
         mulay(iz) = mu/amu
         Nlayers = 5001-iz
         if (pp<pmin*bar) exit      
-        
         Hp = bk*Tg/(glay(iz)*mu) 
-        if (iz==1) then
+        if (pp<pmax*bar.and.info) then
           print'("  planet mass =",0pF10.2," Mearth")',Mpl/Mearth
           print'(" scale height =",0pF10.2," km")',Hp/km
+          info=.false.
         endif  
         dz = Hp/50.0
         zz = zz+dz
-        g1 = glay(iz)
-        g2 = grav*Mpl/(Rlay(iz)+dz)**2
+        !g1 = glay(iz)
+        !g2 = grav*Mpl/(Rlay(iz)+dz)**2
+        g1 = gg
+        g2 = gg
         p2 = pp
         Twork = Tg
-        !----- solve hydrostatic equilibrium with trapezian rule -----
+        !----- solve hydrostatic equilibrium with trapezium rule -----
         !----- neglecting the change of mu between z and z+dz:   -----
         !----- d(lnp) = -0.5*mu/k*[g(r)/T(r)+g(r+dz)/T(r+dz)]*dz -----
         do it=1,99
@@ -195,13 +204,13 @@
       if (firstCall==.true.) then
         p3 = pmax      ! surface 
         p2 = 0.0       ! tropopause - computed below
-        p1 = p3*1.E-5  ! stratopause
+        p1 = p3*2.E-3  ! stratopause
         p0 = pmin      ! exobase
 
         T3 = Tcrust    ! surface
         T2 = 0.7*T3    ! tropopause
-        T1 = 2.0*T3    ! stratopause      
-        T0 = T1-0.1    ! exobase
+        T1 = 1.0*T3    ! stratopause      
+        T0 = 0.5*T1    ! exobase
 
         a1 = LOG(p1/p0)/SQRT(T1-T0)
         a2 = LOG(p3/p1)/(SQRT(T1-T2)+SQRT(T3-T2))

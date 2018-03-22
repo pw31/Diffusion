@@ -243,7 +243,7 @@
           text = trim(text)//" "//trim(dust_nam(i))
         enddo
         Nact = Nact_read
-        !if (qread>1.Q-3.and.Nact>0) verbose=2
+        !if (qread>1.Q-5.and.Nact>0) verbose=2
         !if (qread>1.Q-3.and.iread==207) verbose=2
         if (verbose>0) then
           write(*,'(" ... using database entry (",I6,
@@ -316,10 +316,11 @@
         changed = .false.
         Smax = maxval(Sat0)
         ioff = 0
-        if ((qread<0.5).and.(it<=3).and.(Nact_read>0)) then
+        if ((qread<0.5).and.(it<=4).and.(Nact_read>0)) then
           active = act_read
           Nact = Nact_read
         else if (it>lastit+3) then
+          !print*,"it,lastit=",it,lastit 
           maxon   = 0.Q0 
           minoff  = 0.Q0 
           imaxon  = 0

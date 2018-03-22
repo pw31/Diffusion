@@ -11,7 +11,7 @@
      >                     influx,outflux,inrate,outrate,vin,vout,
      >                     useDatabase,verbose,immediateEnd
       use CHEMISTRY,ONLY: NewBackIt,NewFullIt,NewBackFac,NewFastLevel,
-     >                    dispol_file
+     >                    NewPreMethod,dispol_file
       use GRID,ONLY: Npoints
       implicit none
       integer :: i,iarg,iline,dispol_set
@@ -33,6 +33,7 @@
       NewBackIt  = 5
       NewBackFac = 1.E+2
       NewFastLevel = 0
+      NewPreMethod = 2
       tsim       = 300.0    ! 5 minutes
       dt_init    = 1.E-3    ! 1 milli-sec
       dt_increase= 1.3      ! factor for dt increase
@@ -96,6 +97,8 @@
           read(line,*) NewFullIt
         else if (index(line,"! NewFastLevel")>0) then 
           read(line,*) NewFastLevel
+        else if (index(line,"! NewPreMethod")>0) then 
+          read(line,*) NewPreMethod
         else if (index(line,"! Npoints")>0) then   
           read(line,*) Npoints
         else if (index(line,"! pmin")>0) then   
