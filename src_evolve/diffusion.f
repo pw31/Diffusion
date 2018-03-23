@@ -10,7 +10,7 @@
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
       use EXCHANGE,ONLY: nat,nmol,nel
       use NATURE, ONLY: bk,pi
-      use JEANS_ESCAPE,ONLY: NMOLE,nel_top,nat_top,nmol_top
+      use JEANS_ESCAPE,ONLY: jpern
       implicit none
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real*8,intent(in) :: time
@@ -24,7 +24,6 @@
       logical :: in_crust(NELEM),limiting(NELEM)
       real(kind=qp) :: vmol_top(NMOLE),Jeans(NMOLE)
 
-      if (.not.allocated(nmol_top)) allocate(nmol_top(NMOLE))
       xlower = crust_gaseps
       eps(:) = nHeps(:,0)/nHtot(0)
 
@@ -115,12 +114,13 @@
       use GRID,ONLY: N=>Npoints,zz,zweight,d1l,d1m,d1r,d2l,d2m,d2r,
      >               dt_diff_ex,xlower,xupper
       use PARAMETERS,ONLY: bc_low,bc_high,verbose,dt_increase,
-     >                     outflux,inrate,outrate,vin,vout
+     >                     outflux,inrate,vin
       use STRUCT,ONLY: Diff,nHtot,nHeps,
      >                 crust_Neps,crust_Ncond,crust_gaseps
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
       use ELEMENTS,ONLY: NELEM,elnam
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el
+      use JEANS_ESCAPE, ONLY: jpern
       implicit none
       real*8,intent(in) :: time0
       real*8,intent(inout) :: deltat
@@ -241,9 +241,9 @@
      >            /d1r(N)                     ! constant flux 
           else if (bc_high==3) then 
               
-            outflux = nHtot(N)*xx(N)*outrate*vout  
+            outflux = nHtot(N)*xx(N)*jpern(el)  
             xx(N) = -(d1l(N)*xx(N-2) + d1m(N)*xx(N-1))
-     >           /(d1r(N) + outrate*vout/Diff(N))
+     >           /(d1r(N) + jpern(el)/Diff(N))
           endif   
 
           !------------------------------------------
@@ -320,7 +320,7 @@
       use GRID,ONLY: N=>Npoints,zz,zweight,d1l,d1m,d1r,d2l,d2m,d2r,
      >               dd1l,dd1m,dd1r,dt_diff_im,xlower,xupper
       use PARAMETERS,ONLY: bc_low,bc_high,verbose,
-     >                     outflux,inrate,outrate,vin,vout
+     >                     outflux,inrate,vin
       use STRUCT,ONLY: Diff,nHtot,nHeps,crust_Neps,crust_Ncond
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
       use ELEMENTS,ONLY: NELEM,elnam

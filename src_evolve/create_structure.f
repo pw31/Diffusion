@@ -37,15 +37,15 @@
       !xO2  = 0.0
       !xH20 = 0.0
       !-----------
-      xN2  = 79.0  !Earth
-      xO2  = 20.0
-      xCO2 = 0.04
-      xH2O = 1.0
-      eps_solar(N) = 2*xN2
-      eps_solar(O) = 2*xCO2 +2*xO2 +1*xH2O
-      eps_solar(C) = 1*xCO2 
+      !xN2  = 79.0  !Earth
+      !xO2  = 20.0
+      !xCO2 = 0.04
+      !xH2O = 1.0
+      !eps_solar(N) = 2*xN2
+      !eps_solar(O) = 2*xCO2 +2*xO2 +1*xH2O
+      !eps_solar(C) = 1*xCO2 
       eps0= eps_solar
-      eps = eps_solar
+      eps = eps0
       pp  = 2.0*pmax*bar
       Tg  = TATMOS(pp)
       mu  = 2.3*amu

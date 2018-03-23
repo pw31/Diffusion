@@ -33,7 +33,7 @@
         eps0 = eps_meteor
       else if (crust_kind==3) then 
         eps0 = eps_crust
-        eps0(H) = 1.E-4*eps0(H)
+       ! eps0(H) = 1.E-4*eps0(H)
         eps0 = eps0*4.E+1
       else if (crust_kind==4) then 
         !Tg = 500.d0
