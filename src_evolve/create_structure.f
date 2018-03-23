@@ -212,6 +212,13 @@
         T1 = 1.0*T3    ! stratopause      
         T0 = 0.5*T1    ! exobase
 
+        p3 = 10.0
+        p1 = 5.E-5
+        p0 = pmin
+        T2 = 1210.0
+        T1 = 1280.0
+        T0 = 1050.0
+
         a1 = LOG(p1/p0)/SQRT(T1-T0)
         a2 = LOG(p3/p1)/(SQRT(T1-T2)+SQRT(T3-T2))
         p2 = p1*EXP(a2*SQRT(T1-T2))

@@ -1,91 +1,90 @@
 ************************************************************************
-      subroutine ESCAPE
+      subroutine ESCAPE(verbose)
 ************************************************************************
-      use PARAMETERS,ONLY: implicit,Rplanet,logg,verbose
+      use PARAMETERS,ONLY: implicit,Rplanet,logg
       use GRID,ONLY: zz,Npoints
       use STRUCT,ONLY: Temp,nHtot,nHeps
       use ELEMENTS,ONLY: NELEM,elnam,eps0,mass
-      use CHEMISTRY,ONLY: NMOLE,molmass,elnum,cmol,el,elnum,NELM,
-     >                    m_kind,m_anz
+      use CHEMISTRY,ONLY: NMOLE,molmass,elnum,cmol,elnum,NELM,
+     >                    m_kind,m_anz,iel=>el
       use EXCHANGE, ONLY: nat,nmol,nel
-      use NATURE,ONLY: bk,pi
+      use NATURE,ONLY: bk,pi,grav,km
       use JEANS_ESCAPE, ONLY: jpern
-
       implicit none
-
-      real*8 :: nH,Tg,ztop,vesc,gravity,vth,JJJ
-      integer :: i,j,e
+      integer,intent(in) :: verbose
+      real*8 :: nH,Tg,Mpl,ztop,vesc,gravity,vth,JJJ
+      integer :: i,j,e,el
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real(kind=qp) :: eps(NELEM),flux(NELEM)
-      real(kind=qp) :: vmol_top(NMOLE),Jeans_mol(NMOLE),Jeans_at(NELEM)
-&,vat_top(NELEM)
 
-      !--------------------------------------------------------------------------
-      ! ***  call GGchem on top of atmosphere to get molecular particle dens. ***
-      !--------------------------------------------------------------------------
-      nH  = nHtot(Npoints)               ! density at top of atmosphere
-      Tg  = Temp(Npoints)                ! temperature at top of atmosphere
-      eps = eps0                         ! set element abundances to default
+      !---------------------------------------------------------------------
+      ! ***  call GGchem on top of atmosphere to get particle densities  ***
+      !---------------------------------------------------------------------
+      nH  = nHtot(Npoints)                 ! density at top of atmosphere
+      Tg  = Temp(Npoints)                  ! temperature at top of atmosphere
+      eps = eps0                           ! set element abundances to default
       do i=1,NELEM                    
-        eps(i) = nHeps(i,Npoints)/nH     ! use element abundance at top
+        eps(i) = nHeps(i,Npoints)/nH       ! use element abundance at top
       enddo         
       call GGCHEM(nH,Tg,eps,.false.,0) 
       
-      !--------------------------------------------------------------------------
-      ! ***  Escape velocity of the planet at top of atmosphere. ***
-      !--------------------------------------------------------------------------
+      !-----------------------------------------------
+      ! ***  Escape velocity at top of atmosphere  ***
+      !-----------------------------------------------
+      ztop = zz(Npoints)                   ! height of top of atmosphere [cm]
+      Mpl  = 10.0**logg*Rplanet**2/grav    ! mass of planet [g]
+      vesc = Sqrt(2.0*grav*Mpl/(Rplanet+ztop)) 
+      if (verbose>0) print*,"escape velocity[km/s] =",vesc/km
 
-      ztop = zz(Npoints) !Height of top of atmosphere in meters [cm]
-      vesc = Sqrt((2.0*10**logg*Rplanet**2)/(Rplanet+ztop)) !Escape vel of planet
-
-      !--------------------------------------------------------------------------
-      ! ***  Jeans Escape ***
-      !--------------------------------------------------------------------------
-
-      flux=0.0
-      JJJ = 0.0
-
-      do i=1,NMOLE !Over all molecules
-        vth = Sqrt((2.0*bk*Tg)/molmass(i)) !molecule vel at top of atmos
-        JJJ = ((nmol(i)*vth)/(2.0*Sqrt(pi)))*((vesc/vth)**2+1.0)*
-&Exp(-(vesc/vth)**2)
-        do j=1,m_kind(0,i)
-          e = m_kind(j,i) 
-          el = elnum(e)
+      !-----------------------
+      ! ***  Jeans Escape  ***
+      !-----------------------
+      flux(:) = 0.0                        ! sum_k j_k*stoich_k,el
+      do i=1,NMOLE                         ! loop over molecules
+        vth = SQRT((2.0*bk*Tg)/molmass(i)) ! thermal velocity
+        JJJ = nmol(i)*vth/(2.0*Sqrt(pi))*((vesc/vth)**2+1.0)
+     >        * EXP(-(vesc/vth)**2)        ! Feng+2015, Eq(1)
+        if (verbose>0) print'(A12,3(1pE11.3))',
+     >                 cmol(i),nmol(i),vth/km,JJJ/nmol(i)
+        do j=1,m_kind(0,i)                 ! loop of elements in molecule
+          e = m_kind(j,i)                  ! index in ggchem-list
+          if (e==iel) cycle
+          el = elnum(e)                    ! index of element
           flux(el) = flux(el) + m_anz(j,i)*JJJ 
-          print*,cmol(i),el,m_anz(j,i),JJJ
+          !print*,cmol(i),elnam(el),m_anz(j,i),JJJ
       	enddo
       enddo
-
-      do el=1,NELEM !Over all atoms
-      	vth  = Sqrt((2.0*bk*Tg)/mass(i)) !atom vel at top of atmos
-	JJJ = ((nat(i)*vth)/(2.0*Sqrt(pi)))*((vesc/vth)**2+1.0)*
-&Exp(-(vesc/vth)**2)
-        do j=1,m_kind(0,i)
-          e = m_kind(j,i) 
-          flux(el) = flux(el) + JJJ 
-          print*,cmol(i),el
-      	enddo
+      do e=1,NELM                          ! loop over atoms
+        if (e==iel) cycle                  ! scip if electrons
+        el = elnum(e)
+      	vth = Sqrt((2.0*bk*Tg)/mass(el))   ! thermal velocity
+	JJJ = nat(el)*vth/(2.0*SQRT(pi))*((vesc/vth)**2+1.0)
+     >        * EXP(-(vesc/vth)**2)
+        flux(el) = flux(el) + JJJ 
+        if (verbose>0) print'(A2,3(1pE11.3))',
+     >                 elnam(el),nat(el),vth/km,JJJ/nat(el)
       enddo
 
-      do el=1,NELEM
+      !-------------------------------------------------------------
+      ! ***  compute escaping flux per element particle density  ***
+      !-------------------------------------------------------------
+      do e=1,NELM
+        if (e==iel) cycle                  ! scip if electrons
+        el = elnum(e) 
         jpern(el) = flux(el)/(nH*eps(el))
+        print*,elnam(el)//" jpern=",jpern(el)
       enddo
-
-      print*,"jpern",jpern
-      stop
+      if (verbose>0) stop
 
       !--------------------------------------------------------------------------
       ! ***  Jeans Escape plot ***
       !--------------------------------------------------------------------------
-
       !Writing out Jeans escape per molecule for plotting
       !open(unit=75,file='jeans.dat',status='replace')
       !do i=1,NMOLE
       !	write(75,*) (trim(cmol(i))),Jeans_mol(i),Jeans_at(i)
       !enddo
       !close(75)
-
 
       end subroutine ESCAPE
 

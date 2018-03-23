@@ -1,7 +1,7 @@
 ************************************************************************
       subroutine DIFFUSION(time,deltat,reduced)
 ************************************************************************
-      use PARAMETERS,ONLY: implicit,Rplanet,logg,verbose
+      use PARAMETERS,ONLY: implicit,Rplanet,logg,verbose,bc_high
       use GRID,ONLY: zz,xlower,xupper,dt_diff_ex,Npoints
       use STRUCT,ONLY: Temp,Diff,nHtot,nHeps,
      >                 crust_Neps,crust_Ncond,crust_gaseps
@@ -10,7 +10,6 @@
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
       use EXCHANGE,ONLY: nat,nmol,nel
       use NATURE, ONLY: bk,pi
-      use JEANS_ESCAPE,ONLY: jpern
       implicit none
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real*8,intent(in) :: time
@@ -27,9 +26,9 @@
       xlower = crust_gaseps
       eps(:) = nHeps(:,0)/nHtot(0)
 
-      !------------------------------------------
-      ! ***  identify most abundant elements  ***
-      !------------------------------------------
+      !-------------------------------------------------------------
+      ! ***  identify most abundant elements for inner boundary  ***
+      !-------------------------------------------------------------
       ecount(:) = 99
       do i=1,NDUST
         if (crust_Ncond(i)<=0.Q0) cycle
@@ -80,11 +79,10 @@
         enddo
       endif  
 
-      !------------------------------------------
-      ! ***           Jeans Escape            ***
-      !------------------------------------------
-      call ESCAPE
-
+      !---------------------------------------
+      ! ***  upper boundary: Jeans Escape  ***
+      !---------------------------------------
+      if (bc_high==3) call ESCAPE(1)
 
       if (implicit.and.deltat>30*dt_diff_ex) then
         if (verbose>=0) then
@@ -233,15 +231,14 @@
           endif  
           nD = nHtot(N)*Diff(N)  
           if (bc_high==1) then
-            xx(N) = xupper(el)                ! const concentration
+            xx(N) = xupper(el)                    ! const concentration
             outflux = -nD
      >           *(d1l(N)*xx(N-2) + d1m(N)*xx(N-1) + d1r(N)*xx(N)) 
           else if (bc_high==2) then   
             xx(N) = (-outflux/nD - d1l(N)*xx(N-2) - d1m(N)*xx(N-1))
-     >            /d1r(N)                     ! constant flux 
+     >            /d1r(N)                         ! constant flux 
           else if (bc_high==3) then 
-              
-            outflux = nHtot(N)*xx(N)*jpern(el)  
+            outflux = nHtot(N)*xx(N)*jpern(el)    ! constant escape rate
             xx(N) = -(d1l(N)*xx(N-2) + d1m(N)*xx(N-1))
      >           /(d1r(N) + jpern(el)/Diff(N))
           endif   
