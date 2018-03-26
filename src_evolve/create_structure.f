@@ -14,7 +14,7 @@
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       integer :: i,it,iz
       real :: pp,nH,Tg,gg,Hplay,pconv,grad,ngas,lmean,Dmicro
-      real :: sumn,sumnm,mu,Kn,vth,vz,TATMOS,Mpl,zz,dz
+      real :: sumn,sumnm,mu,Kn,vth,vz,TATMOS,Mpl,zz,dz,Hp0
       real :: g1,g2,p2,Twork,pwork,dlnp,err
       real(kind=qp) :: eps(NELEM),xH2O,xCO2,xN2,xO2
       integer,dimension(1000) :: flag_conv,Z
@@ -80,9 +80,9 @@
           nH    = nH*pp/pwork
           if (ABS(pp/pwork-1.d0)<1.E-8) exit
         enddo  
-        !write(*,'(".",$)') 
-        print'(I4,2(1pE12.3),2(0pF10.4),1pE12.3)',
-     >       iz,zz/km,pp/bar,Tg,mu/amu,sumnm
+        write(*,'(".",$)') 
+        !print'(I4,2(1pE12.3),2(0pF10.4),1pE12.3)',
+     >  !     iz,zz/km,pp/bar,Tg,mu/amu,sumnm
         zlay(iz) = zz
         Rlay(iz) = Rplanet+zz
         glay(iz) = grav*Mpl/Rlay(iz)**2
@@ -95,8 +95,7 @@
         if (pp<pmin*bar) exit      
         Hp = bk*Tg/(glay(iz)*mu) 
         if (pp<pmax*bar.and.info) then
-          print'("  planet mass =",0pF10.2," Mearth")',Mpl/Mearth
-          print'(" scale height =",0pF10.2," km")',Hp/km
+          Hp0 = Hp 
           info=.false.
         endif  
         dz = Hp/50.0
@@ -125,7 +124,9 @@
       print*
       print'(I4," layers created. pmin/bar =",1pE11.4," pmax/bar =",
      >       1pE11.4)',Nlayers,pp/bar,2*pmax
-      print'(4x,"atmosphere extension dR/R =",1pE11.4)',zz/Rplanet
+      print'("    planet mass  =",0pF8.2," Mearth")',Mpl/Mearth
+      print'("    scale height =",0pF8.2," km")',Hp/km
+      print'("    atmosphere extension dR/R =",1pE11.4)',zz/Rplanet
 
 *     -------------------------
 *     ***  shift to bottom  ***

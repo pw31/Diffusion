@@ -1,12 +1,12 @@
 ************************************************************************
-      subroutine INIT_DIFFUSION(N,bc_low,dt,BB)
+      subroutine INIT_DIFFUSION(el,N,bc_low,bc_high,dt,BB)
 ************************************************************************
       use GRID,ONLY: zz,d1l,d1m,d1r,d2l,d2m,d2r,dd1l,dd1m,dd1r
       use STRUCT,ONLY: nHtot,Diff
-      use PARAMETERS,ONLY: bc_high,inrate,outrate,vin,vout
+      use JEANS_ESCAPE, ONLY: jpern
       implicit none
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
-      integer,intent(in) :: N,bc_low
+      integer,intent(in) :: el,N,bc_low,bc_high
       real*8,intent(in) :: dt
       real*8,intent(out) :: BB(N+1,N+1)
       integer :: i,j,k,ipvt(N+1),info
@@ -59,7 +59,7 @@
       else if (bc_high==3) then   
         AA(N+1,N-1) = d1l(N)/d1r(N)
         AA(N+1,N+0) = d1m(N)/d1r(N)
-        AA(N+1,N+1) = 1.d0+outrate*vout/Diff(N)/d1r(N) 
+        AA(N+1,N+1) = 1.d0+jpern(el)/Diff(N)/d1r(N) 
       endif   
 
       !------------------------

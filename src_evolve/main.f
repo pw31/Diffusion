@@ -35,7 +35,7 @@
       if (immediateEnd) goto 100
       next = nout
 
-      do it=1,300
+      do it=1,20
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
         call DIFFUSION(time,dt,reduced)

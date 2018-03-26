@@ -82,7 +82,7 @@
       !---------------------------------------
       ! ***  upper boundary: Jeans Escape  ***
       !---------------------------------------
-      if (bc_high==3) call ESCAPE(1)
+      if (bc_high==3) call ESCAPE(0)
 
       if (implicit.and.deltat>30*dt_diff_ex) then
         if (verbose>=0) then
@@ -112,7 +112,7 @@
       use GRID,ONLY: N=>Npoints,zz,zweight,d1l,d1m,d1r,d2l,d2m,d2r,
      >               dt_diff_ex,xlower,xupper
       use PARAMETERS,ONLY: bc_low,bc_high,verbose,dt_increase,
-     >                     outflux,inrate,vin
+     >                     outflux
       use STRUCT,ONLY: Diff,nHtot,nHeps,
      >                 crust_Neps,crust_Ncond,crust_gaseps
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
@@ -317,7 +317,7 @@
       use GRID,ONLY: N=>Npoints,zz,zweight,d1l,d1m,d1r,d2l,d2m,d2r,
      >               dd1l,dd1m,dd1r,dt_diff_im,xlower,xupper
       use PARAMETERS,ONLY: bc_low,bc_high,verbose,
-     >                     outflux,inrate,vin
+     >                     outflux
       use STRUCT,ONLY: Diff,nHtot,nHeps,crust_Neps,crust_Ncond
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
       use ELEMENTS,ONLY: NELEM,elnam
@@ -330,7 +330,8 @@
       logical,intent(out) :: reduced
       integer :: i,j,it,e,el,Nstep,round
       real*8,dimension(0:N) :: xx,xnew,rest
-      real*8,dimension(N+1,N+1) :: BB_1,BB_2,BB
+      real*8,dimension(N+1,N+1) :: BB
+      real*8,dimension(N+1,N+1,NELEM) :: BBel
       real*8 :: influx(NELEM),dNcol,Natmos
       real*8 :: nHold(NELEM,-2:N),crust_Nold(NELEM)
       real*8 :: nD,time,dt,xl,xm,xr
@@ -344,8 +345,16 @@
       Nstep = 20
       time  = 0.d0
       dt    = deltat/Nstep
-      call INIT_DIFFUSION(N,1,dt,BB_1)  ! for bc_low=1
-      call INIT_DIFFUSION(N,2,dt,BB_2)  ! for bc_low=2
+      do e=1,isort
+        el = esort(e)
+        if (in_crust(el).and.limiting(e)) then   
+          bc_low = 1     ! fixed concentration inner boundary condition
+        else                              
+          bc_low = 2     ! fixed flux inner boundary condition
+        endif
+        call INIT_DIFFUSION(el,N,bc_low,bc_high,dt,BB)  
+        BBel(:,:,el) = BB(:,:)
+      enddo  
       
       do it=1,Nstep
 
@@ -368,6 +377,7 @@
             call INFLUXES(influx,isort,ipass,esort,limiting) 
           endif  
           xx(0:N) = nHeps(el,0:N)/nHtot(0:N) 
+          BB(:,:) = BBel(:,:,el) 
 
           !------------------------------
           ! ***  boundary conditions  ***
@@ -377,11 +387,9 @@
           if (in_crust(el).and.limiting(e)) then   
             rest(0) = xlower(el)                 ! fixed concentration
             bc_low = 1
-            BB = BB_1
-          else                              
+          else               
             bc_low = 2
             rest(0) = -influx(el)/nD/dd1l(0)     ! fixed flux
-            BB = BB_2
           endif
           nD = nHtot(N)*Diff(N)  
           if (bc_high==1) then
@@ -482,9 +490,17 @@
           reduced = .true.
           nHeps(:,:) = nHold(:,:) 
           crust_Neps(:) = crust_Nold(:)
-          call INIT_DIFFUSION(N,1,dt,BB_1)
-          call INIT_DIFFUSION(N,2,dt,BB_2)
-!          if (verbose>0) read'(A1)',char1
+          do e=1,isort
+            el = esort(e)
+            if (in_crust(el).and.limiting(e)) then   
+              bc_low = 1
+            else                              
+              bc_low = 2
+            endif
+            call INIT_DIFFUSION(el,N,bc_low,bc_high,dt,BB)  
+            BBel(:,:,el) = BB(:,:)
+          enddo  
+          if (verbose>0) read'(A1)',char1
           goto 100
         endif  
 
@@ -497,7 +513,6 @@
       deltat = time    ! return actually advanced timestep
       if (verbose>0) print'(" IMPLICIT DIFFUSION:",I8,"  time=",
      >               1pE11.4,"  Dt=",1pE11.4)',it,time0,time
-
       end
 
 

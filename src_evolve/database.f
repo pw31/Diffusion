@@ -346,7 +346,7 @@
           dd = 0.0
           do k=1,dust_nel(sp)
             el = dust_el(sp,k)
-            dd = MAX(dd,dust_nu(sp,k)*ddust(sp)/eps0(el))
+            dd = MAX(dd,dust_nu(sp,k)*ddust(sp)/(eps0(el)-eps(el)))
           enddo  
           if (verbose>0) print'(A15,1pE9.2,1pE16.8," ->",1pE16.8)',
      >                       dust_nam(sp),dd,ddust(sp),xx(i)
