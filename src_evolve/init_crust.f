@@ -19,7 +19,7 @@
       real*8  :: Tg,nH,p,dz,PRESSURE,NtotH,Natmos,Ncrust
       real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST),ddust(NDUST)
       real(kind=qp) :: sum_beta,fac
-      integer :: i,j,el,it,verbose=0
+      integer :: i,j,el,it,Nsolve,indep(NELM),verbose=0
       logical :: active(0:NDUST)
 
       if (.not.allocated(nmol)) then
@@ -44,7 +44,7 @@
       endif  
       inactive = .false.
       do it=1,99
-        call EQUIL_COND(nH,Tg,eps,Sat,eldust,verbose)
+        call EQUIL_COND(nH,Tg,eps,Sat,eldust,verbose,Nsolve,indep)
         p = PRESSURE(Tg)
         print'(" iter=",I2," press=",2(1pE15.8)," eps0(H)=",1pE10.3)',
      >       it,p,press(0),eps0(H)
@@ -102,7 +102,7 @@
         active(i) = .true. 
         ddust(i) = crust_Ncond(i)/(nH*dz)
       enddo  
-      call PUT_DATA(nH,Tg,eps,ddust,1.0,0,active)
+      call PUT_DATA(nH,Tg,eps,ddust,1.0,0,active,Nsolve,indep)
 
       print*
       print*," INIT_CRUST with crust_kind =",crust_kind

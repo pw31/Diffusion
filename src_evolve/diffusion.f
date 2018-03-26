@@ -8,7 +8,7 @@
       use ELEMENTS,ONLY: NELEM,elnam,eps0
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el,molmass,NMOLE,cmol
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
-      use EXCHANGE,ONLY: nat,nmol,nel
+      use EXCHANGE,ONLY: nat,nmol,nel,Fe,O
       use NATURE, ONLY: bk,pi
       implicit none
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
@@ -16,25 +16,40 @@
       real*8,intent(inout) :: deltat
       logical,intent(out) :: reduced
       real(kind=qp) :: eps(NELEM),Sat(NDUST)
-      real*8 :: nH,Tg,flux,fmin,dz,bsum,Ncol,rsort(NELEM),ztop,vesc
-      real*8 :: gravity
-      integer :: i,j,e,el,emin,ecount(NELEM),esort(NELEM)
-      integer :: isort,ipass,Ncrust  
+      real*8 :: nH,Tg,flux,fmin,dz,bsum,Ncol,rsort(NELEM),sort
+      real*8 :: ztop,vesc,gravity,rtmp
+      integer :: i,j,e,el,emin,esort(NELEM)
+      integer :: epure(NELEM),ecount(NELEM),epos(NELEM)
+      integer :: isort,ipass,Ncrust,i1,i2,e1,e2,itmp  
       logical :: in_crust(NELEM),limiting(NELEM)
-      real(kind=qp) :: vmol_top(NMOLE),Jeans(NMOLE)
+      logical :: act(NDUST),elim(NELEM)
+      logical,save :: firstCall=.true.
+      integer,save :: iFe_l=0,iFeO_l=0
 
+      if (firstCall) then
+        do i=1,NDUST
+          if (dust_nam(i).eq.'Fe[l]')      iFe_l=i 
+          if (dust_nam(i).eq.'FeO[l]')     iFeO_l=i 
+        enddo
+      endif
+  
       xlower = crust_gaseps
       eps(:) = nHeps(:,0)/nHtot(0)
 
       !-------------------------------------------------------------
       ! ***  identify most abundant elements for inner boundary  ***
       !-------------------------------------------------------------
-      ecount(:) = 99
+      epure(:)  = 0
+      ecount(:) = 0
+      act(:) = .false.
       do i=1,NDUST
         if (crust_Ncond(i)<=0.Q0) cycle
-        if (dust_nel(i)<1) cycle
-        el = dust_el(i,1)
-        ecount(el) = 1     ! keep the pure atomic species
+        act(i) = .true.
+        if (dust_nel(i)==1) epure(dust_el(i,1))=1
+        do j=1,dust_nel(i)
+          el = dust_el(i,j)
+          ecount(el) = ecount(el)+1
+        enddo  
       enddo
       esort(:) = 0
       rsort(:) = 0.d0
@@ -56,26 +71,50 @@
         endif
         Ncrust = Ncrust+1
         i = ipass+1
+        sort = eps(el)
+        if (epure(el)==1) sort=1.E-99   ! keep the pure atomic species
         do i=ipass+1,isort-1
-          if (eps(el)<rsort(i)) exit
-          if (ecount(el)==1) exit
+          if (sort<rsort(i)) exit
         enddo   
         esort(i+1:isort) = esort(i:isort-1)
         rsort(i+1:isort) = rsort(i:isort-1)
         esort(i) = el
-        rsort(i) = eps(el)
-        if (ecount(el)==1) rsort(i)=1.E-99
-      enddo  
+        rsort(i) = sort
+      enddo 
       do i=1,NDUST
         if (crust_Ncond(i)>0.Q0) Ncrust=Ncrust-1
       enddo
       limiting(:) = .true.
       limiting(isort+1-Ncrust:isort) = .false.
+      elim(:) = .true.
+      do i=1,isort
+        el = esort(i) 
+        epos(el) = i
+        if (i>=isort+1-Ncrust) elim(el)=.false.
+      enddo
+      !-----  correction special cases ...  ------
+      if (act(iFe_l).and.act(iFeO_l).and.ecount(Fe)==2.and.
+     >    (.not.elim(O))) then
+        !--- O cannot be non-limiting element---
+        i1 = epos(O)
+        i2 = isort-Ncrust 
+        e1 = esort(i1)
+        e2 = esort(i2)
+        print*,"swapping "//elnam(e1)//" with "//elnam(e2)
+        itmp = esort(i1)
+        rtmp = rsort(i1)
+        esort(i1) = esort(i2)
+        rsort(i1) = rsort(i2)
+        esort(i2) = itmp
+        rsort(i2) = rtmp
+        elim(e1)  = .true.
+        elim(e2)  = .false.        
+      endif   
       if (verbose>0) then
         do i=1,isort
           el = esort(i) 
-          print'(A3,2(L2),2(1pE10.3))',elnam(el),in_crust(el),
-     >                           limiting(i),rsort(i),eps(el) 
+          print'(A3,2(L2),2(I3),1pE10.3)',elnam(el),in_crust(el),
+     >                    elim(el),epure(el),ecount(el),rsort(i)
         enddo
       endif  
 
@@ -306,7 +345,6 @@
       deltat = time    ! return actually advanced timestep
       if (verbose>0) print'(" EXPLICIT DIFFUSION:",I8,"  time=",
      >               1pE11.4,"  Dt=",1pE11.4)',it,time0,time
-
       end
 
 

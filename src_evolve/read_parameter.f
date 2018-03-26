@@ -13,6 +13,8 @@
       use CHEMISTRY,ONLY: NewBackIt,NewFullIt,NewBackFac,NewFastLevel,
      >                    NewPreMethod,dispol_file
       use GRID,ONLY: Npoints
+      use STRUCT,ONLY: T0fit,T1fit,T2fit,T3fit,p1fit,p3fit
+      use JEANS_ESCAPE,ONLY: Ttop
       implicit none
       integer :: i,iarg,iline,dispol_set
       character(len=200) :: ParamFile,line
@@ -34,30 +36,35 @@
       NewBackFac = 1.E+2
       NewFastLevel = 0
       NewPreMethod = 2
-      tsim       = 300.0    ! 5 minutes
-      dt_init    = 1.E-3    ! 1 milli-sec
-      dt_increase= 1.3      ! factor for dt increase
-      dt_max     = 9.E+99   ! unlimited timestep
-      heatrate   = 0.0      ! heating rate [K/yr]
-      pmin       = 1.d-8*bar
-      pmax       = 100.d0*bar
+      tsim       = 300.0      ! 5 minutes
+      dt_init    = 1.E-3      ! 1 milli-sec
+      dt_increase= 1.3        ! factor for dt increase
+      dt_max     = 9.E+99     ! unlimited timestep
+      heatrate   = 0.0        ! heating rate [K/yr]
+      pmin       = 1.d-8*bar  ! upper pressure of model
+      pmax       = 100.d0*bar ! lower pressure of model
       beta       = 1.5
       Npoints    = 100
       pconst     = 0.1*bar    ! 100 mbar
       vzconst    = 10.0       ! 10 cm/s
-      Hp         = 1.0
       Tcrust     = 1000.0     ! surface temperature [K]
       Rplanet    = 6371.0*km  ! planet radius [cm]
       logg       = 9.81*100.0 ! surface gravity [cm/s2]
+      T3fit      = 2990.0     ! T(p)-fit lower T[K]
+      T2fit      = 1210.0     ! T(p)-fit tropopause T[K]
+      T1fit      = 1280.0     ! T(p)-fit stratopause T[K]
+      T0fit      = 1050.0     ! T(p)-fit upper T[K]
+      p3fit      = 10.0       ! T(p)-fit lower p[bar]
+      p1fit      = 5.E-5      ! T(p)-fit stratopause p[bar]
       bc_low     = 1          ! fixed conc.
-      bc_high    = 1          ! fixed conc.
+      bc_high    = 2          ! fixed flux
+      Ttop       = 10000.0
       influx     = 0.0      
       outflux    = 0.0
       inrate     = 0.0
       outrate    = 0.0
       vin        = 1.0
       vout       = 1.0
-      logg       = 5.0
       implicit   = .true.
       gas_kind = 1             ! 0=empty, 1=solar, 2=meteor, 3=EarthCrust
       crust_kind = 1           ! 1=solar, 2=meteor, 3=EarthCrust
@@ -110,14 +117,26 @@
         else if (index(line,"! pconst")>0) then   
           read(line,*) pconst
           pconst = pconst*bar
+        else if (index(line,"! T0fit")>0) then   
+          read(line,*) T0fit
+        else if (index(line,"! T1fit")>0) then   
+          read(line,*) T1fit
+        else if (index(line,"! T2fit")>0) then   
+          read(line,*) T2fit
+        else if (index(line,"! T3fit")>0) then   
+          read(line,*) T3fit
+        else if (index(line,"! p1fit")>0) then   
+          read(line,*) p1fit
+        else if (index(line,"! p3fit")>0) then   
+          read(line,*) p3fit
         else if (index(line,"! beta")>0) then   
           read(line,*) beta
-        else if (index(line,"! Hp")>0) then   
-          read(line,*) Hp
         else if (index(line,"! bc_low")>0) then   
           read(line,*) bc_low
         else if (index(line,"! bc_high")>0) then   
           read(line,*) bc_high
+        else if (index(line,"! Ttop")>0) then   
+          read(line,*) Ttop
         else if (index(line,"! gas_kind")>0) then   
           read(line,*) gas_kind
         else if (index(line,"! crust_kind")>0) then   

@@ -95,7 +95,6 @@ widt = [2]*Ncolor*10
 #================== barplot crust column densities ====================
 fig,ax = plt.subplots()
 plt.subplots_adjust(bottom=0.25)
-objects = ('Python', 'C++', 'Java', 'Perl', 'Scala', 'Lisp')
 xpos = np.arange(Ncond)
 print crust_dname
 print crust_Ncond
@@ -163,17 +162,20 @@ plt.clf()
 fig,ax = plt.subplots()
 count = 0
 ymax = -100.0
+ymin = 0.0
 for i in range(5+NELEM+NMOLE+NDUST,5+NELEM+NMOLE+NDUST+NELEM,1):
   elm = keyword[i]
   element = elm[3:]
   yy = dat[:,i]               # log10 eps
   ymax=np.max([ymax,np.max(yy)])            
+  ymin=np.min([ymin,np.min(yy)])            
   plt.plot(lp,yy,c=colo[count],ls=styl[count],lw=widt[count],label=element)
   count = count+1
+ymin = np.max([ymin,ymax-10])
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=16)
 plt.ylabel(r'$\log\,\epsilon_{\rm gas}$',fontsize=16)
 plt.xlim(pmin,pmax)
-plt.ylim(ymax-20,ymax+0.3)
+plt.ylim(ymin-0.3,ymax+0.3)
 plt.tick_params(axis='both', labelsize=13)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')

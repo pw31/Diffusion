@@ -107,7 +107,7 @@ while (nnn<=last):
   ax[0].set_xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
   ax[0].set_ylabel(r'$\log\,\epsilon_{\rm gas}$',fontsize=20)
   ax[0].set_xlim(pmin,pmax)
-  ax[0].set_ylim(-20,0.3)
+  ax[0].set_ylim(-17.5,2.5)
   ax[0].tick_params(axis='both', labelsize=15)
   ax[0].tick_params('both', length=6, width=1.5, which='major')
   ax[0].tick_params('both', length=3, width=1, which='minor')

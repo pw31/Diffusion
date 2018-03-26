@@ -146,6 +146,7 @@
       use ELEMENTS,ONLY: NELEM
       use DUST_DATA,ONLY: NDUSTmax
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
+      real :: T0fit,T1fit,T2fit,T3fit,p1fit,p3fit
       real,allocatable :: Diff(:)     ! diffusion coefficient [cm2/s]
       real,allocatable :: rho(:)      ! mass density [g/cm3]
       real,allocatable :: nHtot(:)    ! total H nuclei density [1/cm3]
@@ -193,5 +194,5 @@
       module JEANS_ESCAPE
 ************************************************************************
       use ELEMENTS,ONLY: NELEM
-      real*8 :: jpern(NELEM)
+      real*8 :: Ttop,jpern(NELEM)
       end

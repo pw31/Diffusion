@@ -20,7 +20,7 @@
       real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST)
       real(kind=qp) :: sum_beta,Natmos,Ncrust,NtotH,crust_Vol
       character(len=500) :: line
-      integer :: i,j,el,verb
+      integer :: i,j,el,Nsolve,indep(NELM),verb
 
       if (verbose>=0) then
         print*
@@ -42,7 +42,7 @@
         if (verbose>1) print'(A4,2(1pE16.8))',elnam(el),eps0(el)
       enddo  
       inactive = .false.
-      call EQUIL_COND(nH,Tg,eps,Sat,eldust,verb)
+      call EQUIL_COND(nH,Tg,eps,Sat,eldust,verb,Nsolve,indep)
 
       crust_gaseps(:) = eps(:)            ! element abund. over crust
       crust_Ncond(:) = 0.Q0               ! crust material column densities

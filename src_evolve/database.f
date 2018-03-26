@@ -13,6 +13,8 @@
         real*8 :: sumeps
         real(kind=qp) :: eps(NELEM)
         real(kind=qp) :: ddust(NDUSTmax)
+        integer :: Nsolve
+        integer :: indep(NELEM)
       END TYPE ENTRY
       TYPE(ENTRY) :: dbase(DMAX)
       end MODULE DATABASE
@@ -36,6 +38,8 @@
           write(11) dbase(i)%sumeps
           write(11) dbase(i)%eps
           write(11) dbase(i)%ddust(1:NDUST)
+          write(11) dbase(i)%Nsolve
+          write(11) dbase(i)%indep(1:dbase(i)%Nsolve)
         enddo 
         close(11)
       else if (NDAT>NLAST) then 
@@ -46,6 +50,8 @@
           write(11) dbase(i)%sumeps
           write(11) dbase(i)%eps
           write(11) dbase(i)%ddust(1:NDUST)
+          write(11) dbase(i)%Nsolve
+          write(11) dbase(i)%indep(1:dbase(i)%Nsolve)
         enddo 
         close(11)
       endif  
@@ -82,6 +88,8 @@
         read(11) dbase(i)%sumeps
         read(11) dbase(i)%eps
         read(11) dbase(i)%ddust(1:NDUST)
+        read(11) dbase(i)%Nsolve
+        read(11) dbase(i)%indep(1:dbase(i)%Nsolve)
         NDAT = NDAT+1
       enddo 
  100  close(11)
@@ -93,14 +101,15 @@
       end
 
 **********************************************************************
-      SUBROUTINE PUT_DATA(nH,T,eps,ddust,qbest,ibest,active)
+      SUBROUTINE PUT_DATA(nH,T,eps,ddust,qbest,ibest,active,
+     >                    Nsolve,indep)
 **********************************************************************
       use ELEMENTS,ONLY: NELEM,eps0
       use DUST_DATA,ONLY: NDUST
       use DATABASE,ONLY: qp,NDAT,NLAST,NMODI,DMAX,dbase
       implicit none
       real*8,intent(in) :: nH,T,qbest
-      integer,intent(in) :: ibest
+      integer,intent(in) :: ibest,Nsolve,indep(Nsolve)
       real(kind=qp),intent(in) :: eps(NELEM),ddust(NDUST)
       real*8 :: sumeps
       logical,intent(in) :: active(0:NDUST)
@@ -134,6 +143,8 @@
         dbase(i)%ddust(j) = ddust(j)
         if (.not.active(j)) dbase(i)%ddust(j)=0.Q0
       enddo
+      dbase(i)%Nsolve = Nsolve
+      dbase(i)%indep(1:Nsolve) = indep(1:Nsolve)
       NMODI = i
       if (NDAT>NLAST+10) then
         call SAVE_DBASE
@@ -162,8 +173,10 @@
       real(kind=qp) :: stoich(NEPS,NEPS),xx(NEPS),rest(NEPS)
       integer :: i,j,k,it,el,elworst,Ncond,Nact,sp,iloop,imin
       integer :: isort(NEPS),dact(NDUST),OK,ecount(NELEM)
+      integer :: Nsolve,indep(NELEM)
       character(len=1) :: char
-      logical :: found,eact(NELEM),epure(NELEM)
+      logical :: found,eact(NELEM),epure(NELEM),eflag(NELEM)
+      logical :: nan,IS_NAN
       logical,save :: firstCall=.true.
       
       if (firstCall) then
@@ -243,6 +256,8 @@
       NPICK1 = ibest
       eps    = dbase(ibest)%eps
       ddust  = dbase(ibest)%ddust(1:NDUST)
+      Nsolve = dbase(ibest)%Nsolve
+      indep(1:Nsolve) = dbase(ibest)%indep(1:Nsolve)
       
       do iloop=1,5
         !--- 1. determine active condensates and involved elements ---
@@ -315,6 +330,30 @@
           print'("number of active condensates and elements =",2(I3))',
      >       Ncond,Nact
         endif  
+        !--- take sorting from database if possible ---
+        if (verbose>0) then
+          print*,Nsolve,Ncond
+          print*,elnam(isort(1:Ncond))
+          print*,elnam(indep(1:Nsolve))
+        endif  
+        if (Nsolve==Ncond) then
+          isort(1:Nsolve) = indep(1:Nsolve)
+          eflag(:) = .true.
+          eflag(isort(1:Nsolve)) = .false.
+          j=Nsolve
+          do i=1,NELM
+            if (i==iel) cycle
+            el = elnum(i)
+            if (.not.eact(el)) cycle
+            if (eflag(el)) then
+              j = j + 1 
+              isort(j) = el
+              if (verbose>0) then
+                print*,j,elnam(el)//" non-limiting element"
+              endif  
+            endif
+          enddo
+        endif  
         !--- 4. find fitting linear combination of solids ---
         stoich = 0.Q0
         rest = 0.Q0
@@ -350,6 +389,10 @@
           enddo  
           if (verbose>0) print'(A15,1pE9.2,1pE16.8," ->",1pE16.8)',
      >                       dust_nam(sp),dd,ddust(sp),xx(i)
+          if (IS_NAN(DBLE(xx(i)))) then
+            OK = -4
+            exit
+          endif  
           if (xx(i)<0.Q0) then
             OK = -1
             if (dd<dmin) then
@@ -365,10 +408,11 @@
           enddo  
           exit
         endif
+        if (OK==-4) exit
         active(imin) = .false.    
         ddust(imin) = 0.Q0
         print*,"switching off "//trim(dust_nam(imin))//" ..."
-      enddo  
+      enddo 
       if (OK.ne.0) goto 200
       !--- 5. correct non-involved and dependent element abundances ---
       do el=1,NELEM
@@ -422,6 +466,8 @@
         print*,"*** negative element abundances in database.f"
       else if (OK==-3) then
         print*,"*** element conservation error in database.f"
+      else if (OK==-4) then
+        print*,"*** NaN in database.f"
       endif
       if (OK<0) then
         ddust(j) = 0.Q0

@@ -195,6 +195,7 @@
 ***********************************************************************
       use NATURE,ONLY: bar
       use PARAMETERS,ONLY: pmin,pmax,Tcrust  ! [bar],[bar],[K]
+      use STRUCT,ONLY: T0fit,T1fit,T2fit,T3fit,p1fit,p3fit
       implicit none
       real*8,intent(IN) :: pdyn              ! p[dyn/cm2]
       real*8 :: p,dp,Tsum
@@ -213,12 +214,13 @@
         T1 = 1.0*T3    ! stratopause      
         T0 = 0.5*T1    ! exobase
 
-        p3 = 10.0
-        p1 = 5.E-5
+        p3 = p3fit
+        p1 = p1fit
         p0 = pmin
-        T2 = 1210.0
-        T1 = 1280.0
-        T0 = 1050.0
+        T3 = T3fit
+        T2 = T2fit
+        T1 = T1fit
+        T0 = T0fit
 
         a1 = LOG(p1/p0)/SQRT(T1-T0)
         a2 = LOG(p3/p1)/(SQRT(T1-T2)+SQRT(T3-T2))

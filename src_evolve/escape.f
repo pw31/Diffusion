@@ -9,7 +9,7 @@
      >                    m_kind,m_anz,iel=>el
       use EXCHANGE, ONLY: nat,nmol,nel
       use NATURE,ONLY: bk,pi,grav,km,yr
-      use JEANS_ESCAPE, ONLY: jpern
+      use JEANS_ESCAPE,ONLY: Ttop,jpern
       implicit none
       integer,intent(in) :: verbose
       real*8 :: nH,Tg,Mpl,ztop,vesc,gravity,vth,JJJ,Natmos
@@ -21,7 +21,7 @@
       ! ***  call GGchem on top of atmosphere to get particle densities  ***
       !---------------------------------------------------------------------
       nH  = nHtot(Npoints)                 ! density at top of atmosphere
-      Tg  = 10000.0  !Temp(Npoints)        ! temperature at top of atmosphere
+      Tg  = Ttop     !Temp(Npoints)        ! temperature at top of atmosphere
       eps = eps0                           ! set element abundances to default
       do i=1,NELEM                    
         eps(i) = nHeps(i,Npoints)/nH       ! use element abundance at top

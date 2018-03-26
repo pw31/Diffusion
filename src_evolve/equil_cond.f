@@ -8,7 +8,7 @@
       end
 
 !-------------------------------------------------------------------------
-      SUBROUTINE EQUIL_COND(nHtot,T,eps,Sat,ddust,verb)
+      SUBROUTINE EQUIL_COND(nHtot,T,eps,Sat,ddust,verb,Nsolve,indep)
 !-------------------------------------------------------------------------
 ! ***  computes the gas element abundances eps, the saturation ratios  ***
 ! ***  Sat and the dust number densities ddust after equilibrium       ***
@@ -32,6 +32,7 @@
       real(kind=qp),intent(out) :: eps(NELEM)   ! gas element abundances
       real(kind=qp),intent(out) :: Sat(NDUST)   ! saturation ratio
       real(kind=qp),intent(out) :: ddust(NDUST) ! density of solid units/nHtot
+      integer,intent(out) :: Nsolve,indep(NELM)
       integer,intent(inout) :: verb
       real(kind=qp),dimension(NELEM) :: eps00,epsread,check,FF,Fsav,dx
       real(kind=qp),dimension(NELEM) :: eps_save,vec,xstep,Iabund,work
@@ -55,7 +56,7 @@
       integer :: verbose,imaxon,iminoff,info,ipvt(NELEM)
       integer :: e_num(NELEM),e_num_save(NELEM)
       integer :: Nunsolved,unsolved(NELEM),Nvar1,Nvar2,var(NELEM)
-      integer :: Nsolve,ebest,dbest,nonzero,itrivial,iread,ioff
+      integer :: ebest,dbest,nonzero,itrivial,iread,ioff
       integer :: ifail,Nall,imax,swap,irow,erow,Eact,Nlin
       integer :: act_to_elem(NELEM),act_to_dust(NELEM)
       integer :: Nzero,Ntrivial,etrivial(NELEM),dtrivial(NELEM)
@@ -1216,7 +1217,8 @@
             el = Dindex(j)
             eps(el) = eps(el) + del
           endif  
-        enddo  
+        enddo 
+        indep(1:Nsolve) = Iindex(act_to_elem(1:Nsolve))
 
         !-------------------------------------
         ! ***  check element conservation  ***
@@ -1265,7 +1267,8 @@
       !----------------------------------
       if (qual<1.Q-10.and.useDatabase) then
         qread = MAX(qread,1.E-6)   ! new or replace 
-        call PUT_DATA(nHtot,T,eps,ddust,qread,iread,active)
+        call PUT_DATA(nHtot,T,eps,ddust,qread,iread,active,
+     >                Nsolve,indep(1:Nsolve))
       endif  
       ieqcond = ieqcond + 1
       ieqconditer = ieqconditer + it
