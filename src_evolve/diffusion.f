@@ -22,7 +22,7 @@
       integer :: i,j,e,el,emin,esort(NELEM)
       integer :: epure(NELEM),ecount(NELEM),epos(NELEM)
       integer :: isort,ipass,Ncond,Ndep,i1,i2,e1,e2,itmp  
-      logical :: in_crust(NELEM),limiting(NELEM)
+      logical :: reduced1,reduced2,in_crust(NELEM),limiting(NELEM)
       logical :: act(NDUST),elim(NELEM),eflag(NELEM)
       logical,save :: firstCall=.true.
       integer,save :: iFe_l=0,iFeO_l=0
@@ -147,9 +147,8 @@
       !---------------------------------------
       ! ***  upper boundary: Jeans Escape  ***
       !---------------------------------------
-      reduced = .false.
       if (bc_high==3) then
-        call ESCAPE(deltat,reduced,0)
+        call ESCAPE(deltat,reduced1,0)
       endif  
 
       if (implicit.and.deltat>30*dt_diff_ex) then
@@ -159,7 +158,7 @@
           print*,"==============================="
         endif  
         call DIFFUSION_IMPLICIT(time,deltat,isort,ipass,esort,
-     >                          in_crust,limiting,reduced)
+     >                          in_crust,limiting,reduced2)
       else
         if (verbose>=0) then
           print*
@@ -167,8 +166,10 @@
           print*,"==============================="
         endif  
         call DIFFUSION_EXPLICIT(time,deltat,isort,ipass,esort,
-     >                          in_crust,limiting,reduced)
+     >                          in_crust,limiting,reduced2)
       endif
+      reduced = (reduced1.or.reduced2)
+
       end
 
 
@@ -192,7 +193,7 @@
       real*8,intent(inout) :: deltat
       logical,intent(in)  :: in_crust(NELEM),limiting(NELEM)
       integer,intent(in)  :: isort,ipass,esort(NELEM)
-      logical,intent(inout) :: reduced
+      logical,intent(out) :: reduced
       integer :: i,it,e,el,round
       real*8,dimension(-2:N) :: xx,xold,rate
       real*8 :: influx(NELEM),Natmos
@@ -202,6 +203,7 @@
       character(len=1) :: char1
       logical :: IS_NAN,exhausted,toomuch
 
+      reduced = .false.
       exhausted = .false.
       time = 0.d0
 
@@ -397,7 +399,7 @@
       real*8,intent(INOUT) :: deltat
       logical,intent(in) :: limiting(NELEM),in_crust(NELEM)
       integer,intent(in) :: isort,ipass,esort(NELEM)
-      logical,intent(inout) :: reduced
+      logical,intent(out) :: reduced
       integer :: i,j,it,e,el,Nstep,round
       real*8,dimension(0:N) :: xx,xnew,rest
       real*8,dimension(N+1,N+1) :: BB
@@ -409,6 +411,7 @@
       character(len=1) :: char1
       logical :: exhausted,toomuch
 
+      reduced = .false.
       exhausted = .false.
 
       Nstep = 20

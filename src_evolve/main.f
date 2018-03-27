@@ -47,11 +47,10 @@
         if (nout>next) then
           call OUTPUT(nout,time,dt)
           next = nout
-          if (.not.reduced) dt = MIN(dt_max,dt*dt_increase)
+          if (time>tsim) exit
         endif  
-        if (time>tsim) exit
+        if (.not.reduced) dt = MIN(dt_max,dt*dt_increase)
       enddo  
-      call OUTPUT(nout,time,dt)
 
       print*
       print'("         smchem calls = ",I8)',chemcall

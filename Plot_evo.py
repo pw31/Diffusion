@@ -53,7 +53,7 @@ NPOINT = len(dat[0:])
 time = np.float(titel.split()[1])
 day = 3600.*24.
 yr  = 365.25*day
-out = "t ={:10.5f} days".format(time/day)
+out = "t ={:10.5f} yrs".format(time/yr)
 print out
 
 bar   = 1.E+6                    # 1 bar in dyn/cm2 
@@ -172,6 +172,7 @@ for i in range(5+NELEM+NMOLE+NDUST,5+NELEM+NMOLE+NDUST+NELEM,1):
   plt.plot(lp,yy,c=colo[count],ls=styl[count],lw=widt[count],label=element)
   count = count+1
 ymin = np.max([ymin,ymax-10])
+ymax = np.max([ymax,0])
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=16)
 plt.ylabel(r'$\log\,\epsilon_{\rm gas}$',fontsize=16)
 plt.xlim(pmin,pmax)

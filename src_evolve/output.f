@@ -168,6 +168,8 @@
       write(70) crust_Neps
       write(70) crust_gaseps
       close(70)
+
+      print*,'... written '//trim(model_name)//'/structure_'//cout//'.dat'
 !      if (verbose>=2) read'(A1)',char1
 
  1000 format(4(' eps(',a2,') = ',1pD8.2))

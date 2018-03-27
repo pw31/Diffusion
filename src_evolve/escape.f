@@ -12,7 +12,7 @@
       use JEANS_ESCAPE,ONLY: Ttop,jpern
       implicit none
       real*8,intent(inout) :: deltat
-      logical,intent(inout) :: reduced
+      logical,intent(out) :: reduced
       integer,intent(in) :: verbose
       real*8 :: nH,Tg,Mpl,ztop,vesc,gravity,vth,JJJ,Natmos,tau
       integer :: i,j,e,el
@@ -62,7 +62,7 @@
         el = elnum(e)                      ! index of element
       	vth = Sqrt((2.0*bk*Tg)/mass(el))   ! thermal velocity
 	JJJ = nat(el)*vth/(2.0*SQRT(pi))*((vesc/vth)**2+1.0)
-     >        * EXP(-(vesc/vth)**2)        ! Feng+2015, Eq(1)
+     >        * EXP(-(vesc/vth)**2)        ! Feng+2015, Eq(1)  [1/cm2/s]
         flux(el) = flux(el) + JJJ 
         if (verbose>0) print'(A2,3(1pE11.3))',
      >                 elnam(el),nat(el),vth/km,JJJ/nat(el)
@@ -88,6 +88,7 @@
       ! ***  timestep control  ***
       !---------------------------
       print'("ESCAPE: dt,tau=",2(1pE11.3))',deltat,tau
+      reduced = .false.
       if (deltat>0.02*tau) then
         deltat = 0.02*tau
         reduced = .true.
