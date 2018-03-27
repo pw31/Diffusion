@@ -12,7 +12,7 @@
       implicit none
       integer,intent(out) :: nout
       real*8,intent(out) :: time,dt
-      integer :: i,el
+      integer :: i,el,Nsolve,indep(NELEM)
       logical :: ex
 
       allocate(nHeps(NELEM,-2:N))
@@ -37,7 +37,7 @@
         print*
         print*,"restart from file:  num,time,dt =",nout,time,dt
         call WARM_UP(time)
-        call UPDATE_CRUST
+        call UPDATE_CRUST(Nsolve,indep)
 
       else  
 

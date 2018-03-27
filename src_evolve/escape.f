@@ -1,5 +1,5 @@
 ************************************************************************
-      subroutine ESCAPE(verbose)
+      subroutine ESCAPE(deltat,reduced,verbose)
 ************************************************************************
       use PARAMETERS,ONLY: implicit,Rplanet,logg
       use GRID,ONLY: zz,Npoints,zweight
@@ -11,8 +11,10 @@
       use NATURE,ONLY: bk,pi,grav,km,yr
       use JEANS_ESCAPE,ONLY: Ttop,jpern
       implicit none
+      real*8,intent(inout) :: deltat
+      logical,intent(inout) :: reduced
       integer,intent(in) :: verbose
-      real*8 :: nH,Tg,Mpl,ztop,vesc,gravity,vth,JJJ,Natmos
+      real*8 :: nH,Tg,Mpl,ztop,vesc,gravity,vth,JJJ,Natmos,tau
       integer :: i,j,e,el
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real(kind=qp) :: eps(NELEM),flux(NELEM)
@@ -21,7 +23,8 @@
       ! ***  call GGchem on top of atmosphere to get particle densities  ***
       !---------------------------------------------------------------------
       nH  = nHtot(Npoints)                 ! density at top of atmosphere
-      Tg  = Ttop     !Temp(Npoints)        ! temperature at top of atmosphere
+      Tg  = Temp(Npoints)                  ! temperature at top of atmosphere
+      Tg  = Ttop                           ! artificially high T 
       eps = eps0                           ! set element abundances to default
       do i=1,NELEM                    
         eps(i) = nHeps(i,Npoints)/nH       ! use element abundance at top
@@ -68,17 +71,28 @@
       !-------------------------------------------------------------
       ! ***  compute escaping flux per element particle density  ***
       !-------------------------------------------------------------
+      tau = 9.E+99
       do e=1,NELM
-        if (e==iel) cycle                  ! skip if electrons
+        if (e==iel) cycle                  
         el = elnum(e) 
-        jpern(el) = flux(el)/(nH*eps(el))
+        jpern(el) = flux(el)/(nH*eps(el))             ! [cm/s]
         Natmos = 0.d0
         do i=0,Npoints
-          Natmos = Natmos + nHeps(el,i)*zweight(i)           ! [1/cm2]
+          Natmos = Natmos + nHeps(el,i)*zweight(i)    ! [1/cm2]
         enddo
+        tau = MIN(tau,Natmos/flux(el))                ! [s]
         print'(A3,"  jpern=",1pE10.3,"  tau[yrs]=",1pE10.3)',
      >       elnam(el),jpern(el),Natmos/flux(el)/yr
       enddo
+      !---------------------------
+      ! ***  timestep control  ***
+      !---------------------------
+      print'("ESCAPE: dt,tau=",2(1pE11.3))',deltat,tau
+      if (deltat>0.05*tau) then
+        deltat = 0.05*tau
+        reduced = .true.
+        print*,"*** ESCAPE: timestep too large"
+      endif  
       if (verbose>0) stop
 
       !----------------------------

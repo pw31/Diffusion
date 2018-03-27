@@ -1,5 +1,5 @@
 !-------------------------------------------------------------------------
-      SUBROUTINE UPDATE_CRUST
+      SUBROUTINE UPDATE_CRUST(Nsolve,indep)
 !-------------------------------------------------------------------------
 ! ***  computes the phase equilibrium of crust + the lowest cell of    ***
 ! ***  atmosphere.  The result is the crust solid composition and the  ***
@@ -15,12 +15,13 @@
      >                    dust_nel,dust_el,dust_nu
       use EXCHANGE,ONLY: inactive,nmol,chi,H
       implicit none
+      integer,intent(out) :: Nsolve,indep(NELEM)
       integer,parameter  :: qp = selected_real_kind ( 33, 4931 )
       real*8  :: Tg,nH,dz
       real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST)
       real(kind=qp) :: sum_beta,Natmos,Ncrust,NtotH,crust_Vol
-      character(len=500) :: line
-      integer :: i,j,el,Nsolve,indep(NELM),verb
+      character(len=500) :: line1,line2
+      integer :: i,j,el,verb
 
       if (verbose>=0) then
         print*
@@ -64,23 +65,28 @@
 
       crust_beta(:) = 0.Q0                ! crust volume composition
       sum_beta = 0.Q0
-      line = ""
+      line1 = ""
+      line2 = ""
       do i=1,NDUST
         if (eldust(i).le.0.Q0) cycle
         crust_beta(i) = eldust(i)*dust_vol(i)
         sum_beta = sum_beta + crust_beta(i)
-        line = trim(line)//" "//trim(dust_nam(i))
+        line1 = trim(line1)//" "//trim(dust_nam(i))
+      enddo
+      do i=1,Nsolve
+        line2 = trim(line2)//" "//trim(elnam(indep(i)))
       enddo  
       crust_beta = crust_beta/sum_beta
       nHeps(:,0) = nH*crust_gaseps(:)
 
-      if (verbose>0) then
+      if (verbose>=0) then
         print*
         print*,"active condensates ..."      
-        print*,trim(line)
+        print*,trim(line1)
+        print*,"limiting elements "//trim(line2)      
         print*
       endif  
-      if (verbose>1) then
+      if (verbose>=0) then
         print'(3x,4(A15))',"eps0","eps","Ngas[cm-2]","Ncrust[cm-2]"
         do i=1,NELM
           if (i==iel) cycle

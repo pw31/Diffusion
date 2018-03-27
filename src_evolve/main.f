@@ -6,10 +6,11 @@
       use GRID,ONLY: dt_diff_ex
       use EXCHANGE,ONLY: chemcall,chemiter,ieqcond,ieqconditer,
      >                   itransform
+      use ELEMENTS,ONLY: NELEM
       use DATABASE,ONLY: NLAST
       implicit none
       real*8  :: time,dt
-      integer :: it,nout,next
+      integer :: it,nout,next,Nsolve,indep(NELEM)
       logical :: reduced
 
       call INIT_NATURE
@@ -25,7 +26,7 @@
       call INIT_ELEMENTS2
       call INIT_GRID
       call INIT_TIMESTEP
-      call INIT_CRUST
+      call INIT_CRUST(Nsolve,indep)
 
       nout = 0
       time = 0.d0
@@ -35,13 +36,13 @@
       if (immediateEnd) goto 100
       next = nout
 
-      do it=1,100
+      do it=1,9999
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
-        call DIFFUSION(time,dt,reduced)
+        call DIFFUSION(time,dt,reduced,Nsolve,indep)
         time = time+dt
         call WARM_UP(time)
-        call UPDATE_CRUST
+        call UPDATE_CRUST(Nsolve,indep)
         nout = nout + 1
         if (nout>next) then
           call OUTPUT(nout,time,dt)

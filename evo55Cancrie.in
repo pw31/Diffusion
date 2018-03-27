@@ -7,10 +7,10 @@ DustChem_ALL.dat           ! dustchem_file
 2        ! crust_kind         (1=solar,2=meteor,3=EarthCrust,4=FeS)
 1.E+4    ! crust_thickness    [cm]
 1.0      ! beta
-1.E+16   ! tsim               (maximum simulation time)
-1.E-1    ! dt_init            (initial time step)
-1.2      ! dt_increase        (factor to increase timestep)
-1.E+99   ! dt_max             (maximum timestep)
+1.E+14   ! tsim               maximum simulation time [s]
+1.E-1    ! dt_init            initial time step [s]
+1.2      ! dt_increase        factor to increase timestep
+1.E+99   ! dt_max             maximum timestep [s]
 .false.  ! immediateEnd
 
 3.33     ! logg
@@ -29,7 +29,7 @@ DustChem_ALL.dat           ! dustchem_file
 1.52     ! pconst
 0.5      ! beta
 3        ! bc_high            (Jeans-escape!)
-10000.0  ! Ttop
+8000.0   ! Ttop
 0.0      ! outflux
 0        ! verbose
 

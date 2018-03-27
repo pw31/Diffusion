@@ -32,7 +32,7 @@
       real(kind=qp),intent(out) :: eps(NELEM)   ! gas element abundances
       real(kind=qp),intent(out) :: Sat(NDUST)   ! saturation ratio
       real(kind=qp),intent(out) :: ddust(NDUST) ! density of solid units/nHtot
-      integer,intent(out) :: Nsolve,indep(NELM)
+      integer,intent(out) :: Nsolve,indep(NELEM)
       integer,intent(inout) :: verb
       real(kind=qp),dimension(NELEM) :: eps00,epsread,check,FF,Fsav,dx
       real(kind=qp),dimension(NELEM) :: eps_save,vec,xstep,Iabund,work
@@ -229,7 +229,7 @@
       !--------------------------------------------
       ! ***  load initial state from database?  ***
       !--------------------------------------------
-      call GET_DATA(nHtot,T,epsread,ddustread,qread,iread,act_read,1)
+      call GET_DATA(nHtot,T,epsread,ddustread,qread,iread,act_read,0)
       Nact = 0
       verbose = 0
       if (qread.lt.0.5.and.useDatabase) then

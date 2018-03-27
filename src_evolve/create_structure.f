@@ -27,9 +27,9 @@
       endif  
 
       print*
-      print'(" create structure  Tcrust =",0pF6.1," K  psurf =",
+      print'(" create structure  Tcrust =",0pF7.1," K  psurf =",
      >       0pF7.3," bar")',Tcrust,pmax
-      print*,"====================================================="
+      print*,"======================================================="
 
       !--- solve hydrostatic equilibrium ---
       !xCO2 = 96.5  !Venus

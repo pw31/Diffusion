@@ -1,5 +1,5 @@
 !-------------------------------------------------------------------------
-      SUBROUTINE INIT_CRUST
+      SUBROUTINE INIT_CRUST(Nsolve,indep)
 !-------------------------------------------------------------------------
 ! ***  sets the "thickness" of the crust, its initial volume           ***
 ! ***  and column densities by considering phase equilibrium of a      ***
@@ -15,11 +15,12 @@
      >                    dust_nel,dust_el,dust_nu
       use EXCHANGE,ONLY: inactive,nmol,chi,H,S,Fe,He
       implicit none
+      integer,intent(out) :: Nsolve,indep(NELEM)
       integer,parameter  :: qp = selected_real_kind ( 33, 4931 )
       real*8  :: Tg,nH,p,dz,PRESSURE,NtotH,Natmos,Ncrust
       real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST),ddust(NDUST)
       real(kind=qp) :: sum_beta,fac
-      integer :: i,j,el,it,Nsolve,indep(NELM),verbose=0
+      integer :: i,j,el,it,verbose=0
       logical :: active(0:NDUST)
 
       if (.not.allocated(nmol)) then
@@ -102,7 +103,7 @@
         active(i) = .true. 
         ddust(i) = crust_Ncond(i)/(nH*dz)
       enddo  
-      call PUT_DATA(nH,Tg,eps,ddust,1.0,0,active,Nsolve,indep)
+      call PUT_DATA(nH,Tg,eps,ddust,1.0,0,active,Nsolve,indep(1:Nsolve))
 
       print*
       print*," INIT_CRUST with crust_kind =",crust_kind

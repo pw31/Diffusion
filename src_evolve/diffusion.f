@@ -1,5 +1,5 @@
 ************************************************************************
-      subroutine DIFFUSION(time,deltat,reduced)
+      subroutine DIFFUSION(time,deltat,reduced,Nsolve,indep)
 ************************************************************************
       use PARAMETERS,ONLY: implicit,Rplanet,logg,verbose,bc_high
       use GRID,ONLY: zz,xlower,xupper,dt_diff_ex,Npoints
@@ -15,14 +15,15 @@
       real*8,intent(in) :: time
       real*8,intent(inout) :: deltat
       logical,intent(out) :: reduced
+      integer,intent(in) :: Nsolve,indep(NELEM)
       real(kind=qp) :: eps(NELEM),Sat(NDUST)
       real*8 :: nH,Tg,flux,fmin,dz,bsum,Ncol,rsort(NELEM),sort
       real*8 :: ztop,vesc,gravity,rtmp
       integer :: i,j,e,el,emin,esort(NELEM)
       integer :: epure(NELEM),ecount(NELEM),epos(NELEM)
-      integer :: isort,ipass,Ncrust,i1,i2,e1,e2,itmp  
+      integer :: isort,ipass,Ncond,Ndep,i1,i2,e1,e2,itmp  
       logical :: in_crust(NELEM),limiting(NELEM)
-      logical :: act(NDUST),elim(NELEM)
+      logical :: act(NDUST),elim(NELEM),eflag(NELEM)
       logical,save :: firstCall=.true.
       integer,save :: iFe_l=0,iFeO_l=0
 
@@ -55,7 +56,7 @@
       rsort(:) = 0.d0
       isort = 0
       ipass = 0
-      Ncrust = 0
+      Ndep  = 0
       do e=1,NELM
         if (e==iel) cycle
         el = elnum(e)
@@ -69,7 +70,7 @@
           rsort(ipass) = eps(el)
           cycle
         endif
-        Ncrust = Ncrust+1
+        Ndep = Ndep+1
         i = ipass+1
         sort = eps(el)
         if (epure(el)==1) sort=1.E-99   ! keep the pure atomic species
@@ -81,26 +82,30 @@
         esort(i) = el
         rsort(i) = sort
       enddo 
+      Ncond = 0
       do i=1,NDUST
-        if (crust_Ncond(i)>0.Q0) Ncrust=Ncrust-1
+        if (crust_Ncond(i)>0.Q0) then
+          Ncond = Ncond+1
+          Ndep = Ndep-1
+        endif  
       enddo
       limiting(:) = .true.
-      limiting(isort+1-Ncrust:isort) = .false.
+      limiting(isort+1-Ndep:isort) = .false.
       elim(:) = .true.
       do i=1,isort
         el = esort(i) 
         epos(el) = i
-        if (i>=isort+1-Ncrust) elim(el)=.false.
+        if (i>=isort+1-Ndep) elim(el)=.false.
       enddo
       !-----  correction special cases ...  ------
       if (act(iFe_l).and.act(iFeO_l).and.ecount(Fe)==2.and.
      >    (.not.elim(O))) then
         !--- O cannot be non-limiting element---
         i1 = epos(O)
-        i2 = isort-Ncrust 
+        i2 = isort-Ndep 
         e1 = esort(i1)
         e2 = esort(i2)
-        print*,"swapping "//elnam(e1)//" with "//elnam(e2)
+        print*,"diffusion: swapping "//elnam(e1)//" with "//elnam(e2)
         itmp = esort(i1)
         rtmp = rsort(i1)
         esort(i1) = esort(i2)
@@ -110,18 +115,42 @@
         elim(e1)  = .true.
         elim(e2)  = .false.        
       endif   
-      if (verbose>0) then
+      !-----  better use sorting from equil_cond if possible -----
+      print*,"sorting and type of elements ..."
+      if (Ncond==Nsolve) then
+        print*,"before: ",elnam(esort(1:isort)) 
+        !print*,elnam(indep(1:Nsolve)) 
+        !print*,isort-Ncond-Ndep,Ncond,Ndep
+        eflag = .false.
+        eflag(esort(1:isort-Ncond-Ndep)) = .true.
+        eflag(indep(1:Nsolve)) = .true.
+        esort(isort-Ncond-Ndep+1:isort-Ndep) = indep(1:Nsolve)
+        j=isort-Ndep
+        do e=1,NELM
+          if (e==iel) cycle
+          el = elnum(e)
+          if (eflag(el)) cycle
+          j=j+1
+          esort(j) = el
+        enddo  
+        print*,"after:  ",elnam(esort(1:isort)) 
+      endif
+   
+      if (verbose>=0) then
         do i=1,isort
           el = esort(i) 
-          print'(A3,2(L2),2(I3),1pE10.3)',elnam(el),in_crust(el),
-     >                    elim(el),epure(el),ecount(el),rsort(i)
+          print'(A3,2(L3),1pE11.3)',elnam(el),in_crust(el),limiting(i),
+     >                              eps(el)
         enddo
       endif  
 
       !---------------------------------------
       ! ***  upper boundary: Jeans Escape  ***
       !---------------------------------------
-      if (bc_high==3) call ESCAPE(0)
+      reduced = .false.
+      if (bc_high==3) then
+        call ESCAPE(deltat,reduced,0)
+      endif  
 
       if (implicit.and.deltat>30*dt_diff_ex) then
         if (verbose>=0) then
@@ -163,7 +192,7 @@
       real*8,intent(inout) :: deltat
       logical,intent(in)  :: in_crust(NELEM),limiting(NELEM)
       integer,intent(in)  :: isort,ipass,esort(NELEM)
-      logical,intent(out) :: reduced
+      logical,intent(inout) :: reduced
       integer :: i,it,e,el,round
       real*8,dimension(-2:N) :: xx,xold,rate
       real*8 :: influx(NELEM),Natmos
@@ -174,7 +203,6 @@
       logical :: IS_NAN,exhausted,toomuch
 
       exhausted = .false.
-      reduced = .false.
       time = 0.d0
 
       do it=1,9999999
@@ -201,7 +229,7 @@
         crust_Nold(:) = crust_Neps(:)
 
  100    continue
-        if (verbose>0) print*,"dt=",dt
+        print*,"dt=",dt
         round = 1
         influx(:) = 0.d0
         toomuch = .false.
@@ -265,8 +293,8 @@
             nD = nHtot(0)*Diff(0)
             xx(-1) = (-influx(el)/nD - d1m(0)*xx(0) - d1r(0)*xx(1))
      >               /d1l(0)                   ! constant flux 
-            !print'(A3,"  influx=",99(1pE12.4))',elnam(el),-nD
-     >      !     *(d1l(0)*xx(-1) + d1m(0)*xx(0) + d1r(0)*xx(1))
+            if (in_crust(el)) print'(A3,"  influx=",2(1pE12.4))',
+     >           elnam(el),influx(el)
           endif  
           nD = nHtot(N)*Diff(N)  
           if (bc_high==1) then
@@ -285,14 +313,16 @@
           !------------------------------------------
           ! ***  map solution on atmosphere grid  ***
           !------------------------------------------
-          print'(A3,7(1pE10.3))',elnam(el),xold(-2:3)
-          print'(3x,7(1pE10.3))',xx(-2:3)
+          if (verbose>0) then
+            print'(A3,7(1pE10.3))',elnam(el),xold(-2:3)
+            print'(3x,7(1pE10.3))',xx(-2:3)
+          endif  
           do i=-2,N
             nHeps(el,i) = nHtot(i)*xx(i)
             if (xx(i)<0.d0) then
               print*,"*** negative elem.abund. in diffusion." 
               print*,elnam(el),i
-!              if (verbose>0) read'(A1)',char1
+              if (verbose>0) read'(A1)',char1
               if (i==N) then 
                 nHeps(el,i) = nHtot(i)*xx(N-1)
               else  
@@ -309,8 +339,10 @@
           ! ***  update crust column densities  ***
           !----------------------------------------
           if (in_crust(el)) then   
-            print'(A4,2(1pE14.6))',elnam(el),
-     >            crust_Neps(el),influx(el)*dt
+            if (verbose>0) then 
+              print'(A4,2(1pE14.6))',elnam(el),
+     >              crust_Neps(el),influx(el)*dt
+            endif  
             crust_Neps(el) = crust_Neps(el) - influx(el)*dt
             if (crust_Neps(el)<0.Q0) then
               exhausted = .true. 
@@ -365,7 +397,7 @@
       real*8,intent(INOUT) :: deltat
       logical,intent(in) :: limiting(NELEM),in_crust(NELEM)
       integer,intent(in) :: isort,ipass,esort(NELEM)
-      logical,intent(out) :: reduced
+      logical,intent(inout) :: reduced
       integer :: i,j,it,e,el,Nstep,round
       real*8,dimension(0:N) :: xx,xnew,rest
       real*8,dimension(N+1,N+1) :: BB
@@ -378,7 +410,6 @@
       logical :: exhausted,toomuch
 
       exhausted = .false.
-      reduced = .false.
 
       Nstep = 20
       time  = 0.d0
@@ -399,6 +430,7 @@
         nHold(:,:) = nHeps(:,:)
         crust_Nold(:) = crust_Neps(:)
  100    continue
+        print*,"dt=",dt
         round = 1
         influx(:) = 0.d0
         if (MINVAL(nHeps)<0.d0) then
@@ -446,9 +478,11 @@
             do j=0,N 
               xnew(i) = xnew(i) + BB(i+1,j+1)*rest(j)
             enddo  
-          enddo  
-          print'(A3,99(1pE10.3))',elnam(el),xx(0:3)
-          print'(3x,99(1pE10.3))',xnew(0:3)
+          enddo 
+          if (verbose>0) then
+            print'(A3,99(1pE10.3))',elnam(el),xx(0:3)
+            print'(3x,99(1pE10.3))',xnew(0:3)
+          endif  
 
           !------------------------------------------------
           ! ***  compute fluxes through inner boundary  ***
@@ -470,6 +504,8 @@
 
           if (round==2) then
             print*,"deviation "//elnam(el),xx(1)/xnew(1)-1.d0
+            print'(A3,"  influx=",2(1pE12.4))',
+     >           elnam(el),influx(el)
             if (ABS(xnew(1)/xx(1)-1.d0)>0.01) then
               print*,'*** too large deviation'
               toomuch = .true.
@@ -507,7 +543,9 @@
           ! ***  update crust column densities  ***
           !----------------------------------------
           if (in_crust(el)) then 
-            print*,elnam(el),REAL(crust_Neps(el)),influx(el)*dt
+            if (verbose>0) then
+              print*,elnam(el),REAL(crust_Neps(el)),influx(el)*dt
+            endif  
             crust_Neps(el) = crust_Neps(el) - influx(el)*dt
             if (crust_Neps(el)<0.Q0) then
               exhausted = .true. 
@@ -642,7 +680,7 @@
             print'(A3,"  influx=",1pE12.4,"  check=",1pE9.2)',
      >                   elnam(el),influx(el),qual
           else
-           print'(A3,"  influx=",1pE12.4)',elnam(el),influx(el)
+            print'(A3,"  influx=",1pE12.4)',elnam(el),influx(el)
           endif  
         endif  
       enddo  
