@@ -88,8 +88,8 @@
       ! ***  timestep control  ***
       !---------------------------
       print'("ESCAPE: dt,tau=",2(1pE11.3))',deltat,tau
-      if (deltat>0.05*tau) then
-        deltat = 0.05*tau
+      if (deltat>0.02*tau) then
+        deltat = 0.02*tau
         reduced = .true.
         print*,"*** ESCAPE: timestep too large"
       endif  
