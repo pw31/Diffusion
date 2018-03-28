@@ -97,8 +97,8 @@
       NOUT = NELM
       if (charge) NOUT=NOUT-1
       write(cout,'(I8.8)') num
-      open(unit=70,file=trim(model_name)//'/structure_'//cout//'.dat',
-     &     status='replace')
+      open(unit=70,file=trim(model_name)//'/structure_'//cout
+     &     //'.dat',status='replace')
       write(70,*) 't=',time
       write(70,*) NOUT,NMOLE,NDUST,Npoints+1
       write(70,*) crust_depth
@@ -169,7 +169,8 @@
       write(70) crust_gaseps
       close(70)
 
-      print*,'... written '//trim(model_name)//'/structure_'//cout//'.dat'
+      print*,'... written '//trim(model_name)//'/structure_'//cout
+     >       //'.dat'
 !      if (verbose>=2) read'(A1)',char1
 
  1000 format(4(' eps(',a2,') = ',1pD8.2))
