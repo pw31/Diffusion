@@ -9,7 +9,8 @@
       integer :: elementCount,i,j
       real :: mixLength,Hplay,pconv,grad,ngas,lmean,Dmicro,Kn,vth,vz
       real :: Teff,dum
-      integer,dimension(1000) :: flag_conv,Z
+      logical,dimension(1000) :: flag_conv
+      integer,dimension(1000) :: Z
       logical :: conv
 
       write(*,*) 
@@ -76,8 +77,9 @@ c       write(*,*) "nach vconvlay"
         do i=1,Nlayers
           Rlay(i) = Rlay(1) - zlay(i)
           read(42,4) j, dum,dum,dum,dum,dum,dum,dum,dum,vconvlay(i),
-     &               dum,dum,dum,dum,dum 
-          flag_conv(i) = (vconvlay(i)>0.d0)
+     &               dum,dum,dum,dum,dum
+          flag_conv(i) = .false.
+          if (vconvlay(i)>0.d0) flag_conv(i)=.true.
         enddo 
       else
         print*,"*** unknown struc_file=",trim(struc_file)

@@ -203,7 +203,7 @@
       logical,save :: firstCall=.true.
       integer :: j,nsmooth
 
-      if (firstCall==.true.) then
+      if (firstCall) then
         p3 = pmax      ! surface 
         p2 = 0.0       ! tropopause - computed below
         p1 = p3*2.E-3  ! stratopause

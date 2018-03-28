@@ -1,23 +1,25 @@
-F90          = ifort
-F90LINKER    = ifort
-#F90          = gfortran
-#F90LINKER    = gfortran
+#F90          = ifort
+#F90LINKER    = ifort
+F90          = gfortran
+F90LINKER    = gfortran
 
 # for IFORT-Compiler
 #===================
-DEFS      = -D IFORT -D CHECK_NAN -diag-disable 8290,8291 
-#FFLAGS   = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -fopenmp
-FFLAGS    = -r8 -g -traceback -O3 -xHOST -prec-div -fp-model source -fopenmp
+DEFS      = -D IFORT -D CHECK_NAN -diag-disable 8290,8291 -fpp 
+DEF90     = -D IFORT -D CHECK_NAN -diag-disable 8290,8291
+FFLAGS   = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -gen-interfaces -warn interfaces -fopenmp
+#FFLAGS    = -r8 -g -traceback -O3 -xHOST -prec-div -fp-model source -fopenmp
 INCLUDES  = 
 LFLAGS    = $(FFLAGS)
 
 # for gfortran-Compiler
 #======================
-#DEFS      = 
+DEFS      = -D CHECK_NAN -xf77-cpp-input
+DEF90     = -D CHECK_NAN
 #FFLAGS    = -fdefault-real-8 -fdefault-double-8 -fbounds-check -fbacktrace -g -fopenmp
-#FFLAGS    = -fdefault-real-8 -fdefault-double-8 -g -O5 -fopenmp
-#INCLUDES  = 
-#LFLAGS    = $(FFLAGS)
+FFLAGS    = -fdefault-real-8 -fdefault-double-8 -g -fbacktrace -O5 -fopenmp
+INCLUDES  = 
+LFLAGS    = $(FFLAGS)
 
 EXECS    = ../diffuevo
 
@@ -69,9 +71,9 @@ realclean:
 	rm -f *.o *~ *.mod *__genmod.f90 $(EXECS)
 
 .f.o:
-	$(F90) $(FFLAGS) $(DEFS) -fpp -c $<
+	$(F90) $(FFLAGS) $(DEFS)  -c $<
 .F.o:
-	$(F90) $(FFLAGS) $(DEFS) -c $<
+	$(F90) $(FFLAGS) $(DEF90) -c $<
 .f90.o:
-	$(F90) $(FFLAGS) $(DEFS) -c $<
+	$(F90) $(FFLAGS) $(DEF90) -c $<
 

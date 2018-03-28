@@ -609,7 +609,7 @@
       integer,intent(in) :: isort,ipass,esort(NELEM)
       integer :: i,ii,jj,e,el,el2,i1,i2,s,Neq1,Neq2
       real*8 :: AA(NELM,NELM),sol(NELM),rhs(NELM)
-      real*8 :: dNcond(NDUST),check(NDUST),qual
+      real*8 :: dNcond(NDUST),check(NELEM),qual
 
       !--------------------------------------------
       ! ***  fill in equation system            ***
