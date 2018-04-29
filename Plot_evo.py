@@ -15,7 +15,7 @@ files = glob.glob("structure*.dat")
 files = sorted(files)
 Narg  = len(sys.argv)
 last  = len(files)-1 
-if (Narg>1):  last=int(sys.argv[1])-1
+if (Narg>1):  last=int(sys.argv[1])
 print Narg,last,len(files)
 file  = files[last]
 print file
@@ -53,7 +53,7 @@ NPOINT = len(dat[0:])
 time = np.float(titel.split()[1])
 day = 3600.*24.
 yr  = 365.25*day
-out = "t ={:10.5f} yrs".format(time/yr)
+out = "t ={:11.3e} yrs".format(time/yr)
 print out
 
 bar   = 1.E+6                    # 1 bar in dyn/cm2 
@@ -101,12 +101,12 @@ print crust_Ncond
 plt.bar(xpos, np.log10(crust_Ncond), align='center', alpha=0.5, color=colo)
 plt.xlim(-0.6,Ncond-0.4)
 Nmax = np.log10(np.max(crust_Ncond)*1.5)
-Nmin = np.log10(np.min(crust_Ncond)*0.5)
+Nmin = np.log10(np.min(crust_Ncond)*0.1)
 plt.ylim(Nmin,Nmax)
 plt.xticks(xpos, crust_dname, rotation=70,fontsize=13)
 plt.ylabel(r'$\log\ N_{\rm cond}\ \rm[cm^{-2}]$',fontsize=16)
-titel2 = "crust column densities,   thickness = %10.3e m" %(crust_thick/100.0)
-plt.title(titel2,fontsize=15)
+titel2 = "crust:   T =%6i K,   p =%6.2f bar,   thickness =%10.3e m" %(Tg[0],press[0],crust_thick/100.0)
+plt.title(titel2,fontsize=16)
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
@@ -227,7 +227,7 @@ plt.clf()
 
 #================== some important molecules ====================
 fig,ax = plt.subplots()
-mols  = ['H2','H','N2','H2O','O2','CO','CO2','CH4','NH3','C2H2','el']
+mols  = ['H2','H','N2','H2O','O2','CO','CO2','CH4','NH3','C2H2']
 mols  = np.array(mols)
 ntot  = 0.0*nHtot
 for i in range(4,5+NELEM+NMOLE): # electrons, all atoms, ions and cations

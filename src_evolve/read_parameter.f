@@ -3,17 +3,17 @@
 ************************************************************************
       use NATURE,ONLY: bar,yr,km
       use PARAMETERS,ONLY: elements_select,model_name,dustchem_file,
-     >                     struc_file,Tfast,Tcrust,
+     >                     struc_file,Tfast,
      >                     tsim,dt_init,dt_increase,dt_max,heatrate,
      >                     logg,vzconst,pconst,beta,Hp,Rplanet,
      >                     gas_kind,crust_kind,crust_thickness,
      >                     pmin,pmax, bc_low,bc_high,implicit,
      >                     influx,outflux,inrate,outrate,vin,vout,
-     >                     useDatabase,verbose,immediateEnd
+     >                     useDatabase,verbose,immediateEnd,detailed_H
       use CHEMISTRY,ONLY: NewBackIt,NewFullIt,NewBackFac,NewFastLevel,
      >                    NewPreMethod,dispol_file
       use GRID,ONLY: Npoints
-      use STRUCT,ONLY: T0fit,T1fit,T2fit,T3fit,p1fit,p3fit
+      use STRUCT,ONLY: T0fit,T1fit,T2fit,T3fit,TempFac,p1fit,p3fit
       use JEANS_ESCAPE,ONLY: Ttop
       implicit none
       integer :: i,iarg,iline,dispol_set
@@ -47,13 +47,13 @@
       Npoints    = 100
       pconst     = 0.1*bar    ! 100 mbar
       vzconst    = 10.0       ! 10 cm/s
-      Tcrust     = 1000.0     ! surface temperature [K]
       Rplanet    = 6371.0*km  ! planet radius [cm]
       logg       = 9.81*100.0 ! surface gravity [cm/s2]
       T3fit      = 2990.0     ! T(p)-fit lower T[K]
       T2fit      = 1210.0     ! T(p)-fit tropopause T[K]
       T1fit      = 1280.0     ! T(p)-fit stratopause T[K]
       T0fit      = 1050.0     ! T(p)-fit upper T[K]
+      TempFac    = 1.0        
       p3fit      = 10.0       ! T(p)-fit lower p[bar]
       p1fit      = 5.E-5      ! T(p)-fit stratopause p[bar]
       bc_low     = 1          ! fixed conc.
@@ -72,6 +72,7 @@
       useDatabase = .true.
       verbose = 1
       immediateEnd = .false.
+      detailed_H = .true.
 
       !-------------------------------------------
       ! ***  change parameters via input file  ***
@@ -125,6 +126,8 @@
           read(line,*) T2fit
         else if (index(line,"! T3fit")>0) then   
           read(line,*) T3fit
+        else if (index(line,"! TempFac")>0) then   
+          read(line,*) TempFac
         else if (index(line,"! p1fit")>0) then   
           read(line,*) p1fit
         else if (index(line,"! p3fit")>0) then   
@@ -179,10 +182,10 @@
           heatrate = heatrate/yr
         else if (index(line,"! verbose")>0) then   
           read(line,*) verbose
+        else if (index(line,"! detailed_H")>0) then   
+          read(line,*) detailed_H
         else if (index(line,"! immediateEnd")>0) then   
           read(line,*) immediateEnd
-        else if (index(line,"! Tcrust")>0) then
-          read(line,*) Tcrust
         else if (index(line,"! Rplanet")>0) then
           read(line,*) Rplanet
           Rplanet = Rplanet*km

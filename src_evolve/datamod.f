@@ -11,14 +11,14 @@
 ************************************************************************
       character(len=200) :: elements_select,model_name,dustchem_file
       character(len=200) :: struc_file
-      real :: logg,Tcrust,pmin,pmax,Hp,Rplanet
+      real :: logg,pmin,pmax,Hp,Rplanet
       real :: vzconst,pconst,beta
       integer :: gas_kind,crust_kind
       real :: crust_thickness
       real :: influx,outflux,inrate,outrate,vin,vout
       real :: Tfast,tsim,dt_init,dt_max,dt_increase,heatrate
       integer :: bc_low,bc_high,verbose
-      logical :: implicit,useDatabase,immediateEnd
+      logical :: implicit,useDatabase,immediateEnd,detailed_H
       end
 
 ************************************************************************
@@ -146,7 +146,7 @@
       use ELEMENTS,ONLY: NELEM
       use DUST_DATA,ONLY: NDUSTmax
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
-      real :: T0fit,T1fit,T2fit,T3fit,p1fit,p3fit
+      real :: T0fit,T1fit,T2fit,T3fit,TempFac,p1fit,p3fit
       real,allocatable :: Diff(:)     ! diffusion coefficient [cm2/s]
       real,allocatable :: rho(:)      ! mass density [g/cm3]
       real,allocatable :: nHtot(:)    ! total H nuclei density [1/cm3]
@@ -194,5 +194,6 @@
       module JEANS_ESCAPE
 ************************************************************************
       use ELEMENTS,ONLY: NELEM
-      real*8 :: Ttop,jpern(NELEM)
+      integer,parameter :: EXTRA=3    ! H,H2,H2O
+      real*8 :: Ttop,Hfrac(EXTRA),jpern(NELEM+EXTRA)
       end

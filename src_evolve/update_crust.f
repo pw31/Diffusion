@@ -59,9 +59,6 @@
         enddo
       enddo  
       crust_depth = crust_Vol             ! thickness of crust
-      if (verbose>0) then
-        print*,"crust depth[cm] = ",crust_depth
-      endif  
 
       crust_beta(:) = 0.Q0                ! crust volume composition
       sum_beta = 0.Q0
@@ -80,13 +77,11 @@
       nHeps(:,0) = nH*crust_gaseps(:)
 
       if (verbose>=0) then
-        print*
+        print*,"crust depth[cm] = ",crust_depth
         print*,"active condensates ..."      
         print*,trim(line1)
         print*,"limiting elements "//trim(line2)      
         print*
-      endif  
-      if (verbose>=0) then
         print'(3x,4(A15))',"eps0","eps","Ngas[cm-2]","Ncrust[cm-2]"
         do i=1,NELM
           if (i==iel) cycle

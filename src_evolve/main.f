@@ -1,6 +1,7 @@
 
       program DiffuEvo
 
+      use NATURE,ONLY: yr
       use PARAMETERS,ONLY: struc_file,tsim,dt_init,dt_increase,
      >                     dt_max,immediateEnd
       use GRID,ONLY: dt_diff_ex
@@ -9,8 +10,8 @@
       use ELEMENTS,ONLY: NELEM
       use DATABASE,ONLY: NLAST
       implicit none
-      real*8  :: time,dt
-      integer :: it,nout,next,Nsolve,indep(NELEM)
+      real*8  :: time,dt,tout,tnext
+      integer :: nout,it,Nsolve,indep(NELEM)
       logical :: reduced
 
       call INIT_NATURE
@@ -28,25 +29,25 @@
       call INIT_TIMESTEP
       call INIT_CRUST(Nsolve,indep)
 
-      nout = 0
-      time = 0.d0
-      dt   = dt_init
-      call INITIAL_CONDITIONS(nout,time,dt)
-      if (nout==0) call OUTPUT(nout,time,dt)
+      nout  = 0
+      time  = 0.d0
+      dt    = dt_init
+      tnext = time+3.0*dt
+      call INITIAL_CONDITIONS(nout,time,tnext,dt)
+      if (nout==0) call OUTPUT(nout,time,tnext,dt)
       if (immediateEnd) goto 100
-      next = nout
 
-      do it=1,9999
+      do it=1,99999
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
         call DIFFUSION(time,dt,reduced,Nsolve,indep)
         time = time+dt
         call WARM_UP(time)
         call UPDATE_CRUST(Nsolve,indep)
-        nout = nout + 1
-        if (nout>next) then
-          call OUTPUT(nout,time,dt)
-          next = nout
+        if (time>tnext) then
+          nout = nout + 1
+          tnext = MIN(tnext+dt_max,tnext*dt_increase)
+          call OUTPUT(nout,time,tnext,dt)
           if (time>tsim) exit
         endif  
         if (.not.reduced) dt = MIN(dt_max,dt*dt_increase)

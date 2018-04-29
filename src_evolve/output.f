@@ -1,5 +1,5 @@
 ***********************************************************************
-      SUBROUTINE OUTPUT(num,time,dt)
+      SUBROUTINE OUTPUT(num,time,tnext,dt)
 ***********************************************************************
       use PARAMETERS,ONLY: model_name,logg,verbose
       use NATURE,ONLY: bk,bar,amu,mel,pi,mic
@@ -14,10 +14,12 @@
       use ELEMENTS,ONLY: NELEM,elnr,elcode,elnam,eps0,mass,muH
       implicit none
       integer,intent(in) :: num
-      real*8,intent(in) :: time,dt
+      real*8,intent(in) :: time,tnext,dt
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real(kind=qp) :: eps(NELEM),Sat(NDUST),eldust(NDUST),out(NDUST)
-      real*8 :: pp,Tg,nH,nges,kT,mu,sumn,sumnm,dz,Ncol(NELEM)
+      real*8 :: pp,Tg,nH,nges,kT,mu,sumn,sumnm,dz
+      real*8,dimension(NELEM) :: Ntot,Natmos,Natmos_at
+      real*8,dimension(NMOLE) :: Natmos_mol
       integer :: i,j,ip,dk,e,NOUT
       character(len=200) :: line,filename
       character(len=20) :: name,short_name(NDUST)
@@ -64,9 +66,28 @@
      >            crust_Ncond(1:NDUST)
       close(12)
       
-      !---------------------------------------
-      ! ***  write total column densities  ***
-      !---------------------------------------
+      !--------------------------------------------
+      ! ***  write atmosphere column densities  ***
+      !--------------------------------------------
+      Natmos(:) = 0.d0
+      do ip=0,Npoints
+        Natmos(:) = Natmos(:) + nHeps(:,ip)*zweight(ip)
+      enddo  
+      Ntot(:) = crust_Neps(:) + Natmos(:)
+      inquire(file=trim(model_name)//'/history3.out',exist=ex)
+      if ((num==0).or.(.not.ex)) then
+        open(unit=12,file=trim(model_name)//'/history3.out',
+     >       status='replace') 
+        write(12,'(a6,99(a14))') '#','time[s]','dt[s]','depth[cm]',
+     >            elnam(elnum(1:el-1)),elnam(elnum(el+1:NELM))
+      else   
+        open(unit=12,file=trim(model_name)//'/history3.out',
+     >       position='append')
+      endif  
+      write(12,'(i6,99(1pE14.6))') num,time,dt,crust_depth,
+     >            Natmos(elnum(1:el-1)),Natmos(elnum(el+1:NELM))
+      close(12)
+
       inquire(file=trim(model_name)//'/check.out',exist=ex)
       if ((num==0).or.(.not.ex)) then
         open(unit=12,file=trim(model_name)//'/check.out',
@@ -77,13 +98,21 @@
         open(unit=12,file=trim(model_name)//'/check.out',
      >       position='append')
       endif   
-      Ncol(:) = crust_Neps(:)
-      do ip=0,Npoints
-        Ncol(:) = Ncol(:) + nHeps(:,ip)*zweight(ip)
-      enddo  
       write(12,'(i6,99(1pE14.6))') num,time,dt,crust_depth,
-     >            Ncol(elnum(1:el-1)),Ncol(elnum(el+1:NELM))
+     >            Ntot(elnum(1:el-1)),Ntot(elnum(el+1:NELM))
       close(12)
+
+      inquire(file=trim(model_name)//'/history4.out',exist=ex)
+      if ((num==0).or.(.not.ex)) then
+        open(unit=12,file=trim(model_name)//'/history4.out',
+     >       status='replace') 
+        write(12,'(a6,9999(a14))') '#','time[s]','dt[s]','depth[cm]',
+     >            elnam(elnum(1:el-1)),elnam(elnum(el+1:NELM)),
+     >            cmol(1:NMOLE)
+      else   
+        open(unit=12,file=trim(model_name)//'/history4.out',
+     >       position='append')
+      endif  
       
       !---------------------------------------------------------------
       ! ***  write crust and atmospheric structure to output file  ***
@@ -113,6 +142,8 @@
      &               ('eps'//trim(elnam(elnum(j))),j=1,el-1),
      &               ('eps'//trim(elnam(elnum(j))),j=el+1,NELM)
 
+      Natmos_at(:) = 0.d0
+      Natmos_mol(:) = 0.d0
       do ip=0,Npoints
         ipoint = ip
 
@@ -128,7 +159,11 @@
         enddo         
         call GGCHEM(nH,Tg,eps,.false.,0)
         call SUPERSAT(Tg,nat,nmol,Sat)
-
+        
+        !--- compute column densities ---
+        Natmos_at(:)  = Natmos_at(:)  + zweight(ip)*nat(:)
+        Natmos_mol(:) = Natmos_mol(:) + zweight(ip)*nmol(:)
+        
         !--- compute pressure and mean molecular mass ---
         sumn  = nel
         sumnm = nel*mel
@@ -158,9 +193,16 @@
       enddo  
       close(70)
 
+      write(12,'(i6,9999(1pE14.6))') num,time,dt,crust_depth,
+     >      (MAX(1.E-99,Natmos_at(elnum(i))),i=1,el-1),
+     >      (MAX(1.E-99,Natmos_at(elnum(i))),i=el+1,NELM),
+     >      (MAX(1.E-99,Natmos_mol(i)),i=1,NMOLE) 
+      close(12)
+
+
       open(70,file=trim(model_name)//'/restart.dat',
      &     form="unformatted",status="replace")
-      write(70) num,time,dt
+      write(70) num,time,tnext,dt
       write(70) nHeps
       write(70) crust_depth
       write(70) crust_beta

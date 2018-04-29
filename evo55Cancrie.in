@@ -3,18 +3,18 @@ H He C N O Na Mg Si Fe Ni Ca Al Ti S Cl K el
 none                       ! struc_file
 DustChem_ALL.dat           ! dustchem_file
 
-1        ! gas_kind   (0=empty,1=solar,2=meteor,3=EarthCrust,4=crust)
-2        ! crust_kind         (1=solar,2=meteor,3=EarthCrust,4=FeS)
+-1        ! gas_kind   (0=empty,1=solar,2=meteor,3=EarthCrust,4=crust)
+2        ! crust_kind         (1=solar,2=meteor,3=EarthCrust,4=see init_crust)
 1.E+4    ! crust_thickness    [cm]
 1.0      ! beta
-1.E+15   ! tsim               maximum simulation time [s]
+2.E+17   ! tsim               maximum simulation time [s]
 1.E-1    ! dt_init            initial time step [s]
-1.2      ! dt_increase        factor to increase timestep
-1.E+99   ! dt_max             maximum timestep [s]
+1.1      ! dt_increase        factor to increase timestep
+1.E+15   ! dt_max             maximum timestep [s]
 .false.  ! immediateEnd
+.true.   ! detailed_H
 
 3.33     ! logg
-2400.0   ! Tcrust [K]
 12280.0  ! Rplanet [km] 
 1.52     ! pmax
 1.E-9    ! pmin
@@ -25,12 +25,12 @@ DustChem_ALL.dat           ! dustchem_file
 1050.0   ! T0fit              T(p)-fit upper T[K]
 10.0     ! p3fit              T(p)-fit lower p[bar]
 5.E-5    ! p1fit              T(p)-fit stratopause p[bar]
+0.75     ! TempFac
 100.0    ! vzconst
 1.52     ! pconst
 0.5      ! beta
 3        ! bc_high            (Jeans-escape!)
 8000.0   ! Ttop
-0.0      ! outflux
 0        ! verbose
 
 9900.0   ! Tfast

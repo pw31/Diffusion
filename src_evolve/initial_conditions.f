@@ -1,5 +1,5 @@
 ************************************************************************
-      subroutine INITIAL_CONDITIONS(nout,time,dt)
+      subroutine INITIAL_CONDITIONS(nout,time,tnext,dt)
 ************************************************************************
       use NATURE,ONLY: pi
       use PARAMETERS,ONLY: gas_kind,model_name
@@ -9,13 +9,14 @@
       use DUST_DATA,ONLY: NDUST
       use ELEMENTS,ONLY: NELEM,eps_solar,eps_meteor,eps_crust
       use EXCHANGE,ONLY: H,He
+      use JEANS_ESCAPE,ONLY: EXTRA
       implicit none
-      integer,intent(out) :: nout
-      real*8,intent(out) :: time,dt
+      integer,intent(inout) :: nout
+      real*8,intent(inout) :: time,tnext,dt
       integer :: i,el,Nsolve,indep(NELEM)
       logical :: ex
 
-      allocate(nHeps(NELEM,-2:N))
+      allocate(nHeps(NELEM+EXTRA,-2:N))
       allocate(xlower(NELEM),xupper(NELEM))
       inquire(file=trim(model_name)//"/restart.dat",exist=ex)
       if (gas_kind==-1.and.(.not.ex)) then
@@ -26,7 +27,7 @@
 
         open(70,file=trim(model_name)//"/restart.dat",
      >       form="unformatted",status="old")
-        read(70) nout,time,dt
+        read(70) nout,time,tnext,dt
         read(70) nHeps
         read(70) crust_depth
         read(70) crust_beta

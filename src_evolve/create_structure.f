@@ -2,7 +2,7 @@
       SUBROUTINE CREATE_STRUCTURE
 ************************************************************************
       use NATURE,ONLY: bar,bk,amu,km,pi,mel,grav,Mearth
-      use PARAMETERS,ONLY: Tcrust,pmin,pmax,logg,Rplanet,Hp,
+      use PARAMETERS,ONLY: pmin,pmax,logg,Rplanet,Hp,
      >                     vzconst,pconst,beta
       use READMODEL,ONLY: Rlay,Tlay,play,rholay,glay,vconvlay,
      >                    zlay,mulay,Difflay,Nlayers
@@ -28,7 +28,7 @@
 
       print*
       print'(" create structure  Tcrust =",0pF7.1," K  psurf =",
-     >       0pF7.3," bar")',Tcrust,pmax
+     >       0pF7.3," bar")',TATMOS(pmax*bar),pmax
       print*,"======================================================="
 
       !--- solve hydrostatic equilibrium ---
@@ -100,10 +100,10 @@
         endif  
         dz = Hp/50.0
         zz = zz+dz
-        !g1 = glay(iz)
-        !g2 = grav*Mpl/(Rlay(iz)+dz)**2
-        g1 = gg
-        g2 = gg
+        g1 = glay(iz)
+        g2 = grav*Mpl/(Rlay(iz)+dz)**2
+        !g1 = gg
+        !g2 = gg
         p2 = pp
         Twork = Tg
         !----- solve hydrostatic equilibrium with trapezium rule -----
@@ -194,8 +194,8 @@
 ***  primary parameters are p0,p1,p2,p3,T0,T1,T3.                   ***  
 ***********************************************************************
       use NATURE,ONLY: bar
-      use PARAMETERS,ONLY: pmin,pmax,Tcrust  ! [bar],[bar],[K]
-      use STRUCT,ONLY: T0fit,T1fit,T2fit,T3fit,p1fit,p3fit
+      use PARAMETERS,ONLY: pmin,pmax       
+      use STRUCT,ONLY: T0fit,T1fit,T2fit,T3fit,TempFac,p1fit,p3fit
       implicit none
       real*8,intent(IN) :: pdyn              ! p[dyn/cm2]
       real*8 :: p,dp,Tsum
@@ -204,24 +204,14 @@
       integer :: j,nsmooth
 
       if (firstCall) then
-        p3 = pmax      ! surface 
-        p2 = 0.0       ! tropopause - computed below
-        p1 = p3*2.E-3  ! stratopause
-        p0 = pmin      ! exobase
-
-        T3 = Tcrust    ! surface
-        T2 = 0.7*T3    ! tropopause
-        T1 = 1.0*T3    ! stratopause      
-        T0 = 0.5*T1    ! exobase
-
-        p3 = p3fit
-        p1 = p1fit
-        p0 = pmin
-        T3 = T3fit
-        T2 = T2fit
-        T1 = T1fit
-        T0 = T0fit
-
+        p3 = p3fit    ! surface [bar]
+        p1 = p1fit    ! stratopause [bar]
+        p2 = 0.0      ! tropopause - computed below
+        p0 = pmin     ! exobase [bar]
+        T3 = T3fit    ! surface
+        T2 = T2fit    ! tropopause
+        T1 = T1fit    ! stratopause      
+        T0 = T0fit    ! exobase
         a1 = LOG(p1/p0)/SQRT(T1-T0)
         a2 = LOG(p3/p1)/(SQRT(T1-T2)+SQRT(T3-T2))
         p2 = p1*EXP(a2*SQRT(T1-T2))
@@ -242,5 +232,5 @@
         endif  
       enddo
 
-      TATMOS = Tsum/(2.0*nsmooth+1.0)
+      TATMOS = TempFac*Tsum/(2.0*nsmooth+1.0)
       end
