@@ -71,7 +71,7 @@
       !--------------------------------------------
       Natmos(:) = 0.d0
       do ip=0,Npoints
-        Natmos(:) = Natmos(:) + nHeps(:,ip)*zweight(ip)
+        Natmos(:) = Natmos(:) + nHeps(1:NELEM,ip)*zweight(ip)
       enddo  
       Ntot(:) = crust_Neps(:) + Natmos(:)
       inquire(file=trim(model_name)//'/history3.out',exist=ex)

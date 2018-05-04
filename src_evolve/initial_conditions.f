@@ -47,28 +47,28 @@
             nHeps(:,i) = nHtot(i)*1.d-50           ! empty        
             nHeps(H,i) = nHtot(i)*eps_solar(H)
             nHeps(He,i)= nHtot(i)*eps_solar(He)
-          else if (gas_kind==1) then  
-            nHeps(:,i) = nHtot(i)*eps_solar(:)     ! solar abundances  
-          else if (gas_kind==2) then
-            nHeps(:,i) = nHtot(i)*eps_meteor(:)    ! meteoritic abundances
-          else if (gas_kind==3) then
-            nHeps(:,i) = nHtot(i)*eps_crust(:)     ! Earth crust abundances
-          else if (gas_kind==4) then
-            nHeps(:,i) = nHtot(i)*crust_gaseps(:)  ! gas abundances over crust
+          else if (gas_kind==1) then               ! solar abundances  
+            nHeps(1:NELEM,i) = nHtot(i)*eps_solar(1:NELEM)
+          else if (gas_kind==2) then               ! meteoritic abundances
+            nHeps(1:NELEM,i) = nHtot(i)*eps_meteor(1:NELEM)
+          else if (gas_kind==3) then               ! Earth crust abundances
+            nHeps(1:NELEM,i) = nHtot(i)*eps_crust(1:NELEM)     
+          else if (gas_kind==4) then               ! gas abundances over crust
+            nHeps(1:NELEM,i) = nHtot(i)*crust_gaseps(1:NELEM)  
           else
             print*,"*** gas_kind=",gas_kind," not supported."
             stop
           endif  
         enddo
         do i=-2,1    ! guard cells -2,-1 and first three cells 0,1,2
-          nHeps(:,i) = nHtot(i)*crust_gaseps(:)
+          nHeps(1:NELEM,i) = nHtot(i)*crust_gaseps(1:NELEM)
         enddo  
         print*,"INITIAL_CONDITIONS gas_kind =",gas_kind
         print*
 
       endif  
 
-      xlower(:) = crust_gaseps(:)
-      xupper(:) = nHeps(:,N)/nHtot(N)
+      xlower(1:NELEM) = crust_gaseps(1:NELEM)
+      xupper(1:NELEM) = nHeps(1:NELEM,N)/nHtot(N)
 
       end

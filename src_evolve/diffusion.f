@@ -43,7 +43,7 @@
       endif
   
       xlower = crust_gaseps
-      eps(:) = nHeps(:,0)/nHtot(0)
+      eps(:) = nHeps(1:NELEM,0)/nHtot(0)
 
       !-------------------------------------------------------------
       ! ***  identify most abundant elements for inner boundary  ***

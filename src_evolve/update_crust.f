@@ -74,7 +74,7 @@
         line2 = trim(line2)//" "//trim(elnam(indep(i)))
       enddo  
       crust_beta = crust_beta/sum_beta
-      nHeps(:,0) = nH*crust_gaseps(:)
+      nHeps(1:NELEM,0) = nH*crust_gaseps(1:NELEM)
 
       if (verbose>=0) then
         print*,"crust depth[cm] = ",crust_depth
