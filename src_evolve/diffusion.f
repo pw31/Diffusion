@@ -530,7 +530,7 @@
           else  
             xx(0:N) = nHeps(H,0:N)/nHtot(0:N)*Hfrac(el-NELEM) ! H,H2,H2O
           endif  
-          BB(:,:) = BBel(:,:,el) 
+          !BB(:,:) = BBel(:,:,el) 
 
           !------------------------------
           ! ***  boundary conditions  ***
@@ -556,10 +556,16 @@
           !----------------------------
           ! ***  implicit timestep  ***
           !----------------------------
-          do i=0,N
-            xnew(i) = 0.d0 
-            do j=0,N 
-              xnew(i) = xnew(i) + BB(i+1,j+1)*rest(j)
+          !do i=0,N
+          !  xnew(i) = 0.d0 
+          !  do j=0,N 
+          !    xnew(i) = xnew(i) + BBel(i+1,j+1,el)*rest(j)
+          !  enddo  
+          !enddo 
+          xnew = 0.d0 
+          do j=0,N 
+            do i=0,N
+              xnew(i) = xnew(i) + BBel(i+1,j+1,el)*rest(j)
             enddo  
           enddo 
           !if (verbose>0) then
@@ -644,7 +650,8 @@
             enddo
             if (influx(el)*dt>0.2*Natmos) then
               print*,"*** "//elnam(el)//" too large timestep",
-     >               influx(el)*dt/Natmos
+     >               Natmos,influx(el),dt
+              print*,limiting(e),in_crust(el)
               toomuch = .true.
             endif  
           endif
@@ -722,11 +729,12 @@
       use CHEMISTRY,ONLY: NELM,elnum,iel=>el
       use JEANS_ESCAPE,ONLY: EXTRA
       implicit none
+      integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real*8,intent(inout) :: influx(NELEM+EXTRA)
       logical,intent(in) :: limiting(NELEM+EXTRA)
       integer,intent(in) :: isort,ipass,esort(NELEM+EXTRA)
       integer :: i,ii,jj,e,el,el2,i1,i2,s,Neq1,Neq2
-      real*8 :: AA(NELM,NELM),sol(NELM),rhs(NELM)
+      real(kind=qp) :: AA(NELM,NELM),sol(NELM),rhs(NELM)
       real*8 :: dNcond(NDUST),check(NELEM+EXTRA),qual
 
       !--------------------------------------------
@@ -758,7 +766,7 @@
             if (el==el2) AA(ii,jj) = dust_nu(s,i)
           enddo
         enddo
-        if (verbose>1) print*,ii,elnam(el)
+        if (verbose>1) print*,ii,elnam(el),influx(el)
       enddo  
       if (verbose>1) then
         print*,Neq1,Neq2
@@ -771,23 +779,24 @@
       !--------------------------------
       ! ***  solve equation system  ***
       !--------------------------------
-      call GAUSS8(NELM,Neq1,AA,sol,rhs)
+      call GAUSS16(NELM,Neq1,AA,sol,rhs)
       dNcond(:) = 0.d0
       jj = 0
       do s=1,NDUST
         if (crust_Ncond(s)<=0.Q0) cycle
         jj = jj+1
         dNcond(s) = sol(jj)
+        if (verbose>1) print*,jj,dust_nam(s),dNcond(s)
       enddo  
 
       !----------------------------------------------------
       ! ***  determine fluxes of non-limiting elements  ***
       !----------------------------------------------------
       check = influx
-      influx(:) = 0.d0
-      do e=i1,isort
+      do e=i2+1,isort
         el = esort(e)
         if (el>NELEM) cycle
+        influx(el) = 0.d0
         do s=1,NDUST
           if (crust_Ncond(s)<=0.Q0) cycle
           do i=1,dust_nel(s)

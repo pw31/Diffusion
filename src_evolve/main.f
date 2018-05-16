@@ -37,7 +37,7 @@
       if (nout==0) call OUTPUT(nout,time,tnext,dt)
       if (immediateEnd) goto 100
 
-      do it=1,99999
+      do it=1,999999
         print* 
         print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
         call DIFFUSION(time,dt,reduced,Nsolve,indep)
