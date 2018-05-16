@@ -72,7 +72,7 @@
       real(kind=qp) :: emax,pges,pwork,dnelec,demax,maxs
       logical :: from_merk,eact(nel),redo(nel),done(nel),affect,known
       logical :: relevant(nml)
-      logical :: ptake,IS_NAN
+      logical :: ptake,IS_NAN16
       character(len=5000) :: mols
       character(len=100) :: txt
       character(len=1) :: char,bem
@@ -150,6 +150,11 @@
       g(TiC) = EXP(MIN(1.1Q+4,-2.30256*arg))
 
 *---------------------------------------------------------------------------
+      if (.not.merk) then
+        badness = 1.Q0
+        pcorr   = 1.Q0
+        pkey    = 0         
+      endif   
       if ((ilauf.gt.10).and.merk) then
         do i=1,nel
           anmono(i) = amerk(i) * anhges
@@ -287,13 +292,20 @@
             if (ABS(delta)<1.Q-4*ABS(pwork)) exit 
           enddo  
           if (piter>=99) then
-            write(*,*) "*** smchem16 no conv in 1D pre-it "//catm(enew)
-            write(*,*) anHges,Tg
-            write(*,*) "eps:",eps
-            write(*,*) "coeff:",coeff
+            print*,"*** smchem16 no conv in 1D pre-it "//catm(enew)
+            print*,anHges,Tg
+            print*,"eps:",eps
+            print'(99(A4))',catm(eseq(1:ido))
+            print*,"nat=",anmono(eseq(1:ido))
+            print*,"coeff:",coeff
             goto 1000
           endif  
           anmono(enew) = pwork*kT1
+#ifdef CHECK_NAN
+          if (IS_NAN16(anmono(enew))) then
+            stop "1"
+          endif  
+#endif
         endif  
 
         !-----------------------------------------------------------
@@ -390,7 +402,9 @@
               do ii=1,Nact
                 qual = qual + ABS(dp(ii))
               enddo  
-              if (IS_NAN(qual)) then
+              if (IS_NAN16(qual)) then
+                print*,"*** pre-it method 1 failed"
+                print*,anHges,Tg
                 qual = 1.Q+99
                 exit
               endif  
@@ -404,6 +418,13 @@
                 i = act_to_all(ii) 
                 xx(i) = xx(i) - MAX(-maxs,MIN(maxs,dp(ii)))
                 anmono(i) = exp(xx(i))*kT1
+#ifdef CHECK_NAN
+                if (IS_NAN16(anmono(i))) then
+                  print*,catm(i),it,dp(ii),maxs,xx(i)
+                  print*,anmono(i)
+                  stop "2"
+                endif  
+#endif
               enddo
               if (verbose>1) print'(I4,A2,99(1pE11.3E3))',
      >                       it,bem,anmono(act_to_all(1:Nact))*kT,qual
@@ -423,6 +444,13 @@
                 do ii=1,Nact
                   i = act_to_all(ii)
                   anmono(i) = null(i)-fak*dp(ii)*kT1
+#ifdef CHECK_NAN
+                  if (IS_NAN16(anmono(i))) then
+                    print*,catm(i),it,null(i),fak,dp(ii)
+                    print*,anmono(i)
+                    stop "3"
+                  endif  
+#endif
                 enddo  
                 !--- determine new FF and DF ---
                 do ii=1,Nact

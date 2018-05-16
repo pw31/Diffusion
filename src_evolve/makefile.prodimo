@@ -1,25 +1,26 @@
-#F90          = ifort
-#F90LINKER    = ifort
-F90          = gfortran
-F90LINKER    = gfortran
+F90          = ifort
+F90LINKER    = ifort
+#F90          = gfortran
+#F90LINKER    = gfortran
 
 # for IFORT-Compiler
 #===================
-DEFS      = -D IFORT -D CHECK_NAN -diag-disable 8290,8291 -fpp 
-DEF90     = -D IFORT -D CHECK_NAN -diag-disable 8290,8291
-FFLAGS   = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -gen-interfaces -warn interfaces -fopenmp
-#FFLAGS    = -r8 -g -traceback -O3 -xHOST -prec-div -fp-model source -fopenmp
+DEFS      = -DIFORT -DCHECK_NAN -diag-disable 8290,8291 -fpp
+DEF90     = -DIFORT -DCHECK_NAN -diag-disable 8290,8291 
+###FFLAGS = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -gen-interfaces -warn interfaces -fopenmp
+###FFLAGS    = -r8 -g -traceback -p -fopenmp
+FFLAGS    = -r8 -g -traceback -O3 -xHOST -prec-div -fp-model source -fopenmp
 INCLUDES  = 
 LFLAGS    = $(FFLAGS)
 
 # for gfortran-Compiler
 #======================
-DEFS      = -D CHECK_NAN -xf77-cpp-input
-DEF90     = -D CHECK_NAN
+#DEFS      = -D CHECK_NAN -xf77-cpp-input
+#DEF90     = -D CHECK_NAN
 #FFLAGS    = -fdefault-real-8 -fdefault-double-8 -fbounds-check -fbacktrace -g -fopenmp
-FFLAGS    = -fdefault-real-8 -fdefault-double-8 -g -fbacktrace -O5 -fopenmp
-INCLUDES  = 
-LFLAGS    = $(FFLAGS)
+#FFLAGS    = -fdefault-real-8 -fdefault-double-8 -g -fbacktrace -O5 -fopenmp
+#INCLUDES  = 
+#LFLAGS    = $(FFLAGS)
 
 EXECS    = ../diffuevo
 
@@ -50,6 +51,7 @@ OBJECTS  = datamod.o \
            init_diffusion.o \
 	   diffusion.o \
            is_nan.o \
+           is_nan16.o \
 	   upper.o \
 	   stindex.o \
 	   gauss8.o \
@@ -71,9 +73,9 @@ realclean:
 	rm -f *.o *~ *.mod *__genmod.f90 $(EXECS)
 
 .f.o:
-	$(F90) $(FFLAGS) $(DEFS)  -c $<
+	$(F90) $(FFLAGS) $(DEFS) -c $<
 .F.o:
-	$(F90) $(FFLAGS) $(DEF90) -c $<
+	$(F90) $(FFLAGS) $(DEFS) -c $<
 .f90.o:
 	$(F90) $(FFLAGS) $(DEF90) -c $<
 
