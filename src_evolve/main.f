@@ -12,6 +12,7 @@
       implicit none
       real*8  :: time,dt,tout,tnext
       integer :: nout,it,Nsolve,indep(NELEM)
+      character(len=1) :: char
       logical :: reduced
 
       call INIT_NATURE
@@ -51,6 +52,9 @@
           if (time>tsim) exit
         endif  
         if (.not.reduced) dt = MIN(dt_max,dt*dt_increase)
+        print'(I8," timestep completed. time,tnext,dtnew=",3(1pE11.4))',
+     >         it,time,tnext,dt
+        !read(*,'(A1)') char
       enddo  
 
       print*

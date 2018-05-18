@@ -14,7 +14,8 @@
       real*8,intent(inout) :: deltat
       logical,intent(out) :: reduced
       integer,intent(in) :: verbose
-      real*8 :: nH,Tg,Mpl,ztop,vesc,gravity,vth,JJJ,Natmos,tau,Hsum
+      real*8 :: nH,Tg,Mpl,ztop,vesc,gravity,vth,JJJ,Natmos(NELEM)
+      real*8 :: tau,Hsum
       integer :: i,j,e,el,STINDEX,iH2,iH2O
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real(kind=qp) :: eps(NELEM),flux(NELEM)
@@ -33,7 +34,7 @@
       iH2O = STINDEX(cmol,NMOLE,'H2O')
       Hfrac(1) = 1.0*nat(H)
       Hfrac(2) = 2.0*nmol(iH2)
-      Hfrac(3) = nH*eps(H)-Hfrac(1)-Hfrac(2)    ! all other H-species escape like H2O
+      Hfrac(3) = nH*eps(H)-Hfrac(1)-Hfrac(2) ! all other H-species escape like H2O
       Hsum  = nH*eps(H)
       Hfrac = Hfrac/Hsum
       print'(" Hfrac=",3(1pE12.4))',Hfrac
@@ -60,7 +61,7 @@
         flux(el) = flux(el) + JJJ 
         if (el==H) jpern(NELEM+1)=JJJ/nat(el)
         if (verbose>0) print'(A2,4(1pE11.3))',elnam(el),
-     >                   nat(el),vth/km,JJJ/nat(el),JJJ/(nH*eps(el))
+     >                 nat(el),vth/km,JJJ/nat(el),JJJ/(nH*eps(el))
       enddo
       do i=1,NMOLE                         ! loop over molecules
         vth = SQRT((2.0*bk*Tg)/molmass(i)) ! thermal velocity
@@ -74,14 +75,14 @@
           el = elnum(e)                    ! index of element
           flux(el) = flux(el) + m_anz(j,i)*JJJ 
           if (verbose>0) print'(A12,4(1pE11.3))',cmol(i),
-     >        nmol(i),vth/km,JJJ/nmol(i),m_anz(j,i)*JJJ/(nH*eps(el))
+     >       nmol(i),vth/km,JJJ/nmol(i),m_anz(j,i)*JJJ/(nH*eps(el))
       	enddo
       enddo
 
       !-------------------------------------------------------------
       ! ***  compute escaping flux per element particle density  ***
       !-------------------------------------------------------------
-      print'(" H jpern contributions:",3(1pE12.3))',
+      if (verbose>0) print'(" H jpern contributions:",3(1pE12.3))',
      >       jpern(NELEM+1)*nat(H)/(nH*eps(H)),
      >       jpern(NELEM+2)*nmol(iH2)*2/(nH*eps(H)),
      >       jpern(NELEM+3)*nmol(iH2O)*2/(nH*eps(H))
@@ -89,14 +90,14 @@
       do e=1,NELM
         if (e==iel) cycle                  
         el = elnum(e) 
-        jpern(el) = flux(el)/(nH*eps(el))             ! [cm/s]
-        Natmos = 0.d0
+        jpern(el) = flux(el)/(nH*eps(el))                   ! [cm/s]
+        Natmos(el) = 0.d0
         do i=0,Npoints
-          Natmos = Natmos + nHeps(el,i)*zweight(i)    ! [1/cm2]
+          Natmos(el) = Natmos(el) + nHeps(el,i)*zweight(i)  ! [1/cm2]
         enddo
-        tau = MIN(tau,Natmos/flux(el))                ! [s]
-        print'(A3,"  jpern=",1pE10.3,"  tau[yrs]=",1pE10.3)',
-     >       elnam(el),jpern(el),Natmos/flux(el)/yr
+        tau = MIN(tau,Natmos(el)/flux(el))                  ! [s]
+        if (verbose>0) print'(A3,"  jpern=",1pE10.3,"  tau[yrs]=",
+     >       1pE10.3)',elnam(el),jpern(el),Natmos(el)/flux(el)/yr
       enddo
 
       !---------------------------
@@ -109,19 +110,9 @@
       !  reduced = .true.
       !  print*,"*** ESCAPE: timestep too large"
       !endif  
-      print'("expected decrease of N_H=",2(1pE12.3))',
-     >        deltat,flux(H)*deltat
-      if (verbose>0) stop
-
-      !----------------------------
-      ! ***  Jeans Escape plot  ***
-      !----------------------------
-      !Writing out Jeans escape per molecule for plotting
-      !open(unit=75,file='jeans.dat',status='replace')
-      !do i=1,NMOLE
-      !	write(75,*) (trim(cmol(i))),Jeans_mol(i),Jeans_at(i)
-      !enddo
-      !close(75)
+      print'("expected decrease of NHatmos:  dt=",1pE10.3,"  NH=",
+     >       1pE18.11," ->",1pE18.11)',deltat,
+     >       Natmos(H),Natmos(H)-flux(H)*deltat
 
       end subroutine ESCAPE
 

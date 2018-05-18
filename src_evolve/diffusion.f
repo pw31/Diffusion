@@ -27,14 +27,9 @@
       logical :: in_crust(NELEM+EXTRA),limiting(NELEM+EXTRA)
       logical :: act(NDUST),elim(NELEM),eflag(NELEM)
       logical,save :: firstCall=.true.
-      integer,save :: iFe_l=0,iFeO_l=0
       character(len=3),save :: spnam(NELEM+EXTRA)
 
       if (firstCall) then
-        do i=1,NDUST
-          if (dust_nam(i).eq.'Fe[l]')  iFe_l=i 
-          if (dust_nam(i).eq.'FeO[l]') iFeO_l=i 
-        enddo
         spnam(1:NELEM) = elnam(1:NELEM)
         spnam(NELEM+1) = 'Hat'
         spnam(NELEM+2) = 'H2'
@@ -105,24 +100,6 @@
         epos(el) = i
         if (i>=isort+1-Ndep) elim(el)=.false.
       enddo
-      !-----  correction special cases ...  ------
-      if (act(iFe_l).and.act(iFeO_l).and.ecount(Fe)==2.and.
-     >    (.not.elim(O))) then
-        !--- O cannot be non-limiting element---
-        i1 = epos(O)
-        i2 = isort-Ndep 
-        e1 = esort(i1)
-        e2 = esort(i2)
-        print*,"diffusion: swapping "//elnam(e1)//" with "//elnam(e2)
-        itmp = esort(i1)
-        rtmp = rsort(i1)
-        esort(i1) = esort(i2)
-        rsort(i1) = rsort(i2)
-        esort(i2) = itmp
-        rsort(i2) = rtmp
-        elim(e1)  = .true.
-        elim(e2)  = .false.        
-      endif   
       !-----  better use sorting from equil_cond if possible -----
       print*,"sorting and type of elements ..."
       if (Ncond==Nsolve) then
@@ -211,31 +188,35 @@
      >               dt_diff_ex,xlower,xupper
       use PARAMETERS,ONLY: bc_low,bc_high,verbose,dt_increase,
      >                     outflux,detailed_H
-      use STRUCT,ONLY: Diff,nHtot,nHeps,
+      use STRUCT,ONLY: Diff,Temp,nHtot,nHeps,
      >                 crust_Neps,crust_Ncond,crust_gaseps
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
-      use ELEMENTS,ONLY: NELEM,elnam
-      use CHEMISTRY,ONLY: NELM,elnum,iel=>el
+      use ELEMENTS,ONLY: NELEM,eps0,elnam
+      use CHEMISTRY,ONLY: NMOLE,NELM,cmol,elnum,iel=>el
       use JEANS_ESCAPE, ONLY: EXTRA,jpern,Hfrac
-      use EXCHANGE,ONLY: H
+      use EXCHANGE,ONLY: nat,nmol,H
       implicit none
+      integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real*8,intent(in) :: time0
       real*8,intent(inout) :: deltat
       logical,intent(in)  :: in_crust(NELEM+EXTRA),limiting(NELEM+EXTRA)
       integer,intent(in)  :: isort,ipass,esort(NELEM+EXTRA)
       logical,intent(out) :: reduced
       character(len=3),intent(in) :: spnam(NELEM+EXTRA)
-      integer :: i,it,e,el,round
+      integer :: i,it,e,el,round,iH2,STINDEX
       real*8,dimension(-2:N) :: xx,xold,xHtot,nHmerk,rate
       real*8 :: influx(NELEM+EXTRA),Hinflux,Natmos
       real*8 :: D,nD,d1,d2,d1nD,time,dt,dz,dNcol,xl,xm,xr
       real*8 :: nHold(NELEM+EXTRA,-2:N),crust_Nold(NELEM)
+      real*8 :: nH,Tg,Hfold(3),Hsum,jnew,jold
+      real(kind=qp) :: eps(NELEM)
       character :: CR = CHAR(13)
       character(len=1) :: char1
       logical :: IS_NAN,exhausted,toomuch
 
       reduced = .false.
       exhausted = .false.
+      iH2 = STINDEX(cmol,NMOLE,'H2')
       time = 0.d0
 
       do it=1,9999999
@@ -400,6 +381,31 @@
 
         enddo  
 
+        !---------------------------------------------------------------
+        ! ***  check whether escape has changed Hfrac substantially  *** 
+        !---------------------------------------------------------------
+        Hfold = Hfrac
+        nH  = nHtot(N)                 ! density at top of atmosphere
+        Tg  = Temp(N)                  ! temperature at top of atmosphere
+        eps = eps0                     ! set element abundances to default
+        do i=1,NELEM                    
+          eps(i) = nHeps(i,N)/nH       ! use element abundance at top
+        enddo         
+        call GGCHEM(nH,Tg,eps,.false.,0) 
+        Hfrac(1) = 1.0*nat(H)
+        Hfrac(2) = 2.0*nmol(iH2)
+        Hfrac(3) = nH*eps(H)-Hfrac(1)-Hfrac(2)
+        Hsum  = nH*eps(H)
+        Hfrac = Hfrac/Hsum
+        print'("old Hfrac",3(1pE12.4))',Hfold
+        print'("new Hfrac",3(1pE12.4))',Hfrac
+        jold = Hfold(1)*jpern(NELEM+1)+Hfold(2)*jpern(NELEM+2)
+        jnew = Hfrac(1)*jpern(NELEM+1)+Hfrac(2)*jpern(NELEM+2)
+        if (ABS(jnew/jold-1.0)>0.2) then
+          print'(" *** unstable H-escape: too large dt=",1pE11.4)',dt 
+          toomuch = .true. 
+        endif
+
         do e=1,isort
           el = esort(e)
           if (el>NELEM) cycle
@@ -427,11 +433,12 @@
         enddo  
 
         if (toomuch) then
-          dt = dt/dt_increase
+          dt = dt/2.0
           nHeps(:,:) = nHold(:,:) 
           crust_Neps(:) = crust_Nold(:)
           reduced = .true.
-          if (verbose>0) read'(A1)',char1
+          !if (verbose>0) read'(A1)',char1
+          read'(A1)',char1
           goto 100
         endif  
 
@@ -456,32 +463,35 @@
      >               dd1l,dd1m,dd1r,dt_diff_im,xlower,xupper
       use PARAMETERS,ONLY: bc_low,bc_high,verbose,
      >                     outflux,detailed_H
-      use STRUCT,ONLY: Diff,nHtot,nHeps,crust_Neps,crust_Ncond
+      use STRUCT,ONLY: Diff,nHtot,nHeps,Temp,crust_Neps,crust_Ncond
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_nel,dust_el,dust_nu
-      use ELEMENTS,ONLY: NELEM,elnam
-      use CHEMISTRY,ONLY: NELM,elnum,iel=>el
+      use ELEMENTS,ONLY: NELEM,elnam,eps0
+      use CHEMISTRY,ONLY: NMOLE,NELM,elnum,cmol,iel=>el
       use JEANS_ESCAPE,ONLY: EXTRA,Hfrac,jpern
-      use EXCHANGE,ONLY: H
+      use EXCHANGE,ONLY: nat,nmol,H
       implicit none
+      integer,parameter :: qp = selected_real_kind ( 33, 4931 )
       real*8,intent(IN) :: time0
       real*8,intent(INOUT) :: deltat
       logical,intent(in) :: limiting(NELEM+EXTRA),in_crust(NELEM+EXTRA)
       integer,intent(in) :: isort,ipass,esort(NELEM+EXTRA)
       logical,intent(out) :: reduced
       character(len=3),intent(in) :: spnam(NELEM+EXTRA)
-      integer :: i,j,it,e,el,Nstep,round
+      integer :: i,j,it,e,el,Nstep,round,iH2,STINDEX
       real*8,dimension(0:N) :: xx,xnew,xHtot,nHmerk,rest
       real*8,dimension(N+1,N+1) :: BB
       real*8,dimension(N+1,N+1,NELEM+EXTRA) :: BBel
       real*8 :: influx(NELEM+EXTRA),Hinflux,dNcol,Natmos,NHatmos
       real*8 :: nHold(NELEM+EXTRA,-2:N),crust_Nold(NELEM)
-      real*8 :: nD,time,dt,xl,xm,xr
+      real*8 :: nD,time,dt,xl,xm,xr,nH,Tg,Hfold(3),Hsum,jold,jnew
+      real(kind=qp) :: eps(NELEM)
       character :: CR = CHAR(13)
       character(len=1) :: char1
       logical :: exhausted,toomuch
 
       reduced = .false.
       exhausted = .false.
+      iH2 = STINDEX(cmol,NMOLE,'H2')
 
       Nstep = 20
       time  = 0.d0
@@ -637,6 +647,31 @@
 
         enddo  
         
+        !---------------------------------------------------------------
+        ! ***  check whether escape has changed Hfrac substantially  *** 
+        !---------------------------------------------------------------
+        Hfold = Hfrac
+        nH  = nHtot(N)                 ! density at top of atmosphere
+        Tg  = Temp(N)                  ! temperature at top of atmosphere
+        eps = eps0                     ! set element abundances to default
+        do i=1,NELEM                    
+          eps(i) = nHeps(i,N)/nH       ! use element abundance at top
+        enddo         
+        call GGCHEM(nH,Tg,eps,.false.,0) 
+        Hfrac(1) = 1.0*nat(H)
+        Hfrac(2) = 2.0*nmol(iH2)
+        Hfrac(3) = nH*eps(H)-Hfrac(1)-Hfrac(2)
+        Hsum  = nH*eps(H)
+        Hfrac = Hfrac/Hsum
+        print'("old Hfrac",3(1pE12.4))',Hfold
+        print'("new Hfrac",3(1pE12.4))',Hfrac
+        jold = Hfold(1)*jpern(NELEM+1)+Hfold(2)*jpern(NELEM+2)
+        jnew = Hfrac(1)*jpern(NELEM+1)+Hfrac(2)*jpern(NELEM+2)
+        if (ABS(jnew/jold-1.0)>0.2) then
+          print'(" *** unstable H-escape: too large dt=",1pE11.4)',dt 
+          toomuch = .true. 
+        endif
+
         !----------------------------------------------------
         ! ***  check whether influx would substantially   *** 
         ! ***  increase total atmospheric column density  ***
@@ -648,9 +683,9 @@
             do i=0,N
               Natmos = Natmos + nHold(el,i)*zweight(i)
             enddo
-            if (influx(el)*dt>0.2*Natmos) then
-              print*,"*** "//elnam(el)//" too large timestep",
-     >               Natmos,influx(el),dt
+            if (ABS(influx(el)*dt)>0.2*Natmos) then
+              print'(" *** ",A2," too large dt,Natmos,influx =",
+     >               3(1pE11.4))',elnam(el),dt,Natmos,influx(el)
               print*,limiting(e),in_crust(el)
               toomuch = .true.
             endif  
@@ -687,6 +722,7 @@
           reduced = .true.
           nHeps(:,:) = nHold(:,:) 
           crust_Neps(:) = crust_Nold(:)
+          !Hfrac = Hfold
           do e=1,isort
             el = esort(e)
             if (in_crust(el).and.limiting(e)) then   
@@ -697,7 +733,8 @@
             call INIT_DIFFUSION(el,N,bc_low,bc_high,dt,BB)  
             BBel(:,:,el) = BB(:,:)
           enddo  
-          if (verbose>0) read'(A1)',char1
+          !if (verbose>0) read'(A1)',char1
+          read'(A1)',char1
           goto 100
        endif  
 
