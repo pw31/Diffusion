@@ -61,6 +61,7 @@
 **********************************************************************
       SUBROUTINE LOAD_DBASE
 **********************************************************************
+      use PARAMETERS,ONLY: verbose
       use ELEMENTS,ONLY: NELEM
       use DUST_DATA,ONLY: NDUST,dust_nam
       use DATABASE,ONLY: qp,NDAT,NLAST,dbase
@@ -93,17 +94,18 @@
         NDAT = NDAT+1
       enddo 
  100  close(11)
-      print*,"... having read ",NDAT," datasets." 
+      if (verbose>0) print*,"... having read ",NDAT," datasets." 
       NLAST = NDAT
       return
  200  close(11)
-      print*,"... no / unsuitable database."
+      if (verbose>0) print*,"... no / unsuitable database."
       end
 
 **********************************************************************
       SUBROUTINE PUT_DATA(nH,T,eps,ddust,qbest,ibest,active,
      >                    Nsolve,indep)
 **********************************************************************
+      use PARAMETERS,ONLY: verbose
       use ELEMENTS,ONLY: NELEM,eps0
       use DUST_DATA,ONLY: NDUST
       use DATABASE,ONLY: qp,NDAT,NLAST,NMODI,DMAX,dbase
@@ -123,13 +125,17 @@
         return 
       else if (ibest>0.and.qbest<1.d-4) then
         i = ibest
-        write(*,'(" ... replacing database entry (",I6,
+        if (verbose>0) then
+          write(*,'(" ... replacing database entry (",I6,
      >          ") nH,T,sumeps=",3(1pE15.7))') i,nH,T,sumeps
+        endif  
       else  
         NDAT = NDAT+1
         i = NDAT
-        write(*,'(" ... adding database entry (",I6,
+        if (verbose>0) then
+          write(*,'(" ... adding database entry (",I6,
      >          ") nH,T,sumeps=",3(1pE15.7))') i,nH,T,sumeps
+        endif  
         if (NDAT>DMAX) then
           print*,"*** NDAT>DMAX in PUT_DATA",NDAT,DMAX
           stop
@@ -188,7 +194,9 @@
       do i=1,NELEM
         seps = seps + eps0(i)
       enddo  
-      print'("looking for nH,T,sumeps=",3(1pE13.5)," ...")',nH,T,seps
+      if (verbose>0) then
+        print'("looking for nH,T,sumeps=",3(1pE13.5)," ...")',nH,T,seps
+      endif  
       ln = LOG(nH)
       lT = LOG(T) 
       qbest  = 9.d+99
@@ -232,7 +240,9 @@
           if (qbest<qgood) goto 100
         endif  
       enddo
-      write(*,*) "entering full search ..."
+      if (verbose>0) then
+        write(*,*) "entering full search ..."
+      endif  
       !--- check them all ---  
       do i=NDAT,1,-1
         lnread   = dbase(i)%ln 
@@ -249,9 +259,11 @@
  100  active = .false.
       if (ibest==0) return
 
-      print'(" ... found best dataset (",I6,")  nH,T,sumeps,qual=",
+      if (verbose>0) then
+        print'(" ... found best dataset (",I6,")  nH,T,sumeps,qual=",
      >       4(1pE13.5))',ibest,EXP(dbase(ibest)%ln),
      >       EXP(dbase(ibest)%lT),dbase(ibest)%sumeps,qbest
+      endif  
       NPICK2 = NPICK1
       NPICK1 = ibest
       eps    = dbase(ibest)%eps
@@ -296,7 +308,7 @@
             elworst = el
           endif   
         enddo
-        if (verbose>0) print*,"worst element conservation "
+        if (verbose>1) print*,"worst element conservation "
      >                      //elnam(elworst),errmax
         if (errmax<1.Q-25) return ! perfect fit - nothing to do
         !--- 3. sort elements according to gas abundance ---
@@ -320,10 +332,10 @@
         do j=1,Nact
           el = isort(j)
           if (.not.eact(el)) cycle
-          if (verbose>0) print'(A3,2(1pE12.5))',
+          if (verbose>1) print'(A3,2(1pE12.5))',
      >                   elnam(el),eps0(el),eps(el)
         enddo
-        if (verbose>0) then
+        if (verbose>1) then
           do i=1,Ncond
             print*,i,dust_nam(dact(i)) 
           enddo  
@@ -331,7 +343,7 @@
      >       Ncond,Nact
         endif  
         !--- take sorting from database if possible ---
-        if (verbose>0) then
+        if (verbose>1) then
           print*,Nsolve,Ncond
           print*,elnam(isort(1:Ncond))
           print*,elnam(indep(1:Nsolve))
@@ -348,7 +360,7 @@
             if (eflag(el)) then
               j = j + 1 
               isort(j) = el
-              if (verbose>0) then
+              if (verbose>1) then
                 print*,j,elnam(el)//" non-limiting element"
               endif  
             endif
@@ -369,7 +381,7 @@
             enddo
           enddo
         enddo  
-        if (verbose>0) then
+        if (verbose>1) then
           do i=1,Ncond
             print'(99(I3))',int(stoich(i,1:Ncond)) 
           enddo  
@@ -387,7 +399,7 @@
             el = dust_el(sp,k)
             dd = MAX(dd,dust_nu(sp,k)*ddust(sp)/(eps0(el)-eps(el)))
           enddo  
-          if (verbose>0) print'(A15,1pE9.2,1pE16.8," ->",1pE16.8)',
+          if (verbose>1) print'(A15,1pE9.2,1pE16.8," ->",1pE16.8)',
      >                       dust_nam(sp),dd,ddust(sp),xx(i)
           if (IS_NAN(DBLE(xx(i)))) then
             OK = -4
@@ -432,7 +444,7 @@
             endif
           enddo
         enddo
-        if (verbose>0) print'("dependent",A3,1pE16.8," ->",1pE16.8)',
+        if (verbose>1) print'("dependent",A3,1pE16.8," ->",1pE16.8)',
      >                      elnam(el),eps(el),neweps
         eps(el) = neweps
       enddo  
@@ -449,7 +461,7 @@
         if (i==iel) cycle
         el = elnum(i)
         error = ABS(1.Q0-check(el)/eps0(el))
-        if (verbose>0) print'(A15,2(1pE12.5))',elnam(el),eps(el),error
+        if (verbose>1) print'(A15,2(1pE12.5))',elnam(el),eps(el),error
         if (error.gt.errmax) then
           errmax = error
           elworst = el
@@ -474,6 +486,6 @@
         active(j) = .false.
         qbest = 9.d+99
       endif  
-      if (verbose>1) read(*,'(A1)') char
+      if (verbose>2) read(*,'(A1)') char
           
       end

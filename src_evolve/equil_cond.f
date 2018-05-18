@@ -33,7 +33,7 @@
       real(kind=qp),intent(out) :: Sat(NDUST)   ! saturation ratio
       real(kind=qp),intent(out) :: ddust(NDUST) ! density of solid units/nHtot
       integer,intent(out) :: Nsolve,indep(NELEM)
-      integer,intent(inout) :: verb
+      integer,intent(in) :: verb
       real(kind=qp),dimension(NELEM) :: eps00,epsread,check,FF,Fsav,dx
       real(kind=qp),dimension(NELEM) :: eps_save,vec,xstep,Iabund,work
       real(kind=qp),dimension(NELEM) :: scale,bvec
@@ -215,8 +215,10 @@
         firstCall = .false. 
       endif
 
-      write(*,*)
-      write(*,'("EQUIL_COND started")') 
+      if (verb>0) then
+        write(*,*)
+        write(*,'("EQUIL_COND started")') 
+      endif  
       call CPU_TIME(time0)
 
       !------------------------
@@ -231,7 +233,7 @@
       !--------------------------------------------
       call GET_DATA(nHtot,T,epsread,ddustread,qread,iread,act_read,0)
       Nact = 0
-      verbose = 0
+      verbose = verb
       if (qread.lt.0.5.and.useDatabase) then
         eps    = epsread
         ddust  = ddustread
@@ -244,9 +246,9 @@
           text = trim(text)//" "//trim(dust_nam(i))
         enddo
         Nact = Nact_read
-        !if (qread>1.Q-5.and.Nact>0) verbose=2
-        !if (qread>1.Q-3.and.iread==207) verbose=2
-        if (verbose>0) then
+        !if (qread>1.Q-5.and.Nact>0) verbose=3
+        !if (qread>1.Q-3.and.iread==207) verbose=3
+        if (verbose>1) then
           write(*,'(" ... using database entry (",I6,
      >          ") qual=",1pE15.7)') iread,qread
           write(*,*) trim(text)
@@ -273,7 +275,7 @@
       enddo
       !eps00 = check
       eps00 = eps0
-      if (verbose>1) then
+      if (verbose>2) then
         write(*,*) "element conservation error 1:",worst
         write(*,*) "initial gas fractions ..."
         do i=1,NELM
@@ -300,7 +302,7 @@
       xstep(:) = 0.Q0             
       call SUPER(nHtot,T,xstep,eps,Sat0,.false.) ! from scratch
       qual = SQUAL(Sat0,active)
-      if (verbose>0) then
+      if (verbose>1) then
         print'("it=",I4," qual=",1pE13.4E4)',0,qual
       endif  
       act_old = active
@@ -356,10 +358,10 @@
               endif  
             endif  
           enddo  
-          if (verbose>0) print'("limited=",L1,
+          if (verbose>1) print'("limited=",L1,
      >                   "  Smax=",1pE10.3,2x,A18)',
      >                   limited,Smax,dust_nam(imax)
-          if (verbose>0.and.maxon>0.Q0) print'("  maxon =",
+          if (verbose>1.and.maxon>0.Q0) print'("  maxon =",
      >                   1pE10.2,2x,A18)',maxon,dust_nam(imaxon)
 
           if (maxon>0.0*MAX(Smax-1.Q0,0.Q0)) then
@@ -420,7 +422,7 @@
                 enddo
               endif  
             enddo  
-            if (verbose>0) then
+            if (verbose>1) then
               print*,"searching for linear combination ..." 
               print'(2x,99(A10))',(trim(dust_nam(dind(i))),i=1,Nact) 
               do el=1,NELEM
@@ -431,7 +433,7 @@
               enddo
             endif  
             call GAUSS_NM(NELEM,NDUST,Eact,Nact-1,AA,xvec,bvec,info)
-            if (verbose>0) print'(" GAUSS_NM info =",I2)',info
+            if (verbose>1) print'(" GAUSS_NM info =",I2)',info
             if (info.eq.0) then
               Nlin = 1
               dlin(1) = imaxon
@@ -448,7 +450,7 @@
                 write(dum6,'(F6.3)') slin(dk)
                 txt = trim(txt)//dum6//" "//trim(dust_nam(dk))
               enddo
-              if (verbose>0) then
+              if (verbose>1) then
                 print*,"linear combination found: "//trim(txt)
               endif  
               itried(:) = .false.
@@ -509,10 +511,10 @@
           xstep(:)= 0.Q0             
           call SUPER(nHtot,T,xstep,eps,Sat0,NewFastLevel<1)
           qual = SQUAL(Sat0,active)
-          if (verbose>0) print'("it=",I4," qual=",1pE13.4E4)',it,qual
+          if (verbose>1) print'("it=",I4," qual=",1pE13.4E4)',it,qual
           lastit = it
         endif
-        if (verbose>0) then
+        if (verbose>1) then
           do i=1,NDUST
             rem = "  "
             if (active(i)) rem=" *"
@@ -585,9 +587,9 @@
         if (Nind-1<Nact) stop "*** Nind<Nact in equil_cond."
         Nall = Nind-1
         Nind = Nact                         ! truncate at number of condensates
-        if (verbose>1) print'(99(A3))',
+        if (verbose>2) print'(99(A3))',
      >                    (trim(elnam(Iindex(j))),j=1,Nall)
-        if (verbose>1) print'(99(I3))',e_num(Iindex(1:Nall)) 
+        if (verbose>2) print'(99(I3))',e_num(Iindex(1:Nall)) 
 
         !-----------------------------------------------
         ! ***  check and correct choice of elements  ***
@@ -599,7 +601,7 @@
           e_eliminated(:) = .false.
           d_eliminated(:) = .false.
           do 
-            if (verbose==2) then
+            if (verbose>2) then
               txt  = ''
               txt1 = ''
               txt2 = ''
@@ -630,7 +632,7 @@
                   if (d_eliminated(dk)) cycle
                   do j=1,dust_nel(dk)
                     if (el.eq.dust_el(dk,j)) then
-                      if (verbose==2) then
+                      if (verbose>2) then
                         print*,elnam(el)//" "//trim(dust_nam(dk)) 
                       endif  
                       found = .true.
@@ -670,7 +672,7 @@
               endif
             enddo  
             if (found) then
-              if (verbose>0) print*,"... exchanging "//
+              if (verbose>1) print*,"... exchanging "//
      >               elnam(Iindex(i))//" for "//elnam(Iindex(j))
               swap = Iindex(i)   
               Iindex(i) = Iindex(j)
@@ -714,7 +716,7 @@
               endif 
             enddo
             if (found) then
-              if (verbose>0) print*,"... exchanging "//
+              if (verbose>1) print*,"... exchanging "//
      >               elnam(Iindex(j))//" for "//elnam(Iindex(i))
               swap = Iindex(i)   
               Iindex(i) = Iindex(j)
@@ -733,7 +735,7 @@
             ! there is a linear-combination disregarding hydrogen
             i = Nall
             j = Nact
-            if (verbose>0) print*,"... exchanging "//
+            if (verbose>1) print*,"... exchanging "//
      >             elnam(Iindex(j))//" for "//elnam(Iindex(i))
             swap = Iindex(i)   
             Iindex(i) = Iindex(j)
@@ -744,9 +746,9 @@
           endif   
         endif   
 
-        if (verbose>1) print*,"solving for ... ",
+        if (verbose>2) print*,"solving for ... ",
      >                      (elnam(Iindex(i))//" ",i=1,Nind)
-        if (verbose>1) print'(99(1pE11.3))',(Iabund(i),i=1,Nind)
+        if (verbose>2) print'(99(1pE11.3))',(Iabund(i),i=1,Nind)
 
         !------------------------------------------------
         ! ***  determine dependent dust and elements  ***
@@ -834,7 +836,7 @@
             write(txt2,'(" (",I2,")")') unknowns 
             txt0 = " "
             if (e_resolved(el)) txt0="*"
-            if (verbose>1) print*,trim(txt1)//trim(text)//" + "
+            if (verbose>2) print*,trim(txt1)//trim(text)//" + "
      >                    //trim(elnam(el))//txt0//trim(txt2)
             if (unknowns>1) solved=.false.
             if (unknowns==1) then
@@ -848,7 +850,7 @@
                 do j=1,Nind
                   el2 = Iindex(j)
                   if (mat(dk,el2).eq.0.Q0) cycle
-                  if (verbose>1) print*,"in1 ",trim(dust_nam(dk))
+                  if (verbose>2) print*,"in1 ",trim(dust_nam(dk))
      >                      //" "//elnam(el2),REAL(mat(dk,el2))
                 enddo  
               else
@@ -857,7 +859,7 @@
                 do j=1,Nind
                   el2 = Iindex(j)
                   if (emat(el,el2).eq.0.Q0) cycle
-                  if (verbose>1) print*,"in2 ",trim(elnam(el))//" "
+                  if (verbose>2) print*,"in2 ",trim(elnam(el))//" "
      >                      //elnam(el2),REAL(emat(el,el2))
                 enddo  
               endif
@@ -890,7 +892,7 @@
             !write(*,*) unsolved(1:Nunsolved)
             !write(*,*) dust_nam(var(1:Nvar1)), 
      >      !           elnam(var(Nvar1+1:Nvar1+Nvar2))
-            if (verbose>1) print'("solving",I2," equations with",I2,
+            if (verbose>2) print'("solving",I2," equations with",I2,
      >                 " unknowns ",99(A18))',Nunsolved,Nvar1+Nvar2,
      >                 dust_nam(var(1:Nvar1)), 
      >                 elnam(var(Nvar1+1:Nvar1+Nvar2))
@@ -947,7 +949,7 @@
                 do j=1,Nind
                   el2 = Iindex(j)
                   if (mat(dk,el2).eq.0.Q0) cycle
-                  if (verbose>1) print*,"in3 ",trim(dust_nam(dk))//" "
+                  if (verbose>2) print*,"in3 ",trim(dust_nam(dk))//" "
      >                                //elnam(el2),REAL(mat(dk,el2))
                 enddo  
               enddo
@@ -962,7 +964,7 @@
                 do j=1,Nind
                   el2 = Iindex(j)
                   if (emat(el,el2).eq.0.Q0) cycle
-                  if (verbose>1) print*,"in4 ",trim(elnam(el))//" "
+                  if (verbose>2) print*,"in4 ",trim(elnam(el))//" "
      >                            //elnam(el2),REAL(emat(el,el2))
                 enddo  
               enddo  
@@ -986,7 +988,7 @@
             endif
           enddo
         enddo  
-        if (verbose>0) then
+        if (verbose>1) then
           print'(A24,99(A7))',"solving for ...",elnam(Iindex(1:Nind))
           do j=1,Ndep 
             if (is_dust(j)) then
@@ -1095,7 +1097,7 @@
             del = 1.Q-2*eps(el2)/conv(i,j)
             if (del>0.Q0) deps2=MAX(deps2,-del)
             if (del<0.Q0) deps1=MIN(deps1,-del)
-            !if (verbose>1) print*,elnam(el)//" "//elnam(el2),
+            !if (verbose>2) print*,elnam(el)//" "//elnam(el2),
      >      !               REAL((/conv(i,j),deps1,deps2/))
           enddo
           deps = deps2
@@ -1111,7 +1113,7 @@
             DF(ii,jj) = LOG(Sat0(dk)/Sat2(dk))/deps*scale(j)
           enddo  
         enddo            
-        if (verbose>1) then
+        if (verbose>2) then
           print'(12x,99(A11))',elnam(Iindex(act_to_elem(1:Nsolve)))
           do ii=1,Nsolve
             i  = act_to_dust(ii) 
@@ -1145,7 +1147,7 @@
           el = Iindex(i)
           if (eps(el)+dx(ii)<0.05*eps(el)) then
             fac2 = (-0.95*eps(el))/dx(ii)        ! eps+fac*dx = 0.05*eps
-            if (verbose>0) print'(" *** limiting element1 ",A2,
+            if (verbose>1) print'(" *** limiting element1 ",A2,
      >        " eps=",1pE9.2,"  fac=",1pE9.2)',elnam(el),eps(el),fac2
             if (fac2<fac) then
               fac = fac2 
@@ -1162,7 +1164,7 @@
             dk = Dindex(j)
             if (ddust(dk)+del<0.Q0) then
               fac2 = (-ddust(dk)-small*dscale(dk))/del
-              if (verbose>0) print*,"*** limiting dust "
+              if (verbose>1) print*,"*** limiting dust "
      >                              //dust_nam(dk),REAL(fac2)
               if (fac2<fac) then
                 fac = fac2 
@@ -1173,7 +1175,7 @@
             el = Dindex(j)
             if (eps(el)+del<0.05*eps(el)) then
               fac2 = (-0.95*eps(el))/del        ! eps+fac*dx = 0.05*eps
-              if (verbose>0) print'(" *** limiting element2 ",A2,
+              if (verbose>1) print'(" *** limiting element2 ",A2,
      >        " eps=",1pE9.2,"  fac=",1pE9.2)',elnam(el),eps(el),fac2
               if (fac2<fac) then
                 fac = fac2 
@@ -1236,29 +1238,31 @@
           el = elnum(i)
           worst = MAX(worst,ABS(1.Q0-check(el)/eps00(el)))
         enddo
-        if (verbose>1.or.worst>1.Q-8) write(*,*) 
+        if (verbose>2.or.worst>1.Q-8) write(*,*) 
      >     "element conservation error 2:",worst
         if (worst>1.Q-8) stop
 
         xstep(:) = 0.Q0
         call SUPER(nHtot,T,xstep,eps,Sat0,NewFastLevel<1)
         qual = SQUAL(Sat0,active)
-        if (verbose>0) then
+        if (verbose>1) then
           print'("it=",I4," qual=",1pE13.4E4)',it,qual
         endif  
         if (qual<1.Q-20) exit
-        if (verbose>0) read(*,'(a1)') char1
+        if (verbose>1) read(*,'(a1)') char1
 
       enddo  
       Sat = Sat0
 
       call CPU_TIME(time1)
       if (it.lt.itmax) then
-        write(*,'("EQUIL_COND converged after ",I3," iter, time =",
-     >            0pF7.3," CPU sec.")') it,time1-time0 
+        if (verbose>0) then
+          write(*,'("EQUIL_COND converged after ",I3," iter, time =",
+     >              0pF7.3," CPU sec.")') it,time1-time0 
+        endif  
       else
         write(*,'("*** EQUIL_COND failed after ",I3," iter,  time =",
-     >            0pF9.4," CPU sec.")') it,time1-time0 
+     >              0pF9.4," CPU sec.")') it,time1-time0 
         stop
       endif   
 
@@ -1459,7 +1463,7 @@
         do j=1,Nind
           el2 = Iindex(j)
           if (mat(i,el2).eq.0.Q0) cycle
-          if (verbose>1) print*,"out1 ",trim(dust_nam(i))//" "
+          if (verbose>2) print*,"out1 ",trim(dust_nam(i))//" "
      >           //elnam(el2),REAL(mat(i,el2)),stoich(eq,sl)
           vec(el2) = vec(el2)+ mat(i,el2)*stoich(eq,sl)
         enddo
@@ -1472,7 +1476,7 @@
           el2 = Iindex(j)
           if (emat(el,el2).eq.0.Q0) cycle
           vec(el) = vec(el) + emat(el,el2)
-          if (verbose>1) print*,"out2 ",trim(elnam(el))//" "
+          if (verbose>2) print*,"out2 ",trim(elnam(el))//" "
      >           //elnam(el2),REAL(emat(el,el2))
         enddo  
       endif

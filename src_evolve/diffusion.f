@@ -101,11 +101,13 @@
         if (i>=isort+1-Ndep) elim(el)=.false.
       enddo
       !-----  better use sorting from equil_cond if possible -----
-      print*,"sorting and type of elements ..."
+      if (verbose>0) print*,"sorting and type of elements ..."
       if (Ncond==Nsolve) then
-        print*,"before: ",elnam(esort(1:isort)) 
-        !print*,elnam(indep(1:Nsolve)) 
-        !print*,isort-Ncond-Ndep,Ncond,Ndep
+        if (verbose>1) then 
+          print*,"before: ",elnam(esort(1:isort)) 
+          !print*,elnam(indep(1:Nsolve)) 
+          !print*,isort-Ncond-Ndep,Ncond,Ndep
+        endif  
         eflag = .false.
         eflag(esort(1:isort-Ncond-Ndep)) = .true.
         eflag(indep(1:Nsolve)) = .true.
@@ -118,7 +120,9 @@
           j=j+1
           esort(j) = el
         enddo  
-        print*,"after:  ",elnam(esort(1:isort)) 
+        if (verbose>1) then 
+          print*,"after:  ",elnam(esort(1:isort)) 
+        endif  
       endif
    
       !--- extra slots for detailed H ---
@@ -142,10 +146,10 @@
       ! ***  upper boundary: Jeans Escape  ***
       !---------------------------------------
       if (bc_high==3) then
-        call ESCAPE(deltat,reduced1,0)
+        call ESCAPE(deltat,reduced1,verbose)
       endif  
 
-      if (verbose>=0) then
+      if (verbose>0) then
         do i=1,isort
           el = esort(i) 
           if (el<=NELEM)   abun=eps(el)
@@ -158,7 +162,7 @@
       endif  
 
       if (implicit.and.deltat>30*dt_diff_ex) then
-        if (verbose>=0) then
+        if (verbose>0) then
           print*
           print*,"entering IMPLICIT DIFFUSION ..."
           print*,"==============================="
@@ -166,7 +170,7 @@
         call DIFFUSION_IMPLICIT(time,deltat,isort,ipass,esort,
      >                          in_crust,limiting,reduced2,spnam)
       else
-        if (verbose>=0) then
+        if (verbose>0) then
           print*
           print*,"entering EXPLICIT DIFFUSION ..."
           print*,"==============================="
@@ -243,7 +247,7 @@
         crust_Nold(:) = crust_Neps(:)
 
  100    continue
-        print*,"dt=",dt
+        if (verbose>0) print*,"dt=",dt
         round = 1
         xHtot(:) = 0.d0
         influx(:) = 0.d0
@@ -290,6 +294,7 @@
             if (ABS(xold(0)/xx(0)-1.d0)>0.01) then
               print*,'*** too large deviation'
               toomuch = .true.
+              reduced = .true.
             endif  
           endif
 
@@ -306,15 +311,17 @@
             xm = 0.5*(xx( 0)+xold( 0)) 
             xr = 0.5*(xx(+1)+xold(+1)) 
             influx(el) = -nD*(d1l(0)*xl + d1m(0)*xm + d1r(0)*xr)
-            print'(A3,"  influx=",2(1pE12.4))',
-     >           spnam(el),influx(el),dNcol/dt
+            if (verbose>0) print'(A3,"  influx=",2(1pE12.4))',
+     >             spnam(el),influx(el),dNcol/dt
             influx(el) = dNcol/dt
           else   
             nD = nHtot(0)*Diff(0)
             xx(-1) = (-influx(el)/nD - d1m(0)*xx(0) - d1r(0)*xx(1))
      >               /d1l(0)                   ! constant flux 
-            if (in_crust(el)) print'(A3,"  influx=",2(1pE12.4))',
-     >           spnam(el),influx(el)
+            if (in_crust(el)) then
+              if (verbose>0) print'(A3,"  influx=",2(1pE12.4))',
+     >             spnam(el),influx(el)
+            endif  
           endif  
           nD = nHtot(N)*Diff(N)  
           if (bc_high==1) then
@@ -333,7 +340,7 @@
           !------------------------------------------
           ! ***  map solution on atmosphere grid  ***
           !------------------------------------------
-          if (verbose>0) then
+          if (verbose>1) then
             print'(A3,7(1pE10.3))',spnam(el),xold(-2:3)
             print'(3x,7(1pE10.3))',xx(-2:3)
           endif  
@@ -341,7 +348,7 @@
             if (xx(i)<0.d0) then
               print*,"*** negative elem.abund. in diffusion." 
               print*,spnam(el),i
-              if (verbose>0) read'(A1)',char1
+              if (verbose>1) read'(A1)',char1
               if (i==N) then 
                 xx(i) = xx(N-1)
               else  
@@ -351,7 +358,7 @@
           enddo
           if (el==H) then
             nHmerk(:) = nHtot(:)*xx(:)          ! the result for mean hydrogen
-            print'("outflux <H>=",3(1pE15.7))',
+            if (verbose>0) print'("outflux <H>=",3(1pE15.7))',
      >           nHmerk(N),jpern(H),nHmerk(N)*jpern(H)
           else if (el<=NELEM) then
             nHeps(el,:) = nHtot(:)*xx(:)
@@ -367,13 +374,15 @@
               influx(H)  = Hinflux
               outflux = SUM(nHeps(NELEM+1:NELEM+EXTRA,N)
      >                     *jpern(NELEM+1:NELEM+EXTRA))
-              print'("outflux Hat=",3(1pE15.7))',nHeps(NELEM+1,N),
-     >             jpern(NELEM+1),nHeps(NELEM+1,N)*jpern(NELEM+1)
-              print'("outflux H2 =",3(1pE15.7))',nHeps(NELEM+2,N),
-     >             jpern(NELEM+2),nHeps(NELEM+2,N)*jpern(NELEM+2)
-              print'("outflux H2O=",3(1pE15.7))',nHeps(NELEM+3,N),
-     >             jpern(NELEM+3),nHeps(NELEM+3,N)*jpern(NELEM+3)
-              print'("outflux <H>=",3(1pE15.7))',nHeps(H,N),outflux
+              if (verbose>0) then
+                print'("outflux Hat=",3(1pE15.7))',nHeps(NELEM+1,N),
+     >               jpern(NELEM+1),nHeps(NELEM+1,N)*jpern(NELEM+1)
+                print'("outflux H2 =",3(1pE15.7))',nHeps(NELEM+2,N),
+     >               jpern(NELEM+2),nHeps(NELEM+2,N)*jpern(NELEM+2)
+                print'("outflux H2O=",3(1pE15.7))',nHeps(NELEM+3,N),
+     >               jpern(NELEM+3),nHeps(NELEM+3,N)*jpern(NELEM+3)
+                print'("outflux <H>=",3(1pE15.7))',nHeps(H,N),outflux
+              endif  
             else  
               nHeps(H,:) = nHmerk(:)
             endif  
@@ -397,11 +406,15 @@
         Hfrac(3) = nH*eps(H)-Hfrac(1)-Hfrac(2)
         Hsum  = nH*eps(H)
         Hfrac = Hfrac/Hsum
-        print'("old Hfrac",3(1pE12.4))',Hfold
-        print'("new Hfrac",3(1pE12.4))',Hfrac
+        if (verbose>0) then
+          print'("old Hfrac",3(1pE12.4))',Hfold
+          print'("new Hfrac",3(1pE12.4))',Hfrac
+        endif  
         jold = Hfold(1)*jpern(NELEM+1)+Hfold(2)*jpern(NELEM+2)
         jnew = Hfrac(1)*jpern(NELEM+1)+Hfrac(2)*jpern(NELEM+2)
         if (ABS(jnew/jold-1.0)>0.2) then
+          print'("old Hfrac",3(1pE12.4))',Hfold
+          print'("new Hfrac",3(1pE12.4))',Hfrac
           print'(" *** unstable H-escape: too large dt=",1pE11.4)',dt 
           toomuch = .true. 
         endif
@@ -413,7 +426,7 @@
           ! ***  update crust column densities  ***
           !----------------------------------------
           if (in_crust(el)) then   
-            if (verbose>0) then 
+            if (verbose>1) then 
               print'(A4,2(1pE14.6))',elnam(el),
      >              crust_Neps(el),influx(el)*dt
             endif  
@@ -436,21 +449,20 @@
           dt = dt/2.0
           nHeps(:,:) = nHold(:,:) 
           crust_Neps(:) = crust_Nold(:)
-          reduced = .true.
-          !if (verbose>0) read'(A1)',char1
+          !if (verbose>1) read'(A1)',char1
           read'(A1)',char1
           goto 100
         endif  
 
         time = time + dt
-        if (verbose>0) write(*,'(TL10," DIFFUSION:",I8,A,$)') it,CR
+        if (verbose>1) write(*,'(TL10," DIFFUSION:",I8,A,$)') it,CR
         if (time.ge.deltat) exit
         if (exhausted.or.reduced) exit
 
       enddo  
 
       deltat = time    ! return actually advanced timestep
-      if (verbose>0) print'(" EXPLICIT DIFFUSION:",I8,"  time=",
+      if (verbose>1) print'(" EXPLICIT DIFFUSION:",I8,"  time=",
      >               1pE11.4,"  Dt=",1pE11.4)',it,time0,time
       end
 
@@ -517,7 +529,7 @@
         nHold(:,:) = nHeps(:,:)
         crust_Nold(:) = crust_Neps(:)
  100    continue
-        print*,"dt=",dt
+        if (verbose>0) print*,"dt=",dt
         round = 1
         influx(:) = 0.d0
         Hinflux   = 0.d0
@@ -578,11 +590,11 @@
               xnew(i) = xnew(i) + BBel(i+1,j+1,el)*rest(j)
             enddo  
           enddo 
-          !if (verbose>0) then
+          !if (verbose>1) then
           !  print'(A3,99(1pE10.3))',spnam(el),xx(0:3)
           !  print'(3x,99(1pE10.3))',xnew(0:3)
           !endif  
-          if (verbose>0) then
+          if (verbose>1) then
             print'(A3,99(1pE10.3))',spnam(el),xx(N-3:N)
             print'(3x,99(1pE10.3))',xnew(N-3:N)
           endif  
@@ -600,25 +612,30 @@
             xm = 0.5*(xx(1)+xnew(1)) 
             xr = 0.5*(xx(2)+xnew(2)) 
             influx(el) = -nD*(dd1l(0)*xl + dd1m(0)*xm + dd1r(0)*xr)
-            print'(A3,"  influx=",2(1pE12.4))',
+            if (verbose>0) print'(A3,"  influx=",2(1pE12.4))',
      >           elnam(el),influx(el),dNcol/dt
             influx(el) = dNcol/dt
           endif  
 
           if (round==2) then
-            print*,"deviation "//spnam(el),xx(1)/xnew(1)-1.d0
-            print'(A3,"  influx=",2(1pE12.4))',
+            if (verbose>0) then 
+              print*,"deviation "//spnam(el),xx(1)/xnew(1)-1.d0
+              print'(A3,"  influx=",2(1pE12.4))',
      >           elnam(el),influx(el)
+            endif
             if (ABS(xnew(1)/xx(1)-1.d0)>0.01) then
               print*,'*** too large deviation'
               toomuch = .true.
+              reduced = .true.
             endif  
           endif
 
           if (el==H) then
             nHmerk(0:N) = nHtot(0:N)*xnew(0:N)
-            print'("outflux <H>=",3(1pE15.7))',
+            if (verbose>0) then
+              print'("outflux <H>=",3(1pE15.7))',
      >           nHmerk(N),jpern(H),nHmerk(N)*jpern(H)
+            endif  
           else if (el<=NELEM) then
             nHeps(el,0:N) = nHtot(0:N)*xnew(0:N)
           else
@@ -633,13 +650,15 @@
               influx(H) = Hinflux
               outflux = SUM(nHeps(NELEM+1:NELEM+EXTRA,N)
      >                     *jpern(NELEM+1:NELEM+EXTRA))
-              print'("outflux Hat=",3(1pE15.7))',nHeps(NELEM+1,N),
+              if (verbose>0) then
+                print'("outflux Hat=",3(1pE15.7))',nHeps(NELEM+1,N),
      >             jpern(NELEM+1),nHeps(NELEM+1,N)*jpern(NELEM+1)
-              print'("outflux H2 =",3(1pE15.7))',nHeps(NELEM+2,N),
+                print'("outflux H2 =",3(1pE15.7))',nHeps(NELEM+2,N),
      >             jpern(NELEM+2),nHeps(NELEM+2,N)*jpern(NELEM+2)
-              print'("outflux H2O=",3(1pE15.7))',nHeps(NELEM+3,N),
+                print'("outflux H2O=",3(1pE15.7))',nHeps(NELEM+3,N),
      >             jpern(NELEM+3),nHeps(NELEM+3,N)*jpern(NELEM+3)
-              print'("outflux <H>=",3(1pE15.7))',nHeps(H,N),outflux
+                print'("outflux <H>=",3(1pE15.7))',nHeps(H,N),outflux
+              endif  
             else  
               nHeps(H,0:N) = nHmerk(0:N)
             endif
@@ -663,11 +682,15 @@
         Hfrac(3) = nH*eps(H)-Hfrac(1)-Hfrac(2)
         Hsum  = nH*eps(H)
         Hfrac = Hfrac/Hsum
-        print'("old Hfrac",3(1pE12.4))',Hfold
-        print'("new Hfrac",3(1pE12.4))',Hfrac
+        if (verbose>0) then
+          print'("old Hfrac",3(1pE12.4))',Hfold
+          print'("new Hfrac",3(1pE12.4))',Hfrac
+        endif
         jold = Hfold(1)*jpern(NELEM+1)+Hfold(2)*jpern(NELEM+2)
         jnew = Hfrac(1)*jpern(NELEM+1)+Hfrac(2)*jpern(NELEM+2)
         if (ABS(jnew/jold-1.0)>0.2) then
+          print'("old Hfrac",3(1pE12.4))',Hfold
+          print'("new Hfrac",3(1pE12.4))',Hfrac
           print'(" *** unstable H-escape: too large dt=",1pE11.4)',dt 
           toomuch = .true. 
         endif
@@ -688,6 +711,7 @@
      >               3(1pE11.4))',elnam(el),dt,Natmos,influx(el)
               print*,limiting(e),in_crust(el)
               toomuch = .true.
+              reduced = .true.
             endif  
           endif
         enddo     
@@ -699,7 +723,7 @@
           ! ***  update crust column densities  ***
           !----------------------------------------
           if (in_crust(el)) then 
-            if (verbose>0) then
+            if (verbose>1) then
               print*,elnam(el),REAL(crust_Neps(el)),influx(el)*dt
             endif  
             crust_Neps(el) = crust_Neps(el) - influx(el)*dt
@@ -719,7 +743,6 @@
 
         if (toomuch) then
           dt = dt/2.0
-          reduced = .true.
           nHeps(:,:) = nHold(:,:) 
           crust_Neps(:) = crust_Nold(:)
           !Hfrac = Hfold
@@ -733,13 +756,13 @@
             call INIT_DIFFUSION(el,N,bc_low,bc_high,dt,BB)  
             BBel(:,:,el) = BB(:,:)
           enddo  
-          !if (verbose>0) read'(A1)',char1
+          !if (verbose>1) read'(A1)',char1
           read'(A1)',char1
           goto 100
-       endif  
+        endif  
 
         time = time + dt
-        if (verbose>0) write(*,'(TL10," DIFFUSION:",I8,A,$)') it,CR
+        if (verbose>1) write(*,'(TL10," DIFFUSION:",I8,A,$)') it,CR
         if (exhausted.or.reduced) exit
 
       enddo
@@ -751,7 +774,7 @@
       !print*,"NH nachher:",NHatmos
 
       deltat = time    ! return actually advanced timestep
-      if (verbose>0) print'(" IMPLICIT DIFFUSION:",I8,"  time=",
+      if (verbose>1) print'(" IMPLICIT DIFFUSION:",I8,"  time=",
      >               1pE11.4,"  Dt=",1pE11.4)',it,time0,time
       end
 
@@ -796,16 +819,16 @@
         do s=1,NDUST
           if (crust_Ncond(s)<=0.Q0) cycle
           jj = jj+1
-          if (e==i1.and.verbose>1) print*,jj,dust_nam(s)
+          if (e==i1.and.verbose>2) print*,jj,dust_nam(s)
           Neq2 = jj
           do i=1,dust_nel(s)
             el2 = dust_el(s,i)
             if (el==el2) AA(ii,jj) = dust_nu(s,i)
           enddo
         enddo
-        if (verbose>1) print*,ii,elnam(el),influx(el)
+        if (verbose>2) print*,ii,elnam(el),influx(el)
       enddo  
-      if (verbose>1) then
+      if (verbose>2) then
         print*,Neq1,Neq2
         do i=1,Neq1
           print'(99(I3))',int(AA(i,1:Neq2))
@@ -823,7 +846,7 @@
         if (crust_Ncond(s)<=0.Q0) cycle
         jj = jj+1
         dNcond(s) = sol(jj)
-        if (verbose>1) print*,jj,dust_nam(s),dNcond(s)
+        if (verbose>2) print*,jj,dust_nam(s),dNcond(s)
       enddo  
 
       !----------------------------------------------------
@@ -843,7 +866,7 @@
             endif  
           enddo
         enddo
-        if (verbose>0) then
+        if (verbose>1) then
           if (limiting(e)) then
             qual = ABS(influx(el)/check(el)-1.d0) 
             print'(A3,"  influx=",1pE12.4,"  check=",1pE9.2)',

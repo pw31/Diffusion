@@ -47,8 +47,10 @@
       do it=1,99
         call EQUIL_COND(nH,Tg,eps,Sat,eldust,verbose,Nsolve,indep)
         p = PRESSURE(Tg)
-        print'(" iter=",I2," press=",2(1pE15.8)," eps0(H)=",1pE10.3)',
-     >       it,p,press(0),eps0(H)
+        if (verbose>0) then
+          print'(" iter=",I2," press=",2(1pE15.8)," eps0(H)=",1pE10.3)',
+     >         it,p,press(0),eps0(H)
+        endif  
         fac = press(0)/p
         fac = MIN(1.4,MAX(0.7,fac))
         eps0 = eps0*fac

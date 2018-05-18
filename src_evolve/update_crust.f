@@ -23,7 +23,7 @@
       character(len=500) :: line1,line2
       integer :: i,j,el,verb
 
-      if (verbose>=0) then
+      if (verbose>0) then
         print*
         print*,"entering UPDATE_CRUST ..."
         print*,"========================="
@@ -43,6 +43,7 @@
         if (verbose>1) print'(A4,2(1pE16.8))',elnam(el),eps0(el)
       enddo  
       inactive = .false.
+      verb = verbose
       call EQUIL_COND(nH,Tg,eps,Sat,eldust,verb,Nsolve,indep)
 
       crust_gaseps(:) = eps(:)            ! element abund. over crust
@@ -76,7 +77,7 @@
       crust_beta = crust_beta/sum_beta
       nHeps(1:NELEM,0) = nH*crust_gaseps(1:NELEM)
 
-      if (verbose>=0) then
+      if (verbose>0) then
         print*,"crust depth[cm] = ",crust_depth
         print*,"active condensates ..."      
         print*,trim(line1)

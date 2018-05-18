@@ -3,7 +3,7 @@
 
       use NATURE,ONLY: yr
       use PARAMETERS,ONLY: struc_file,tsim,dt_init,dt_increase,
-     >                     dt_max,immediateEnd
+     >                     dt_max,immediateEnd,verbose
       use GRID,ONLY: dt_diff_ex
       use EXCHANGE,ONLY: chemcall,chemiter,ieqcond,ieqconditer,
      >                   itransform
@@ -39,8 +39,10 @@
       if (immediateEnd) goto 100
 
       do it=1,999999
-        print* 
-        print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
+        if (verbose>0) then 
+          print* 
+          print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
+        endif  
         call DIFFUSION(time,dt,reduced,Nsolve,indep)
         time = time+dt
         call WARM_UP(time)

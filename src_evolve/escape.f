@@ -37,7 +37,7 @@
       Hfrac(3) = nH*eps(H)-Hfrac(1)-Hfrac(2) ! all other H-species escape like H2O
       Hsum  = nH*eps(H)
       Hfrac = Hfrac/Hsum
-      print'(" Hfrac=",3(1pE12.4))',Hfrac
+      if (verbose>0) print'(" Hfrac=",3(1pE12.4))',Hfrac
       
       !-----------------------------------------------
       ! ***  Escape velocity at top of atmosphere  ***
@@ -46,7 +46,7 @@
       ztop = zz(Npoints)                   ! height of top of atmosphere [cm]
       Mpl  = 10.0**logg*Rplanet**2/grav    ! mass of planet [g]
       vesc = Sqrt(2.0*grav*Mpl/(Rplanet+ztop)) 
-      if (verbose>0) print*,"escape velocity[km/s] =",vesc/km
+      if (verbose>1) print*,"escape velocity[km/s] =",vesc/km
 
       !-----------------------
       ! ***  Jeans Escape  ***
@@ -60,7 +60,7 @@
      >        * EXP(-(vesc/vth)**2)        ! Feng+2015, Eq(1)  [1/cm2/s]
         flux(el) = flux(el) + JJJ 
         if (el==H) jpern(NELEM+1)=JJJ/nat(el)
-        if (verbose>0) print'(A2,4(1pE11.3))',elnam(el),
+        if (verbose>1) print'(A2,4(1pE11.3))',elnam(el),
      >                 nat(el),vth/km,JJJ/nat(el),JJJ/(nH*eps(el))
       enddo
       do i=1,NMOLE                         ! loop over molecules
@@ -74,7 +74,7 @@
           if (e==iel) cycle                ! skip if electrons
           el = elnum(e)                    ! index of element
           flux(el) = flux(el) + m_anz(j,i)*JJJ 
-          if (verbose>0) print'(A12,4(1pE11.3))',cmol(i),
+          if (verbose>1) print'(A12,4(1pE11.3))',cmol(i),
      >       nmol(i),vth/km,JJJ/nmol(i),m_anz(j,i)*JJJ/(nH*eps(el))
       	enddo
       enddo
@@ -96,23 +96,25 @@
           Natmos(el) = Natmos(el) + nHeps(el,i)*zweight(i)  ! [1/cm2]
         enddo
         tau = MIN(tau,Natmos(el)/flux(el))                  ! [s]
-        if (verbose>0) print'(A3,"  jpern=",1pE10.3,"  tau[yrs]=",
+        if (verbose>1) print'(A3,"  jpern=",1pE10.3,"  tau[yrs]=",
      >       1pE10.3)',elnam(el),jpern(el),Natmos(el)/flux(el)/yr
       enddo
 
       !---------------------------
       ! ***  timestep control  ***
       !---------------------------
-      print'("ESCAPE: dt,tau[yrs]=",2(1pE11.3))',deltat/yr,tau/yr
       reduced = .false.
       !if (deltat>2.0*tau) then
       !  deltat = 2.0*tau
       !  reduced = .true.
       !  print*,"*** ESCAPE: timestep too large"
       !endif  
-      print'("expected decrease of NHatmos:  dt=",1pE10.3,"  NH=",
+      if (verbose>0) then
+        print'("ESCAPE: dt,tau[yrs]=",2(1pE11.3))',deltat/yr,tau/yr
+        print'("expected decrease of NHatmos:  dt=",1pE10.3,"  NH=",
      >       1pE18.11," ->",1pE18.11)',deltat,
      >       Natmos(H),Natmos(H)-flux(H)*deltat
+      endif  
 
       end subroutine ESCAPE
 
