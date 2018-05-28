@@ -412,6 +412,7 @@
         endif  
         jold = Hfold(1)*jpern(NELEM+1)+Hfold(2)*jpern(NELEM+2)
         jnew = Hfrac(1)*jpern(NELEM+1)+Hfrac(2)*jpern(NELEM+2)
+        jpern(H) = 0.45*jold+0.55*jnew
         if (ABS(jnew/jold-1.0)>0.2) then
           print'("old Hfrac",3(1pE12.4))',Hfold
           print'("new Hfrac",3(1pE12.4))',Hfrac
@@ -686,15 +687,33 @@
           print'("old Hfrac",3(1pE12.4))',Hfold
           print'("new Hfrac",3(1pE12.4))',Hfrac
         endif
-        jold = Hfold(1)*jpern(NELEM+1)+Hfold(2)*jpern(NELEM+2)
-        jnew = Hfrac(1)*jpern(NELEM+1)+Hfrac(2)*jpern(NELEM+2)
+        jold = Hfold(1)*jpern(NELEM+1)
+     >        +Hfold(2)*jpern(NELEM+2)
+     >        +Hfold(3)*jpern(NELEM+3)
+        jnew = Hfrac(1)*jpern(NELEM+1)
+     >        +Hfrac(2)*jpern(NELEM+2)
+     >        +Hfrac(3)*jpern(NELEM+3)
+        print'("H-jold,jnew=",3(1pE10.3))',jpern(H),jold,jnew
+        Hfrac    = 0.55*Hfold + 0.45*Hfrac
+        jpern(H) = 0.55*jold  + 0.45*jnew
+        do e=1,isort
+          el = esort(e)
+          if (el.ne.H) cycle
+          if (in_crust(el).and.limiting(e)) then   
+            bc_low = 1     ! fixed concentration inner boundary condition
+          else                              
+            bc_low = 2     ! fixed flux inner boundary condition
+          endif
+          call INIT_DIFFUSION(el,N,bc_low,bc_high,dt,BB)  
+          BBel(:,:,el) = BB(:,:)
+        enddo
         if (ABS(jnew/jold-1.0)>0.2) then
           print'("old Hfrac",3(1pE12.4))',Hfold
           print'("new Hfrac",3(1pE12.4))',Hfrac
           print'(" *** unstable H-escape: too large dt=",1pE11.4)',dt 
           toomuch = .true. 
         endif
-
+  
         !----------------------------------------------------
         ! ***  check whether influx would substantially   *** 
         ! ***  increase total atmospheric column density  ***

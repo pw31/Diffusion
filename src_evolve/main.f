@@ -33,12 +33,12 @@
       nout  = 0
       time  = 0.d0
       dt    = dt_init
-      tnext = time+3.0*dt
+      tnext = time+10.0*dt
       call INITIAL_CONDITIONS(nout,time,tnext,dt)
       if (nout==0) call OUTPUT(nout,time,tnext,dt)
       if (immediateEnd) goto 100
 
-      do it=1,999999
+      do it=1,300
         if (verbose>0) then 
           print* 
           print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
@@ -49,7 +49,7 @@
         call UPDATE_CRUST(Nsolve,indep)
         if (time>tnext) then
           nout = nout + 1
-          tnext = MIN(tnext+dt_max,tnext*dt_increase)
+          tnext = MIN(time+dt_max,time*dt_increase)
           call OUTPUT(nout,time,tnext,dt)
           if (time>tsim) exit
         endif  
