@@ -1,5 +1,5 @@
 **********************************************************************
-      SUBROUTINE READ_STRUCTURE
+      SUBROUTINE READ_STRUCTURE_PHOENIX
 **********************************************************************
       use NATURE,ONLY: bar,bk,amu,km,pi
       use PARAMETERS,ONLY: struc_file,Teff,logg,Hp,vzconst,pconst,beta
@@ -99,7 +99,9 @@ c      enddo
 *     ------------------------------
       do i=1,Nlayers
         zlay(i) = Rlay(i)-Rlay(Nlayers)
+        print*,i,Rlay(i),zlay(i)
       enddo  
+      stop
 
 *     -----------------------------------------
 *     ***  calculate Diffusion coefficient  ***

@@ -147,6 +147,7 @@
       !---------------------------------------
       if (bc_high==3) then
         call ESCAPE(deltat,reduced1,verbose)
+        print*,"escape:",Hfrac
       endif  
 
       if (verbose>0) then
@@ -393,7 +394,6 @@
         !---------------------------------------------------------------
         ! ***  check whether escape has changed Hfrac substantially  *** 
         !---------------------------------------------------------------
-        Hfold = Hfrac
         nH  = nHtot(N)                 ! density at top of atmosphere
         Tg  = Temp(N)                  ! temperature at top of atmosphere
         eps = eps0                     ! set element abundances to default
@@ -410,6 +410,7 @@
           print'("old Hfrac",3(1pE12.4))',Hfold
           print'("new Hfrac",3(1pE12.4))',Hfrac
         endif  
+        Hfold = Hfrac
         jold = Hfold(1)*jpern(NELEM+1)+Hfold(2)*jpern(NELEM+2)
         jnew = Hfrac(1)*jpern(NELEM+1)+Hfrac(2)*jpern(NELEM+2)
         jpern(H) = 0.45*jold+0.55*jnew
@@ -496,6 +497,7 @@
       real*8,dimension(N+1,N+1,NELEM+EXTRA) :: BBel
       real*8 :: influx(NELEM+EXTRA),Hinflux,dNcol,Natmos,NHatmos
       real*8 :: nHold(NELEM+EXTRA,-2:N),crust_Nold(NELEM)
+      real*8 :: jpold(NELEM+EXTRA)
       real*8 :: nD,time,dt,xl,xm,xr,nH,Tg,Hfold(3),Hsum,jold,jnew
       real(kind=qp) :: eps(NELEM)
       character :: CR = CHAR(13)
@@ -529,6 +531,7 @@
 
         nHold(:,:) = nHeps(:,:)
         crust_Nold(:) = crust_Neps(:)
+        jpold(:) = jpern(:)
  100    continue
         if (verbose>0) print*,"dt=",dt
         round = 1
@@ -670,7 +673,6 @@
         !---------------------------------------------------------------
         ! ***  check whether escape has changed Hfrac substantially  *** 
         !---------------------------------------------------------------
-        Hfold = Hfrac
         nH  = nHtot(N)                 ! density at top of atmosphere
         Tg  = Temp(N)                  ! temperature at top of atmosphere
         eps = eps0                     ! set element abundances to default
@@ -678,23 +680,30 @@
           eps(i) = nHeps(i,N)/nH       ! use element abundance at top
         enddo         
         call GGCHEM(nH,Tg,eps,.false.,0) 
+        Hfold = Hfrac
         Hfrac(1) = 1.0*nat(H)
         Hfrac(2) = 2.0*nmol(iH2)
         Hfrac(3) = nH*eps(H)-Hfrac(1)-Hfrac(2)
         Hsum  = nH*eps(H)
         Hfrac = Hfrac/Hsum
-        if (verbose>0) then
-          print'("old Hfrac",3(1pE12.4))',Hfold
-          print'("new Hfrac",3(1pE12.4))',Hfrac
-        endif
         jold = Hfold(1)*jpern(NELEM+1)
      >        +Hfold(2)*jpern(NELEM+2)
      >        +Hfold(3)*jpern(NELEM+3)
         jnew = Hfrac(1)*jpern(NELEM+1)
      >        +Hfrac(2)*jpern(NELEM+2)
      >        +Hfrac(3)*jpern(NELEM+3)
+        if (verbose>0) then
+          print'("old Hfrac",3(1pE12.4))',Hfold
+          print'("new Hfrac",3(1pE12.4))',Hfrac
+        endif
+        if (ABS(jnew/jold-1.0)>0.3) then
+          print'("old Hfrac",3(1pE12.4))',Hfold
+          print'("new Hfrac",3(1pE12.4))',Hfrac
+          print'(" *** unstable H-escape: too large dt=",1pE11.4)',dt 
+          toomuch = .true. 
+        endif
         print'("H-jold,jnew=",3(1pE10.3))',jpern(H),jold,jnew
-        Hfrac    = 0.55*Hfold + 0.45*Hfrac
+        !Hfrac    = 0.55*Hfold + 0.45*Hfrac
         jpern(H) = 0.55*jold  + 0.45*jnew
         do e=1,isort
           el = esort(e)
@@ -707,12 +716,6 @@
           call INIT_DIFFUSION(el,N,bc_low,bc_high,dt,BB)  
           BBel(:,:,el) = BB(:,:)
         enddo
-        if (ABS(jnew/jold-1.0)>0.2) then
-          print'("old Hfrac",3(1pE12.4))',Hfold
-          print'("new Hfrac",3(1pE12.4))',Hfrac
-          print'(" *** unstable H-escape: too large dt=",1pE11.4)',dt 
-          toomuch = .true. 
-        endif
   
         !----------------------------------------------------
         ! ***  check whether influx would substantially   *** 
@@ -762,9 +765,11 @@
 
         if (toomuch) then
           dt = dt/2.0
+          reduced = .true.
           nHeps(:,:) = nHold(:,:) 
           crust_Neps(:) = crust_Nold(:)
-          !Hfrac = Hfold
+          Hfrac(:) = Hfold(:)
+          jpern(:) = jpold(:)
           do e=1,isort
             el = esort(e)
             if (in_crust(el).and.limiting(e)) then   

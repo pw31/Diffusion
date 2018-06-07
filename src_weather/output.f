@@ -19,7 +19,7 @@
       real*8 :: pp,Tg,nH,nges,kT,mu,sumn,sumnm,stoichzz
       real*8 :: rhog,dustV,rhod,rhodust,amean,amax,g,xi,cT,nD,d1eps
       real*8 :: vdrift0
-      real*8 :: LL(0:3)
+      real*8 :: LL(0:4)
       real*8,dimension(0:3) :: vdrift
       real*8,dimension(NDUST):: col
       real*8 :: rhoL(0:3),Nst(NNUC),bmix(NDUST),effSat(NDUST)

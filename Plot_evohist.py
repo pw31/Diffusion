@@ -72,7 +72,7 @@ print "maximum atmosphere column density [cm-2]",Nmax
 col = 0
 for i in range(4,Ncol4):
   Natmos = dat4[:,i]
-  if (np.max(Natmos)>Nmax*3.E-3):
+  if (np.max(Natmos)>Nmax*1.E-4):
     lab = keyword4[i]
     #print lab,iii
     plt.plot(np.log10(t4[iii]/yr),np.log10(Natmos[iii]),label=lab,c=colour[col],lw=3)
@@ -81,7 +81,7 @@ plt.title(r'atmosphere',fontsize=26)
 plt.xlabel(r'$\log_{10}\ t\ \mathrm{[yr]}$',fontsize=20)
 plt.ylabel(r'$\log_{10}\ N\ \mathrm{[cm^{-2}]}$',fontsize=20)
 plt.xlim(np.log10(tmin),np.log10(tmax))
-plt.ylim(np.log10(Nmax)-5,np.log10(Nmax)+0.2)
+plt.ylim(np.log10(Nmax)-10,np.log10(Nmax)+0.2)
 plt.tight_layout()
 plt.legend(loc='lower center',fontsize=10)
 #plt.yscale('log')

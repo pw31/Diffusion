@@ -5,8 +5,8 @@ F90LINKER    = ifort
 
 # for IFORT-Compiler
 #===================
-DEFS      = -D IFORT -D CHECK_NAN -diag-disable 8290,8291 
-#FFLAGS    = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -fopenmp
+DEFS      = -DIFORT -DCHECK_NAN -diag-disable 8290,8291 
+#FFLAGS   = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -fopenmp
 FFLAGS    = -r8 -g -traceback -O3 -xHOST -prec-div -fp-model source -fopenmp
 INCLUDES  = 
 LFLAGS    = $(FFLAGS)
@@ -24,7 +24,8 @@ EXECS    = ../diffudrift
 OBJECTS  = datamod.o \
            init_nature.o \
 	   read_parameter.o \
-	   read_structure.o \
+	   read_structure_PHOENIX.o \
+	   read_structure_VParm.o \
 	   init_elements.o \
            init_chemistry.o \
 	   init_dustchem.o \

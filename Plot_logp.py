@@ -15,10 +15,11 @@ files = glob.glob("weather*.dat")
 files = sorted(files)
 Narg  = len(sys.argv)
 last  = len(files)-1 
-if (Narg>1):  last=int(sys.argv[1])-1
-print Narg,last,len(files)
 file  = files[last]
 print file
+if (Narg>1):  
+  file = "weather_%08d.dat" % np.int(sys.argv[1])
+  print file
 data   = open(file)
 titel  = data.readline()
 dimens = data.readline()
@@ -47,6 +48,8 @@ lognH = np.log10(nHtot)
 lp    = np.log10(press)
 pmin  = np.min(lp)
 pmax  = np.max(lp)
+if (Narg>2): pmin = np.float(sys.argv[2])
+if (Narg>3): pmax = np.float(sys.argv[3])
 print "pressure range",pmin,pmax
 #pmin  = -5.3
 #pmax  = +1.7
@@ -67,7 +70,7 @@ if (nHmax>nHmin*5):
 #if (Tmax-Tmin>1000): sep=50
 #if (Tmax-Tmin<600): sep=20
 #if (Tmax-Tmin<400): sep=10
-  colo = ['blue','black','silver','red','darkorange','gold','darkorchid','aqua','cadetblue','darkkhaki','pink','moccasin','cornflowerblue','chartreuse','limegreen','darkgreen','chocolate','darkgoldenrod']
+colo = ['blue','black','silver','red','darkorange','gold','darkorchid','aqua','cadetblue','darkkhaki','pink','moccasin','cornflowerblue','chartreuse','limegreen','darkgreen','chocolate','darkgoldenrod']
 #'darkolivegreen','darkmagenta','aquamarine','coral','burlywood',
 #'beige','darkorange','crimson','darkcyan','bisque'
 Ncolor = len(colo)
@@ -135,31 +138,12 @@ for i in range(8+2*NELEM+NMOLE+2*NDUST,8+2*NELEM+NMOLE+2*NDUST+NNUC,1):
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\log_{10}\ J_{\!\star}\ \mathrm{[cm^{-3}s^{-1}]}$',fontsize=20)
 plt.xlim(pmin,pmax)
-plt.ylim(ymax-15,ymax+1)
+plt.ylim(ymax-20,ymax+1)
 plt.tick_params(axis='both', labelsize=15)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
 leg = plt.legend(loc='upper right',fontsize=11,fancybox=True,handlelength=2.5)
 leg.get_frame().set_alpha(0.7)
-plt.tight_layout()
-plt.savefig(pp,format='pdf')
-plt.clf()
-
-#================== the dust/gas mass ratio ====================
-fig,ax = plt.subplots()
-ind = np.where(keyword=='dust/gas')[0][0]
-log10_dust_gas = dat[:,ind]
-ymax = np.max(log10_dust_gas)
-plt.plot(lp,10**log10_dust_gas,color='black',linewidth=3,linestyle='solid')
-plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-plt.ylabel(r'$\mathrm{dust/gas}$',fontsize=20)
-plt.xlim(pmin,pmax)
-plt.ylim(10**(ymax-10),10**ymax*3)
-plt.yscale('log')
-plt.tick_params(axis='both', labelsize=15)
-plt.tick_params('both', length=6, width=1.5, which='major')
-plt.tick_params('both', length=3, width=1, which='minor')
-ax.yaxis.set_minor_locator(LogLocator(subs=[2,3,4,5,6,7,8,9]))
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
@@ -194,15 +178,16 @@ ymax = -99.0
 ymin = +99.0
 for k,l in zip(key,label):
   ind = np.where(keyword==k)[0][0]
-  logv = np.log10(dat[:,ind])
-  ind = np.where(logv>-6)
-  ymax = np.max([ymax,np.max(logv)])
-  ymin = np.min([ymin,np.min(logv[ind])])
-  plt.plot(lp[ind],logv[ind],linewidth=2.0,label=l)
+  vdr = dat[:,ind]/100
+  ind = np.where(vdr>1.E-6)
+  ymax = np.max([ymax,2*np.max(vdr[ind])])
+  ymin = np.min([ymin,0.5*np.min(vdr[ind])])
+  plt.plot(lp[ind],vdr[ind],linewidth=2.0,label=l)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-plt.ylabel(r'$\log_{10}\ v_{drift}\ \mathrm{[cm\ s^{-1}]}$',fontsize=20)
+plt.ylabel(r'$\langle v_{\rm dr}\rangle \ \mathrm{[m/s]}$',fontsize=20)
 plt.xlim(pmin,pmax)
-ymin = np.min([ymin,ymax-2])
+ymin = np.min([ymin,ymax/100.0])
+plt.yscale('log')
 plt.ylim(ymin,ymax+0.1)
 plt.legend()
 plt.tight_layout()
@@ -227,9 +212,28 @@ plt.clf()
 #plt.savefig(pp,format='pdf')
 #plt.clf()
 
+#================== the dust/gas mass ratio ====================
+fig,ax = plt.subplots()
+ind = np.where(keyword=='dust/gas')[0][0]
+log10_dust_gas = dat[:,ind]
+ymax = np.max(log10_dust_gas)
+plt.plot(lp,10**log10_dust_gas,color='black',linewidth=3,linestyle='solid')
+plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
+plt.ylabel(r'$\mathrm{dust/gas}$',fontsize=20)
+plt.xlim(pmin,pmax)
+plt.ylim(10**(ymax-10),10**ymax*3)
+plt.yscale('log')
+plt.tick_params(axis='both', labelsize=15)
+plt.tick_params('both', length=6, width=1.5, which='major')
+plt.tick_params('both', length=3, width=1, which='minor')
+ax.yaxis.set_minor_locator(LogLocator(subs=[2,3,4,5,6,7,8,9]))
+plt.tight_layout()
+plt.savefig(pp,format='pdf')
+plt.clf()
+
 #================== solid particle densities ===================
-col1 = ('Navy','DeepSkyBlue','Orange','Orange','Maroon','Maroon','Green','Green','Goldenrod')
-style1 = ('solid','dotted','dotted','dashed','dashed','dashdot','dashdot','dashed','dashdot')
+col1 = ('Navy','DeepSkyBlue','Orange','Orange','Maroon','Maroon','Green','Green','Goldenrod','Purple','Pink','Pink','Grey')
+style1 = ('solid','dotted','dotted','dashed','dashed','dashdot','dashdot','dashed','dashdot','solid','dashed','dotted','solid')
 solids = []
 ymax = -100.0
 fig,ax = plt.subplots()
@@ -238,9 +242,9 @@ nsolid = np.zeros(NPOINT)
 i1 = 5+NELEM+NMOLE
 i2 = 5+NELEM+NMOLE+NDUST
 ymax = np.max(dat[iii,i1+NDUST:i2+NDUST])
-ymin = ymax-9
+ymin = ymax-12
 ymax = ymax+0.3
-for i,c,s in zip(range(i1,i2,1),col1,style1):
+for i,c,s in zip(range(i1,i2,1),colo,styl):
   solid = keyword[i]
   solid = solid[1:]
   ind = np.where(keyword == 'n'+solid)[0]
@@ -248,7 +252,7 @@ for i,c,s in zip(range(i1,i2,1),col1,style1):
   ind = ind[0]
   yy = dat[:,ind]               # log10 nsolid/n<H>
   nsolid = nsolid + 10**yy
-  #print solid,np.max(yy[iii]),ymax,ymin
+  print solid,np.max(yy[iii]),ymax,ymin
   if (np.max(yy[iii])>ymin):
     plt.plot(lp[iii],yy[iii],c=c,ls=s,lw=widt[count],label=solid)
     count = count + 1
@@ -275,7 +279,7 @@ i1 = 5+NELEM+NMOLE
 i2 = 5+NELEM+NMOLE+NDUST
 count = 0
 ymin = -10.0
-for i,c,s in zip(range(i1,i2,1),col1,style1):
+for i,c,s in zip(range(i1,i2,1),colo,styl):
   solid = keyword[i]
   solid = solid[1:]
   ind = np.where(keyword == 'bmix'+solid)[0]
@@ -306,7 +310,7 @@ plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
 
-#================== effective supersaturation ratios ===================
+#================== supersaturation ratios ===================
 fig,ax = plt.subplots()
 count = 0
 for i in range(5+NELEM+NMOLE,5+NELEM+NMOLE+NDUST,1):
@@ -318,7 +322,7 @@ for i in range(5+NELEM+NMOLE,5+NELEM+NMOLE+NDUST,1):
   logS = dat[:,ind]              # log10 S
   plt.plot(lp,logS,c=colo[count],ls=styl[count],lw=widt[count],label=solid)
   count = count + 1
-plt.title('effective supersaturation ratios',fontsize=20)
+plt.title('supersaturation ratios',fontsize=20)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\mathrm{log}_{10}\ S$',fontsize=20)
 plt.xlim(pmin,pmax)
@@ -352,7 +356,7 @@ for i in range(5+NELEM+NMOLE+2*NDUST,5+NELEM+NMOLE+2*NDUST+NELEM,1):
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\log\,\epsilon_{\rm gas}$',fontsize=20)
 plt.xlim(pmin,pmax)
-plt.ylim(ymax-20,0.3)
+plt.ylim(ymax-15,-3)
 plt.tick_params(axis='both', labelsize=15)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')

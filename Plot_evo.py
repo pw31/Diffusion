@@ -237,9 +237,9 @@ count = 0
 for i in range(4,5+NELEM+NMOLE): 
   mol = keyword[i]
   yy = dat[:,i]-lntot            # log10 nmol/ntot
-  crit = -1.5
+  crit = -4
   ind = np.where(mols == mol)[0]
-  if (np.size(ind)>0): crit=-5
+  if (np.size(ind)>0): crit=-6
   #print i,mol,ind,np.size(ind)
   if (np.max(yy[iii])>crit):
     plt.plot(lp,yy,c=colo[count],ls=styl[count],lw=widt[count],label=mol)
@@ -264,7 +264,7 @@ ellist = ['H','C','O','N','SI','S','NA','CL','CA','TI','K','AL','MG','FE','LI','
 allist = [' ',' ',' ',' ','Si',' ','Na','Cl','Ca','Ti',' ','Al','Mg','Fe','Li',' ',' ','Ni','Mn','Cr','Zn','Zr','Rb','Cu',' ','Br',' ','Sr',' ','+']
 exlist = [' He ',' Cl CL Ca CA Cr CR Co Cu CU ',' ',' Na NA Ni NI ',' ',' Si SI Sr SR ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' Fe FE ',' ',' ',' ',' ',' ',' ',' ',' ',' Br BR ',' ',' ',' ',' ',' ']
 titels = ['hydrogen','carbon','oxygen','nitrogen','silicon','sulphur','sodium','chlorine','calcium','titanium','potassium','aluminum','magnesium','iron','lithium','fluorine','phosphorus','nickel','manganese','chromium','zinc','zirconium','rubidium','copper','boron','bromine','vanadium','strontium','tungston','charge carriers']
-limits = [2,5,2.5,6,6,5,6,4,7,8,6,6,6,6,7,6,6,6,6,6,6,6,6,6,6,6,6,6,6,5]   
+limits = [5,5,5,6,6,5,6,4,7,8,6,6,6,6,7,6,6,6,6,6,6,6,6,6,6,6,6,6,6,5]   
 abund = np.zeros(5+NELEM+NMOLE, dtype=np.int)
 for i in range(0,30):
   fig,ax = plt.subplots()

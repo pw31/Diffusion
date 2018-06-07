@@ -38,7 +38,7 @@
       if (nout==0) call OUTPUT(nout,time,tnext,dt)
       if (immediateEnd) goto 100
 
-      do it=1,300
+      do it=1,999999
         if (verbose>0) then 
           print* 
           print'("new timestep",i8,"  Dt=",1pE10.3," ...")',nout,dt 
