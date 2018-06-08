@@ -232,7 +232,7 @@
       close(70)
       close(12)
 
-      print'("amax[mic] =",1pE13.5)',amax
+      print'("amax[mic] =",1pE13.5)',amax/mic
 
       open(70,file=trim(model_name)//'/restart.dat',
      &     form="unformatted",status="replace")

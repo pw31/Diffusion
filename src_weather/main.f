@@ -30,8 +30,6 @@
       if (next>=3000) next=next+10
       if (next>=10000) next=next+30
       if (next>=30000) next=next+50
-      if (next>=100000) next=next+100
-      if (next>=300000) next=next+300
       if (dnfix>0) next=nout-1+dnfix
       do it=1,9999999
         print* 
@@ -52,14 +50,11 @@
           if (next>=3000) next=next+10
           if (next>=10000) next=next+30
           if (next>=30000) next=next+50
-          if (next>=100000) next=next+100
-          if (next>=300000) next=next+300
           if (dnfix>0) next=nout-1+dnfix
         endif  
         call TIMESTEP(dt_settle,dt_dustform,dt)
       enddo  
 
-      call OUTPUT(nout,time,dt)
       print*
       print'("         smchem calls = ",I12)',chemcall
       print'("      iterations/call = ",0pF12.3)',

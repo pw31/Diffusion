@@ -22,7 +22,8 @@ t = dat[:,indt]
 yr = 365.25*24*3600. 
 tmin = np.min(t/yr)
 tmax = np.max(t/yr)
-Narg  = len(sys.argv)
+Narg = len(sys.argv)
+Ndat = len(keyword)
 #print Narg,sys.argv[1],sys.argv[2]
 print tmin,tmax
 if (Narg>1): tmin=np.float(sys.argv[1])
@@ -30,38 +31,48 @@ if (Narg>2): tmax=np.float(sys.argv[2])
 print tmin,tmax
 iii = np.where((t/yr>tmin) & (t/yr<tmax))[0]
 
-#colo = ['blue','black','silver','red','darkorange','gold','darkorchid','aqua','cadetblue','darkkhaki','pink','moccasin','cornflowerblue','chartreuse','limegreen','darkgreen','chocolate','darkgoldenrod']
+colo = ['blue','black','silver','red','darkorange','gold','darkorchid','aqua','cadetblue','darkkhaki','pink','moccasin','cornflowerblue','chartreuse','limegreen','darkgreen','chocolate','darkgoldenrod']
 #'darkolivegreen','darkmagenta','aquamarine','coral','burlywood',
 #'beige','darkorange','crimson','darkcyan','bisque'
+Ncolor = len(colo)
+colo = colo*10
+styl = ['-']*Ncolor + ['--']*Ncolor + [':']*Ncolor + ['-.']*Ncolor*7 
+widt = [2]*Ncolor*10
 
 #================== col density ====================
+#
+#colours = ('Navy','DeepSkyBlue','Orange','Orange','Maroon','Maroon','Green','Green','Goldenrod','Purple','Pink','Pink')
+#style = ('solid','dotted','dotted','dashed','dashed','dashdot','dashdot','dashed','dashdot','solid','dashed','dotted')
+#material = ('N_TiO2','N_Al2O3','N_MgSiO3','N_Mg2SiO4','N_SiO', 'N_SiO2','N_Fe','N_FeO','N_MgO', 'N_KCl','N_NaCl','N_Na2S')
+#label = (r'$N_{TiO_2}$',r'$N_{Al_{2}O_{3}}$',r'$N_{MgSiO_{3}}$',r'$N_{MgSiO_{4}}$',r'$N_{SiO}$',r'$N_{SiO_2}$',r'$N_{Fe}$',r'$N_{FeO}$',r'$N_{MgO}$', r'$N_{KCl}$',r'$N_{NaCl}$',r'$N_{Na_2S}$')
 
-colours = ('Navy','DeepSkyBlue','Orange','Orange','Maroon','Maroon','Green','Green','Goldenrod','Purple','Pink','Pink')
-style = ('solid','dotted','dotted','dashed','dashed','dashdot','dashdot','dashed','dashdot','solid','dashed','dotted')
-material = ('N_TiO2','N_Al2O3','N_MgSiO3','N_Mg2SiO4','N_SiO', 'N_SiO2','N_Fe','N_FeO','N_MgO', 'N_KCl','N_NaCl','N_Na2S')
-label = (r'$N_{TiO_2}$',r'$N_{Al_{2}O_{3}}$',r'$N_{MgSiO_{3}}$',r'$N_{MgSiO_{4}}$',r'$N_{SiO}$',r'$N_{SiO_2}$',r'$N_{Fe}$',r'$N_{FeO}$',r'$N_{MgO}$', r'$N_{KCl}$',r'$N_{NaCl}$',r'$N_{Na_2S}$')
-
-for l,m,c,lin in zip(label,material,colours,style):
+count=0
+for i in range(1,Ndat):
   fig,ax = plt.subplots()
-  indn = np.where(keyword==m)[0]
-  if (len(indn)==1):
-    n=dat[:,indn[0]]
-    lab = l+" $\mathrm{[10^{-5}g\,cm^{-2}]}$" 
-    plt.plot(t[iii]/yr,n[iii]/1.E-5,label=l,color=c,linestyle=lin,linewidth=3)
-    plt.xlabel(r'$time\ \mathrm{[yrs]}$',fontsize=20)
-    plt.ylabel(lab,fontsize=20)
-    plt.xlim(tmin,tmax)
-    #plt.legend(loc='lower right')
-    plt.tight_layout()
-    plt.savefig(pp,format='pdf')
-    plt.clf()
+  n  = dat[:,i]
+  cc = colo[count]
+  ls = styl[count]
+  lab = keyword[i]+" $\mathrm{[10^{-5}g\,cm^{-2}]}$" 
+  plt.plot(t[iii]/yr,n[iii]/1.E-5,label=lab,c=cc,ls=ls,lw=3)
+  plt.xlabel(r'$time\ \mathrm{[yrs]}$',fontsize=20)
+  plt.ylabel(lab,fontsize=20)
+  plt.title(keyword[i])
+  plt.xlim(tmin,tmax)
+  #plt.legend(loc='lower right')
+  plt.tight_layout()
+  plt.savefig(pp,format='pdf')
+  plt.clf()
+  count=count+1
 
 fig,ax = plt.subplots()
-for l,m,c,lin in zip(label,material,colours,style):
-  indn = np.where(keyword==m)[0]
-  if (len(indn)==1):
-    n=dat[:,indn[0]]
-    plt.plot(t[iii]/yr,n[iii]/1.E-5,label=l,color=c,linestyle=lin,linewidth=3)
+ymax=np.max(dat[iii,1:Ndat-1])
+for i in range(1,Ndat):
+  n  = dat[:,i]
+  if (np.max(n[iii])>ymax/100):
+    cc = colo[i-1]
+    ls = styl[i-1]
+    lab = keyword[i]
+    plt.plot(t[iii]/yr,n[iii]/1.E-5,label=lab,c=cc,ls=ls,lw=2)
 plt.xlabel(r'$time\ \mathrm{[yrs]}$',fontsize=20)
 plt.ylabel(r'$\mathrm{col.dens.\ [10^{-5}g\,cm^{-2}]}$',fontsize=20)
 plt.xlim(tmin,tmax)
