@@ -1,0 +1,7 @@
+\BOOKMARK [1][-]{section.1}{The Atmospheric Diffusion Problem}{}% 1
+\BOOKMARK [1][-]{section.2}{Spatial Grid and Initial Conditions}{}% 2
+\BOOKMARK [1][-]{section.3}{Boundary Conditions}{}% 3
+\BOOKMARK [2][-]{subsection.3.1}{Upper boundary condition}{section.3}% 4
+\BOOKMARK [2][-]{subsection.3.2}{Lower boundary condition}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.3}{Updating the crust thickness and composition}{section.3}% 6
+\BOOKMARK [1][-]{section.4}{Element Conservation}{}% 7

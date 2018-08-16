@@ -19,9 +19,10 @@ dat = np.loadtxt(file,skiprows=1)
 
 indt = np.where(keyword=='time')[0][0]
 t = dat[:,indt]
-yr = 365.25*24*3600. 
-tmin = np.min(t/yr)
-tmax = np.max(t/yr)
+day = 24*3600. 
+yr = 365.25*day
+tmin = np.min(t/day)
+tmax = np.max(t/day)
 Narg = len(sys.argv)
 Ndat = len(keyword)
 #print Narg,sys.argv[1],sys.argv[2]
@@ -29,7 +30,7 @@ print tmin,tmax
 if (Narg>1): tmin=np.float(sys.argv[1])
 if (Narg>2): tmax=np.float(sys.argv[2])
 print tmin,tmax
-iii = np.where((t/yr>tmin) & (t/yr<tmax))[0]
+iii = np.where((t/day>tmin) & (t/day<tmax))[0]
 
 colo = ['blue','black','silver','red','darkorange','gold','darkorchid','aqua','cadetblue','darkkhaki','pink','moccasin','cornflowerblue','chartreuse','limegreen','darkgreen','chocolate','darkgoldenrod']
 #'darkolivegreen','darkmagenta','aquamarine','coral','burlywood',
@@ -52,9 +53,9 @@ for i in range(1,Ndat):
   n  = dat[:,i]
   cc = colo[count]
   ls = styl[count]
-  lab = keyword[i]+" $\mathrm{[10^{-5}g\,cm^{-2}]}$" 
-  plt.plot(t[iii]/yr,n[iii]/1.E-5,label=lab,c=cc,ls=ls,lw=3)
-  plt.xlabel(r'$time\ \mathrm{[yrs]}$',fontsize=20)
+  lab = keyword[i]+" $\mathrm{[10^{-3}g\,cm^{-2}]}$" 
+  plt.plot(t[iii]/day,n[iii]/1.E-3,label=lab,c=cc,ls=ls,lw=3)
+  plt.xlabel(r'$time\ \mathrm{[days]}$',fontsize=20)
   plt.ylabel(lab,fontsize=20)
   plt.title(keyword[i])
   plt.xlim(tmin,tmax)
@@ -72,12 +73,11 @@ for i in range(1,Ndat):
     cc = colo[i-1]
     ls = styl[i-1]
     lab = keyword[i]
-    plt.plot(t[iii]/yr,n[iii]/1.E-5,label=lab,c=cc,ls=ls,lw=2)
-plt.xlabel(r'$time\ \mathrm{[yrs]}$',fontsize=20)
-plt.ylabel(r'$\mathrm{col.dens.\ [10^{-5}g\,cm^{-2}]}$',fontsize=20)
+    plt.plot(t[iii]/day,n[iii]/1.E-3,label=lab,c=cc,ls=ls,lw=2)
+plt.xlabel(r'$time\ \mathrm{[days]}$',fontsize=20)
+plt.ylabel(r'$\mathrm{col.dens.\ [10^{-3}g\,cm^{-2}]}$',fontsize=20)
 plt.xlim(tmin,tmax)
 #plt.yscale('log')
-plt.xlabel(r'$time [s]$',fontsize=20)
 plt.legend(loc='upper right')
 plt.tight_layout()
 plt.savefig(pp,format='pdf')

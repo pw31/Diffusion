@@ -99,9 +99,8 @@ c      enddo
 *     ------------------------------
       do i=1,Nlayers
         zlay(i) = Rlay(i)-Rlay(Nlayers)
-        print*,i,Rlay(i),zlay(i)
+        !print*,i,Rlay(i),zlay(i)
       enddo  
-      stop
 
 *     -----------------------------------------
 *     ***  calculate Diffusion coefficient  ***

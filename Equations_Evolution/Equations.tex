@@ -1,5 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage{graphicx,natbib,amsmath}
+\usepackage[colorlinks=true,urlcolor=dblue,citecolor=dblue,
+            linkcolor=dblue]{hyperref}
 
 \setlength{\textheight}{24.5cm}
 \setlength{\textwidth}{16.5cm}
@@ -50,6 +52,8 @@ $\displaystyle##$\hfil\cr>\cr\sim\cr}}}
 
 
 \begin{document}
+
+\input{farben.txt}
 
 \centerline{Definitions}
 
@@ -235,14 +239,14 @@ initially filled with a gas of another chosen set of element
 abundances, for example solar abundances.
 
 \begin{table}
-\centering
+\begin{center}
 \caption{Different sets of element abundances normalised to hydrogen
   (need citations). $A(-B)$ means $A\times 10^{-B}$.}
 \label{tab:eps}
 \vspace*{2mm}
 \begin{tabular}{cccc}
 \hline
-     &     solar & Earth crust & meteoritic \\
+     &     solar$^{(1)}$ & Earth crust$^{(3)}$ & meteoritic$^{(2)}$ \\
 \hline
  H   & $1.00(+0)$ &   $1.00(+0)$ &   $1.00(+0)$ \\
  He  & $8.51(-2)$ &   $1.08(-6)$ &   -- \\
@@ -266,6 +270,14 @@ abundances, for example solar abundances.
  Ni  & $1.66(-6)$ &   $1.03(-3)$ &   $9.30(-3)$ \\
 \hline
 \end{tabular}
+\end{center}
+\footnotesize
+$^{(1)}$: \citet{Asplund2009} \\
+$^{(2)}$: based on a wide range of sources, with enhancement at the
+Wolfram Research Companies by both human and algorithmic
+processing. Accessed at
+\url{http://education.jlab.org/itselemental/index.html} \\
+$^{(3)}$: based on a wide range of sources, accessed at \url{http://periodictable.com/Properties/A/MeteoriteAbundance.an.log.html}
 \end{table}
 
 
@@ -274,8 +286,18 @@ abundances, for example solar abundances.
 \label{UpperBound}
 
 We specify the escaping element fluxes from the top of the atmosphere 
-by applying the formula for Jeans escape $\to$ \citet{Tian2015} as
-upper boundary condition of the model.
+by applying the formula for Jeans escape from \citet{Tian2015} as
+upper boundary condition of the model.  For molecule $i$ that is
+\begin{equation}
+  j_i = \frac{n_i v_{\rm th,i}}{2\sqrt{\pi}}
+        \left(\frac{v_{\rm esc}^2}{v_{\rm th,i}^2}+1\right)
+        \exp\left(-\frac{v_{\rm esc}^2}{v_{\rm th,i}^2}\right)
+\end{equation}
+where the thermal velocity of molecule $i$ is $v_{\rm th,i} =
+\sqrt{2kT_{\rm top}/m_i}$, $n_i$ its particle density, $m_i$ its mass
+and $T_{\rm top}$ is the temperature at the top of the atmosphere
+where this formula is applied to. The mass-independent escape velocity
+is $v_{\rm esc}=\sqrt{2GM/(R+z)}$.
 
 \noindent Where to apply that formula? $\to$ exobase $\to$ \citet{Volkov2011}.
 

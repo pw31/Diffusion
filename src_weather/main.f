@@ -11,8 +11,8 @@
       call INIT_ELEMENTS1
       call INIT_CHEMISTRY
       call INIT_DUSTCHEM
-      !call READ_STRUCTURE_PHOENIX
-      call READ_STRUCTURE_VPARM(-135,0)   ! night side
+      call READ_STRUCTURE_PHOENIX
+      !call READ_STRUCTURE_VPARM(-135,0)   ! night side
       call INIT_ELEMENTS2
       call INIT_GRID
       call INIT_DIFFUSION

@@ -1,7 +1,7 @@
 ***********************************************************************
       SUBROUTINE OUTPUT(num,time,dt)
 ***********************************************************************
-      use PARAMETERS,ONLY: model_name,logg
+      use PARAMETERS,ONLY: model_name,logg,Vl
       use NATURE,ONLY: bk,bar,amu,mel,pi,mic
       use CHEMISTRY,ONLY: NELM,NMOLE,elnum,cmol,catm,el,charge,molmass
       use DUST_DATA,ONLY: NDUST,dust_nam,dust_mass,dust_Vol,
@@ -61,7 +61,7 @@
      &     status='replace')
       write(70,*) 't=',time
       write(70,*) NOUT,NMOLE,NDUST,NEPS,NNUC,Npoints
-      write(70,2000) 'Tg','nHges','pges','Dmix','el',
+      write(70,2000) 'Tg','nHges','pges','Dmix','rho','el',
      &               (trim(elnam(elnum(j))),j=1,el-1),
      &               (trim(elnam(elnum(j))),j=el+1,NELM),
      &               (trim(cmol(i)),i=1,NMOLE),
@@ -69,7 +69,9 @@
      &               ('n'//trim(short_name(i)),i=1,NDUST),
      &               ('eps'//trim(elnam(elnum(j))),j=1,el-1),
      &               ('eps'//trim(elnam(elnum(j))),j=el+1,NELM),
-     &               'dust/gas','dustVol/H','<a>[mic]',
+     &               'dust/gas','dustVol/H',
+     &               'L0','L1','L2','L3','L4',
+     &               'rhod','<a>[mic]',
      &               ('Jstar('//trim(nuc_nam(j))//')',j=1,NNUC),
      &               ('Nstar('//trim(nuc_nam(j))//')',j=1,NNUC),
      &               'vd0','vd1','vd2','vd3','vdrift0',
@@ -108,8 +110,8 @@
           amean   = (3.d0/(4.d0*pi)*rhoL(3)/rhoL(0))**(1.d0/3.d0)
           bmix(:) = rhoL3(:,ip)/rhoL(3)
         else
-          amean   = 0.d0
-          bmix(:) = 1.d0
+          amean   = (3.d0*Vl/(4.d0*pi))**(1.0/3.0)
+          bmix(:) = 1.d0/REAL(NDUST)
         endif  
         rhod = 0.0
         do j=1,NDUST
@@ -190,6 +192,7 @@
         !--- compute mean drift velocities ---
         vdrift0 = (SQRT(pi)*g*rhod*amean)/(2.0*rhog*cT)
         vdrift(:) = vdrift0
+        LL(:) = 0.0
         if (rhodust/rhog>1.E-50) then
           LL(0:3) = rhoLj(0:3,ip)/rhog
           LL(4) = CLOSURE(ip,LL(0),LL(1),LL(2),LL(3),0)
@@ -206,7 +209,7 @@
           enddo
         endif  
 
-        write(70,2010) Tg,nH,pp,Diff(ip),
+        write(70,2010) Tg,nH,pp,Diff(ip),rhog,
      &       LOG10(MAX(1.Q-300, nel)),   
      &      (LOG10(MAX(1.Q-300, nat(elnum(j)))),j=1,el-1),
      &      (LOG10(MAX(1.Q-300, nat(elnum(j)))),j=el+1,NELM),
@@ -215,9 +218,10 @@
      &      (LOG10(MAX(1.Q-300, eldust(j))),j=1,NDUST),
      &      (LOG10(eps(elnum(j))),j=1,el-1),
      &      (LOG10(eps(elnum(j))),j=el+1,NELM),
-     &       LOG10(MAX(1.Q-300, rhodust/rhog)),
-     &       LOG10(MAX(1.Q-300, dustV)),
-     &       amean/mic,
+     &       LOG10(MAX(1.Q-300,rhodust/rhog)),
+     &       LOG10(MAX(1.Q-300,dustV)),
+     &      (LOG10(MAX(1.Q-300,LL(j))),j=0,4),
+     &       rhod,amean/mic,
      &      (LOG10(MAX(1.Q-300, Jst(j))),j=1,NNUC), 
      &      (MIN(999999.99999,Nst(j)),j=1,NNUC),
      &      (MAX(1.Q-7,vdrift(j)),j=0,3),
@@ -246,7 +250,7 @@
  1000 format(4(' eps(',a2,') = ',1pD8.2))
  1010 format(A4,0pF8.2,3(a6,1pE9.2),1(a11,1pE9.2))
  2000 format(9999(1x,A19))
- 2010 format(0pF20.6,3(1pE20.6),9999(0pF20.7))
+ 2010 format(0pF20.6,4(1pE20.6),9999(0pF20.7))
  3000 format(9999(A20))
  3010 format(9999(1pE20.7))
       end  

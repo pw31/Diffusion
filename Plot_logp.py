@@ -129,12 +129,16 @@ plt.clf()
 fig,ax = plt.subplots()
 ymax = -100.0
 count = 3
-for i in range(8+2*NELEM+NMOLE+2*NDUST,8+2*NELEM+NMOLE+2*NDUST+NNUC,1):
-  log10_Jstar = dat[:,i]
-  ym = np.max(log10_Jstar)
-  plt.plot(lp,log10_Jstar,c=colo[count],lw=3,linestyle='solid',label=keyword[i])
-  count = count+1
-  ymax = np.max([ymax,ym])
+nuc = ('TiO2','SiO','KCl','C')
+for i in range(0,4):
+  ind = np.where(keyword=='Jstar('+nuc[i]+')')[0]
+  print nuc[i],ind
+  if (len(ind)>0):
+    log10_Jstar = dat[:,ind[0]]
+    ym = np.max(log10_Jstar)
+    plt.plot(lp,log10_Jstar,c=colo[count],lw=3,linestyle='solid',label=nuc[i])
+    count = count+1
+    ymax = np.max([ymax,ym])
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\log_{10}\ J_{\!\star}\ \mathrm{[cm^{-3}s^{-1}]}$',fontsize=20)
 plt.xlim(pmin,pmax)
@@ -178,13 +182,13 @@ ymax = -99.0
 ymin = +99.0
 for k,l in zip(key,label):
   ind = np.where(keyword==k)[0][0]
-  vdr = dat[:,ind]/100
-  ind = np.where(vdr>1.E-6)
+  vdr = dat[:,ind]
+  ind = np.where(vdr>1.E-4)
   ymax = np.max([ymax,2*np.max(vdr[ind])])
   ymin = np.min([ymin,0.5*np.min(vdr[ind])])
   plt.plot(lp[ind],vdr[ind],linewidth=2.0,label=l)
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
-plt.ylabel(r'$\langle v_{\rm dr}\rangle \ \mathrm{[m/s]}$',fontsize=20)
+plt.ylabel(r'$\langle v_{\rm dr}\rangle \ \mathrm{[cm/s]}$',fontsize=20)
 plt.xlim(pmin,pmax)
 ymin = np.min([ymin,ymax/100.0])
 plt.yscale('log')
@@ -239,8 +243,9 @@ ymax = -100.0
 fig,ax = plt.subplots()
 count = 0
 nsolid = np.zeros(NPOINT)
-i1 = 5+NELEM+NMOLE
-i2 = 5+NELEM+NMOLE+NDUST
+N0 = np.where(keyword=='el')[0][0]+1
+i1 = N0+NELEM+NMOLE
+i2 = N0+NELEM+NMOLE+NDUST
 ymax = np.max(dat[iii,i1+NDUST:i2+NDUST])
 ymin = ymax-12
 ymax = ymax+0.3
@@ -275,8 +280,8 @@ plt.clf()
 
 #================ solid volume composition ===================
 fig,ax = plt.subplots()
-i1 = 5+NELEM+NMOLE
-i2 = 5+NELEM+NMOLE+NDUST
+i1 = N0+NELEM+NMOLE
+i2 = N0+NELEM+NMOLE+NDUST
 count = 0
 ymin = -10.0
 for i,c,s in zip(range(i1,i2,1),colo,styl):
@@ -313,7 +318,7 @@ plt.clf()
 #================== supersaturation ratios ===================
 fig,ax = plt.subplots()
 count = 0
-for i in range(5+NELEM+NMOLE,5+NELEM+NMOLE+NDUST,1):
+for i in range(N0+NELEM+NMOLE,N0+NELEM+NMOLE+NDUST,1):
   solid = keyword[i]
   solid = solid[1:]
   ind = np.where(keyword == 'S'+solid)[0]
@@ -346,7 +351,7 @@ plt.clf()
 fig,ax = plt.subplots()
 count = 0
 ymax = -100.0
-for i in range(5+NELEM+NMOLE+2*NDUST,5+NELEM+NMOLE+2*NDUST+NELEM,1):
+for i in range(N0+NELEM+NMOLE+2*NDUST,N0+NELEM+NMOLE+2*NDUST+NELEM,1):
   elm = keyword[i]
   element = elm[3:]
   yy = dat[:,i]               # log10 eps
@@ -376,11 +381,11 @@ fig,ax = plt.subplots()
 mols  = ['H2','H','N2','H2O','O2','CO','CO2','CH4','NH3','C2H2','el']
 mols  = np.array(mols)
 ntot  = 0.0*nHtot
-for i in range(4,5+NELEM+NMOLE): # electrons, all atoms, ions and cations
+for i in range(N0-1,N0+NELEM+NMOLE): # electrons, all atoms, ions and cations
   ntot = ntot + 10**dat[:,i]
 lntot = np.log10(ntot)
 count = 0
-for i in range(4,5+NELEM+NMOLE): 
+for i in range(N0-1,N0+NELEM+NMOLE): 
   mol = keyword[i]
   yy = dat[:,i]-lntot            # log10 nmol/ntot
   crit = -1.5
@@ -410,7 +415,7 @@ allist = [' ',' ',' ',' ','Si',' ','Na','Cl','Ca','Ti',' ','Al','Mg','Fe','Li','
 exlist = [' He ',' Cl CL Ca CA Cr CR Co Cu CU ',' ',' Na NA Ni NI ',' ',' Si SI Sr SR ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' Fe FE ',' ',' ',' ',' ',' ',' ',' ',' ',' Br BR ',' ',' ',' ',' ',' ']
 titels = ['hydrogen','carbon','oxygen','nitrogen','silicon','sulphur','sodium','chlorine','calcium','titanium','potassium','aluminum','magnesium','iron','lithium','fluorine','phosphorus','nickel','manganese','chromium','zinc','zirconium','rubidium','copper','boron','bromine','vanadium','strontium','tungston','charge carriers']
 limits = [2,5,2.5,6,6,5,6,4,7,8,6,6,6,6,7,6,6,6,6,6,6,6,6,6,6,6,6,6,6,5]   
-abund = np.zeros(5+NELEM+NMOLE, dtype=np.int)
+abund = np.zeros(N0+NELEM+NMOLE, dtype=np.int)
 for i in range(0,30):
   fig,ax = plt.subplots()
   el = ellist[i]
@@ -424,7 +429,7 @@ for i in range(0,30):
   mollist = []
   abulist = []
   maxy = 0.0*dat[:,0]
-  for mol in range(4,5+NELEM+NMOLE,1):
+  for mol in range(N0-1,N0+NELEM+NMOLE,1):
     molname = keyword[mol]
     ind = str.find(molname,el)
     if (ind < 0): 
@@ -495,7 +500,7 @@ for i in range(0,30):
 print 'having not plotted these molecules ...'
 Nnot = 0
 out = ' '
-for mol in range(4,5+NELEM+NMOLE,1):
+for mol in range(N0-1,N0+NELEM+NMOLE,1):
   if (abund[mol]==0): 
     out = out + keyword[mol] + ' '
     Nnot = Nnot+1
