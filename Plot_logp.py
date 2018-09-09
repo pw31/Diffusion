@@ -16,10 +16,9 @@ files = sorted(files)
 Narg  = len(sys.argv)
 last  = len(files)-1 
 file  = files[last]
-print file
 if (Narg>1):  
   file = "weather_%08d.dat" % np.int(sys.argv[1])
-  print file
+print file
 data   = open(file)
 titel  = data.readline()
 dimens = data.readline()
@@ -38,12 +37,26 @@ NPOINT = len(dat[0:])
 time = np.float(titel.split()[1])
 day = 3600.*24.
 out = "t ={:10.5f} days".format(time/day)
+print out
 
 bar   = 1.E+6                    # 1 bar in dyn/cm2 
 Tg    = dat[:,0]                 # T [K]
 nHtot = dat[:,1]                 # n<H> [cm-3]
 press = dat[:,2]/bar             # p [bar]
 Diff  = dat[:,3]                 # diffusion coefficient cm2/s
+haveL = 0
+ind = np.where(keyword=='L0')[0]
+if (len(ind)>0):
+  haveL = 1
+  rho = dat[:,4]
+  L0  = 10**dat[:,ind[0]]
+  ind = np.where(keyword=='L1')[0][0]             
+  L1  = 10**dat[:,ind]
+  ind = np.where(keyword=='L2')[0][0]             
+  L2  = 10**dat[:,ind]
+  ind = np.where(keyword=='L3')[0][0]             
+  L3  = 10**dat[:,ind]
+
 lognH = np.log10(nHtot)          
 lp    = np.log10(press)
 pmin  = np.min(lp)
@@ -136,13 +149,14 @@ for i in range(0,4):
   if (len(ind)>0):
     log10_Jstar = dat[:,ind[0]]
     ym = np.max(log10_Jstar)
-    plt.plot(lp,log10_Jstar,c=colo[count],lw=3,linestyle='solid',label=nuc[i])
-    count = count+1
-    ymax = np.max([ymax,ym])
+    if (ym>-50):
+      plt.plot(lp,log10_Jstar,c=colo[count],lw=3,linestyle='solid',label=nuc[i])
+      count = count+1
+      ymax = np.max([ymax,ym])
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\log_{10}\ J_{\!\star}\ \mathrm{[cm^{-3}s^{-1}]}$',fontsize=20)
 plt.xlim(pmin,pmax)
-plt.ylim(ymax-20,ymax+1)
+plt.ylim(ymax-30,ymax+1)
 plt.tick_params(axis='both', labelsize=15)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
@@ -152,17 +166,46 @@ plt.tight_layout()
 plt.savefig(pp,format='pdf')
 plt.clf()
 
+#================== particle number density ====================
+if (haveL):
+  nd = rho*L0
+  ndmax = np.log10(np.max(nd))+0.5
+  ndmin = ndmax-10
+  fig,ax = plt.subplots()
+  plt.plot(lp,np.log10(nd),color='black',linewidth=3,linestyle='solid')
+  plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
+  plt.ylabel(r'$\log_{10}\ n_d\ \mathrm{[cm^{-3}]}$',fontsize=20)
+  plt.xlim(pmin,pmax)
+  plt.ylim(ndmin,ndmax)
+  plt.tick_params(axis='both', labelsize=15)
+  plt.tick_params('both', length=6, width=1.5, which='major')
+  plt.tick_params('both', length=3, width=1, which='minor')
+  plt.tight_layout()
+  plt.savefig(pp,format='pdf')
+  plt.clf()
+
 #================== mean size ====================
 fig,ax = plt.subplots()
 ind = np.where(keyword=='<a>[mic]')[0][0]
 amean = dat[:,ind]
 ymax = np.max(amean)
 if (ymax>0):
-  plt.plot(lp,amean,color='black',linewidth=3)
+  if (haveL==1):
+    fac = (3.0/(4.0*np.pi))**(1.0/3.0)
+    mic = 1.E-4
+    a1mean = fac*(L1/L0)**(1.0/1.0)/mic
+    a2mean = fac*(L2/L0)**(1.0/2.0)/mic
+    a3mean = fac*(L3/L0)**(1.0/3.0)/mic
+    ind = np.where(L0>1.E-99)
+    plt.plot(lp[ind],a1mean[ind],color='orange',linewidth=2,label=r'$\langle a\rangle$')
+    plt.plot(lp[ind],a2mean[ind],color='green',linewidth=2,label=r'$\langle a^2\rangle^{1/2}$')
+    plt.plot(lp[ind],a3mean[ind],color='red',linewidth=2,label=r'$\langle a^3\rangle^{1/3}$')
+  else:
+    plt.plot(lp,amean,color='black',linewidth=3)
   plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
   plt.ylabel(r'$\langle a\rangle\ \mathrm{[\mu m]}$',fontsize=20)
   plt.xlim(pmin,pmax)
-  plt.ylim(1.E-3,ymax*3)
+  plt.ylim(1.E-4,ymax*3)
   plt.yscale('log')
   plt.tick_params(axis='both', labelsize=15)
   plt.tick_params('both', length=6, width=1.5, which='major')
@@ -170,6 +213,7 @@ if (ymax>0):
   ax.yaxis.set_minor_locator(LogLocator(subs=[2,3,4,5,6,7,8,9]))
   #minorLocator = MultipleLocator(sep)
   #ax.xaxis.set_minor_locator(minorLocator)
+  if (haveL==1): plt.legend()
   plt.tight_layout()
   plt.savefig(pp,format='pdf')
   plt.clf()
@@ -270,7 +314,7 @@ plt.ylim(ymin,ymax)
 plt.tick_params(axis='both', labelsize=14)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
-sz = np.min([11,1+195.0/count])
+sz = np.min([11,1+150.0/count])
 leg = plt.legend(loc='upper left',fontsize=11,fancybox=True,
                  handlelength=2.5,prop={'size':sz})
 leg.get_frame().set_alpha(0.7)
@@ -307,7 +351,7 @@ plt.ylim(ymin,0.3)
 plt.tick_params(axis='both', labelsize=14)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
-sz = np.min([11,1+195.0/count])
+sz = np.min([11,1+150.0/count])
 leg = plt.legend(loc='lower left',fontsize=11,fancybox=True,
                  handlelength=2.5,prop={'size':sz})
 leg.get_frame().set_alpha(0.7)
@@ -335,10 +379,10 @@ plt.ylim(-10,10)
 plt.tick_params(axis='both', labelsize=14)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
-sz = np.min([13,1+195.0/count])
+sz = np.min([11,1+150.0/count])
 col = 1
 if (count>30): 
-  sz = np.min([13,1+195.0/count*2])
+  sz = np.min([11,1+150.0*2/count])
   col = 2
 leg = plt.legend(loc='lower left',fontsize=10,fancybox=True,
                  handlelength=3,prop={'size':sz},ncol=col)
@@ -361,7 +405,7 @@ for i in range(N0+NELEM+NMOLE+2*NDUST,N0+NELEM+NMOLE+2*NDUST+NELEM,1):
 plt.xlabel(r'$\log_{10}\ p\ \mathrm{[bar]}$',fontsize=20)
 plt.ylabel(r'$\log\,\epsilon_{\rm gas}$',fontsize=20)
 plt.xlim(pmin,pmax)
-plt.ylim(ymax-15,-3)
+plt.ylim(ymax-20,-3)
 plt.tick_params(axis='both', labelsize=15)
 plt.tick_params('both', length=6, width=1.5, which='major')
 plt.tick_params('both', length=3, width=1, which='minor')
@@ -369,7 +413,7 @@ plt.tick_params('both', length=3, width=1, which='minor')
 #ax.xaxis.set_minor_locator(minorLocator)
 #minorLocator = MultipleLocator(1)
 #ax.yaxis.set_minor_locator(minorLocator)
-sz = np.min([11,1+195.0/count])
+sz = np.min([11,1+150.0/count])
 leg = plt.legend(loc='upper left',fontsize=sz,fancybox=True)
 leg.get_frame().set_alpha(0.7)
 plt.tight_layout()
@@ -485,10 +529,10 @@ for i in range(0,30):
   #if (nmax-nmin>100): minorLocator = MultipleLocator(5.0)
   #if (nmax-nmin>200): minorLocator = MultipleLocator(10.0)
   #ax.yaxis.set_minor_locator(minorLocator)
-  sz = np.min([11,1+195.0/count])
+  sz = np.min([11,1+150.0/count])
   col = 1
   if (count>30): 
-    sz = np.min([9,1+195.0/count*2])
+    sz = np.min([9,1+150.0/count*2])
     col = 2
   leg = plt.legend(loc='lower left',fontsize=10,fancybox=True,
                    handlelength=3,prop={'size':sz},ncol=col)

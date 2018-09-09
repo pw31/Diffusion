@@ -11,20 +11,23 @@ GOP_SIZE		6
 
 SLICES_PER_FRAME	1
 
-INPUT_DIR	        ~/Diffusion/output
+INPUT_DIR	        ~/Diffusion/output_55Cancrie
 
 INPUT
-frame_00000*.png [000-149]
-#eps_*.png [00001-00140]
-#dust_*.png [00001-00059]
+frame_00000*.png [000-590]
+#
+#eps_*.png [00065800-00096900+100]
+#dust_*.png [00030000-00100000+100]
 #dust_*.png [00060-00177+3]
 #dust_*.png [00180-00990+10]
 #dust_*.png [01000-42250+50]
+#
 #eps_*.png [00001-01399+2]
 #eps_*.png [00001-00059]
 #eps_*.png [00060-00177+3]
 #eps_*.png [00180-00990+10]
 #eps_*.png [01000-42250+50]
+#
 #nsolid_*.png [00001-00059]
 #nsolid_*.png [00060-00177+3]
 #nsolid_*.png [00180-00990+10]

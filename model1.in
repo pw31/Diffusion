@@ -1,8 +1,8 @@
-H He C N O Na Mg Si Fe Al Ti S Cl K el
+H He C N O Na Mg Si Fe Al Ti Ca S Cl K el
 
 1500K_3.5_nodustdiff_beta0.8_evap2                 ! model_name
 Structures/BD_DriftPhoenix/lte_1500_3.5-0.0.2d     ! struc_file
-DustChem12a.dat                                    ! dustchem_file
+DustChem12b.dat                                    ! dustchem_file
 
 0.8      ! beta
 2        ! evap_model
