@@ -1,6 +1,5 @@
 # DIFFUSE   
 1D explicit/implicit/time-independent 2nd-order diffusion solver  
-
 (c) Peter Woitke, 2017  (pw31@st-and.ac.uk)  
 
 ### To checkout the git repository and compile the code, type  
