@@ -1,0 +1,13 @@
+2Drift_1600.data
+5 to 3.E-9 bar
+
+beta   time
+0.6    0.03 yrs
+0.8    0.1 yrs
+1.0    0.3 yrs
+1.2    1.0 yrs
+1.4    2.0 yrs
+1.6    4.0 yrs
+1.8    10 yrs
+2.0    20 yrs
+2.2    30 yrs
