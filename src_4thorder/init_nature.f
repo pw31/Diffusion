@@ -18,7 +18,6 @@
       grav    = 6.6725985000000E-08 ! gravitational constant
       NA      = 6.0221417900000E+23 ! Avogadro constant
       pi      = ACOS(-1.d0)
-
 !     ---------------------------
 !     ***  derived constants  ***
 !     ---------------------------

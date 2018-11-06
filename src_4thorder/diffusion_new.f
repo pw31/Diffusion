@@ -14,7 +14,6 @@
       real*8 :: ww,AA,z0,x1ana,xNana
       real*8 :: ntot,ntot2
       character :: CR = CHAR(13)
-
       !-------------------
       ! ***  timestep  ***
       !-------------------

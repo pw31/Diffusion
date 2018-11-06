@@ -25,7 +25,6 @@
         hr2(i) = zz(i+2)-zz(i)
       enddo
 
-
       !--- compute 1st and 2nd derivative coefficients ---
       do i=3,N-2 !needs adjustment
         d1l2(i) = -(hl1(i)*hr1(i)*hr2(i))/((hl1(i)-hl2(i))*hl2(i)*

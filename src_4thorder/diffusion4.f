@@ -61,7 +61,6 @@
      >         + d1r2(i)*nHtot(i+2)*Diff(i+2)
           rate(i) = nD*d2 + d1nD*d1
         enddo
-
 !add the boundary matrix elements for i=1,2,N-1,N
 
 

@@ -26,6 +26,7 @@ c      else
 c        write(*,*) 'linear equation system not solvable with DGESV'
 c      endif
 
+
       do 500 i=1,N-1
 *       ------------------------------------------
 *       ***  MAX-Zeilentausch der i-ten Zeile  ***      

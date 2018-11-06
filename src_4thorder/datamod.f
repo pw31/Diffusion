@@ -34,7 +34,6 @@
       real,allocatable :: d2l2(:),d2l1(:),d2m(:),d2r1(:),d2r2(:)  ! second derivatives
       real,allocatable :: xx(:)                 ! concentration
       end
-
 ************************************************************************
       module STRUCT
 ************************************************************************
