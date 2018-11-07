@@ -12,7 +12,7 @@
       !-----------------------------
       allocate(zz(Npoints),Diff(Npoints),nHtot(Npoints))
       do i=1,Npoints
-        zz(i) = Hp*(REAL(i-1)/REAL(Npoints-1))**1.2
+        zz(i) = Hp*(REAL(i-1)/REAL(Npoints-1))**1.1
         nHtot(i) = 1.0                   ! density
         !nHtot(i) = 100.0*exp(-zz(i)/Hp)
         Diff(i)  = 1.0                   ! diffusion coefficient

@@ -50,19 +50,59 @@
         rate(:) = 0.0
         do i=3,N-2
           nD   = nHtot(i)*Diff(i)  
-          d1   = d1l2(i)*xx(i-2) + d1l1(i)*xx(i-1) + d1m(i)*xx(i) +
-     >d1r1(i)*xx(i+1) + d1r1(i)*xx(i+2)
-          d2   = d2l2(i)*xx(i-2) + d2l1(i)*xx(i-1) + d2m(i)*xx(i) +
-     >d2r1(i)*xx(i+1) + d2r2(i)*xx(i+2)
+          d1   = d1l2(i)*xx(i-2)
+     >         + d1l1(i)*xx(i-1)
+     >         + d1m(i) *xx(i) 
+     >         + d1r1(i)*xx(i+1)
+     >         + d1r2(i)*xx(i+2)
+          d2   = d2l2(i)*xx(i-2)
+     >         + d2l1(i)*xx(i-1)
+     >         + d2m(i) *xx(i) 
+     >         + d2r1(i)*xx(i+1)
+     >         + d2r2(i)*xx(i+2)
           d1nD = d1l2(i)*nHtot(i-2)*Diff(i-2)
      >         + d1l1(i)*nHtot(i-1)*Diff(i-1)
-     >         + d1m(i)*nHtot(i)  *Diff(i) 
+     >         + d1m(i) *nHtot(i)  *Diff(i) 
      >         + d1r1(i)*nHtot(i+1)*Diff(i+1)
      >         + d1r2(i)*nHtot(i+2)*Diff(i+2)
           rate(i) = nD*d2 + d1nD*d1
         enddo
-!add the boundary matrix elements for i=1,2,N-1,N
-
+        !--- i=2 ---
+        nD   = nHtot(2)*Diff(2)  
+        d1   = d1l2(2)*xx(1)
+     >       + d1l1(2)*xx(2)
+     >       + d1m(2) *xx(3) 
+     >       + d1r1(2)*xx(4)
+     >       + d1r2(2)*xx(5)
+        d2   = d2l2(2)*xx(1)
+     >       + d2l1(2)*xx(2)
+     >       + d2m(2) *xx(3) 
+     >       + d2r1(2)*xx(4)
+     >       + d2r2(2)*xx(5)
+        d1nD = d1l2(2)*nHtot(1)*Diff(1)
+     >       + d1l1(2)*nHtot(2)*Diff(2)
+     >       + d1m(2) *nHtot(3)*Diff(3) 
+     >       + d1r1(2)*nHtot(4)*Diff(4)
+     >       + d1r2(2)*nHtot(5)*Diff(5)
+        rate(2) = nD*d2 + d1nD*d1
+        !--- i=N-1 ---
+        nD   = nHtot(N-1)*Diff(N-1)  
+        d1   = d1l2(N-1)*xx(N-4)
+     >       + d1l1(N-1)*xx(N-3)
+     >       + d1m(N-1) *xx(N-2) 
+     >       + d1r1(N-1)*xx(N-1)
+     >       + d1r2(N-1)*xx(N)
+        d2   = d2l2(N-1)*xx(N-4)
+     >       + d2l1(N-1)*xx(N-3)
+     >       + d2m(N-1) *xx(N-2) 
+     >       + d2r1(N-1)*xx(N-1)
+     >       + d2r2(N-1)*xx(N)
+        d1nD = d1l2(N-1)*nHtot(N-4)*Diff(N-4)
+     >       + d1l1(N-1)*nHtot(N-3)*Diff(N-3)
+     >       + d1m(N-1) *nHtot(N-2)*Diff(N-2) 
+     >       + d1r1(N-1)*nHtot(N-1)*Diff(N-1)
+     >       + d1r2(N-1)*nHtot(N)  *Diff(N)
+        rate(N-1) = nD*d2 + d1nD*d1
 
         !----------------------------
         ! ***  explicit timestep  ***
@@ -89,26 +129,40 @@
         endif  
         nD = nHtot(1)*Diff(1)  
         if (bc_low==1) then
-          influx = -nD*(d1l2(1)*xx(1) + d1l1(1)*xx(2) + d1m(1)*xx(3) +
-     >d1r1(1)*xx(4) + d1r2(1)*xx(5))
+          influx = -nD*( d1l2(1)*xx(1)
+     >                  +d1l1(1)*xx(2)
+     >                  + d1m(1)*xx(3) 
+     >                  +d1r1(1)*xx(4)
+     >                  +d1r2(1)*xx(5))
         else if (bc_low==2) then   
-          xx(1) = (-influx/nD - d1l1(1)*xx(2) - d1m(1)*xx(3) -
-     >d1r1(1)*xx(4) - d1r2(1)*xx(5))/d1l2(1)
+          xx(1) = (-influx/nD -d1l1(1)*xx(2)
+     >                        -d1m(1) *xx(3)
+     >                        -d1r1(1)*xx(4)
+     >                        -d1r2(1)*xx(5) )/d1l2(1)
         else if (bc_low==3) then   
-          xx(1) = -(d1l1(1)*xx(2) + d1m(1)*xx(3) + d1r1(1)*xx(4) +
-     >d1r2(1)*XX(5))/(d1l1(1) + inrate*vin/Diff(1))
+          xx(1) = -( d1l1(1)*xx(2)
+     >              +d1m(1) *xx(3)
+     >              +d1r1(1)*xx(4)
+     >              +d1r2(1)*xx(5) )/(d1l2(1) + inrate*vin/Diff(1))
         endif  
         nD = nHtot(N)*Diff(N)  
         if (bc_high==1) then
-          outflux = -nD*(d1l2(N)*xx(N-4) + d1l1(N)*xx(N-3) +
-     >d1m(N)*xx(N-2) + d1r1(N)*xx(N-1) + d1r2(N)*xx(N))
+          outflux = -nD*( d1l2(N)*xx(N-4)
+     >                   +d1l1(N)*xx(N-3)
+     >                   +d1m(N) *xx(N-2)
+     >                   +d1r1(N)*xx(N-1)
+     >                   +d1r2(N)*xx(N)  )
         else if (bc_high==2) then   
-          xx(N) = (-outflux/nD - d1l2(N)*xx(N-4) - d1l1(N)*xx(N-3) -
-     >d1m(N)*xx(N-2) - d1r1(N)*xx(N-1))/d1r2(N)
+          xx(N) = (-outflux/nD -d1l2(N)*xx(N-4)
+     >                         -d1l1(N)*xx(N-3) 
+     >                         -d1m(N) *xx(N-2)
+     >                         -d1r1(N)*xx(N-1) )/d1r2(N)
         else if (bc_high==3) then   
           outflux = nHtot(N)*xx(N)*outrate*vout  
-          xx(N) = -(d1l2(N)*xx(N-4) + d1l1(N)*xx(N-3) + d1m(N)*xx(N-2) +
-     >d1r1(N)*xx(N-1))/(d1r2(N) + outrate*vout/Diff(N))
+          xx(N) = -( d1l2(N)*xx(N-4)
+     >              +d1l1(N)*xx(N-3)
+     >              +d1m(N) *xx(N-2) 
+     >              +d1r1(N)*xx(N-1) )/(d1r2(N) + outrate*vout/Diff(N))
         endif   
         ntot = ntot + (influx - outflux)*dt
         
@@ -128,20 +182,35 @@
       do i=1,N
         nD = nHtot(i)*Diff(i)
         if (i==1) then
-          d1 = d1l2(1)*xx(1)+d1l2(1)*xx(2)+d1m(1)*xx(3)+d1r1(1)*xx(4)+
-     >d1r2(1)*xx(5)
-        else if (i==N) then
-          d1 = d1l2(N)*xx(N-4)+d1l1(N)*xx(N-3)+d1m(N)*xx(N-2)+
-     >d1r1(N)*xx(N-1)+d1r2(N)*xx(N)
+          d1 = d1l2(1)*xx(1)
+     >        +d1l1(1)*xx(2)
+     >        +d1m(1) *xx(3)
+     >        +d1r1(1)*xx(4)
+     >        +d1r2(1)*xx(5)
         else if (i==2) then
-          d1 = d1l2(2)*xx(1)+d1l2(2)*xx(2)+d1m(2)*xx(3)+d1r1(2)*xx(4)+
-     >d1r2(2)*xx(5)
+          d1 = d1l2(2)*xx(1)
+     >        +d1l1(2)*xx(2)
+     >        +d1m(2) *xx(3)
+     >        +d1r1(2)*xx(4)
+     >        +d1r2(2)*xx(5)
         else if (i==N-1) then
-          d1 = d1l2(N-1)*xx(N-4)+d1l1(N-1)*xx(N-3)+d1m(N-1)*xx(N-2)+
-     >d1r1(N-1)*xx(N-1)+d1r2(N-1)*xx(N)
+          d1 = d1l2(N-1)*xx(N-4)
+     >        +d1l1(N-1)*xx(N-3)
+     >        +d1m(N-1) *xx(N-2)
+     >        +d1r1(N-1)*xx(N-1)
+     >        +d1r2(N-1)*xx(N)
+        else if (i==N) then
+          d1 = d1l2(N)*xx(N-4)
+     >        +d1l1(N)*xx(N-3)
+     >        +d1m(N) *xx(N-2)
+     >        +d1r1(N)*xx(N-1)
+     >        +d1r2(N)*xx(N)
         else
-          d1 = d1l2(i)*xx(i-2)+d1l1(i)*xx(i-1)+d1m(i)*xx(i)+
-     >d1r1(i)*xx(i+1)+d1r2(i)*xx(i+2)
+          d1 = d1l2(i)*xx(i-2)
+     >        +d1l1(i)*xx(i-1)
+     >        +d1m(i) *xx(i)
+     >        +d1r1(i)*xx(i+1)
+     >        +d1r2(i)*xx(i+2)
         endif
         jdiff = -nD*d1
         print'(I4,0pF12.5,99(1pE12.4))',i,zz(i)/Hp,xx(i),jdiff

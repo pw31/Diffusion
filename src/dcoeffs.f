@@ -5,9 +5,9 @@
       use PARAMETERS,ONLY: Hp
       implicit none
       integer :: i
-      real*8 :: k,df,df2,h1,h2
-      real*8,allocatable,dimension(:) :: hl,hr,f0,f1,f2
-      logical :: test=.true.
+      real :: k,df,df2,h1,h2,x
+      real,allocatable,dimension(:) :: hl,hr,f0,f1,f2
+      logical :: test=.false.
 
       allocate(hl(2:N),hr(1:N-1))
       allocate(d1l(1:N),d1m(1:N),d1r(1:N))
@@ -54,9 +54,10 @@
           f0(i) = sin(k*zz(i))        ! test function
           f1(i) = cos(k*zz(i))*k        
           f2(i) =-sin(k*zz(i))*k**2
-          !f0(i) = 2.0*zz(i)**2-zz(i)+0.5
-          !f1(i) = 4.0*zz(i)-1.0
-          !f2(i) = 4.0
+          x = zz(i)/Hp 
+          f0(i) =  0.5*x**4 -1.0*x**3 +2.0*x**2 -3.0*x + 4.0
+          f1(i) = (2.0*x**3 -3.0*x**2 +4.0*x    -3.0)/Hp
+          f2(i) = (6.0*x**2 -6.0*x    +4.0          )/Hp**2
         enddo
         do i=1,N
           if (i==1) then
