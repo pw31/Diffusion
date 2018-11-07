@@ -5,9 +5,9 @@
       use PARAMETERS,ONLY: Hp
       implicit none
       integer :: i
-      real*8 :: k,df,h1,h2
+      real*8 :: k,df,df2,h1,h2
       real*8,allocatable,dimension(:) :: hl,hr,f0,f1,f2
-      logical :: test=.false.
+      logical :: test=.true.
 
       allocate(hl(2:N),hr(1:N-1))
       allocate(d1l(1:N),d1m(1:N),d1r(1:N))
@@ -54,22 +54,24 @@
           f0(i) = sin(k*zz(i))        ! test function
           f1(i) = cos(k*zz(i))*k        
           f2(i) =-sin(k*zz(i))*k**2
-          f0(i) = 2.0*zz(i)**2-zz(i)+0.5
-          f1(i) = 4.0*zz(i)-1.0
-          f2(i) = 4.0
+          !f0(i) = 2.0*zz(i)**2-zz(i)+0.5
+          !f1(i) = 4.0*zz(i)-1.0
+          !f2(i) = 4.0
         enddo
-        do i=2,N-1
-          df = f0(i-1)*d1l(i) + f0(i)*d1m(i) + f0(i+1)*d1r(i)
-          print'(I4,2(0pF12.6),0pF10.6)',i,f1(i),df,f1(i)-df
+        do i=1,N
+          if (i==1) then
+            df  = f0(1)*d1l(1) + f0(2)*d1m(1) + f0(3)*d1r(1) 
+            df2 = 0.0
+          else if (i==N) then
+            df  = f0(N-2)*d1l(N) + f0(N-1)*d1m(N) + f0(N)*d1r(N) 
+            df2 = 0.0
+          else
+            df  = f0(i-1)*d1l(i) + f0(i)*d1m(i) + f0(i+1)*d1r(i)
+            df2 = f0(i-1)*d2l(i) + f0(i)*d2m(i) + f0(i+1)*d2r(i) 
+          endif  
+          print'(I4,99(1pE13.4))',i,f0(i),zz(i),
+     >          f1(i),df,f1(i)-df,f2(i),df2,f2(i)-df2
         enddo
-        do i=2,N-1
-          df = f0(i-1)*d2l(i) + f0(i)*d2m(i) + f0(i+1)*d2r(i)
-          print'(I4,2(0pF12.6),0pF10.6)',i,f2(i),df,f2(i)-df
-        enddo
-        df = f0(1)*d1l(1) + f0(2)*d1m(1) + f0(3)*d1r(1) 
-        print'(I4,2(0pF12.6),0pF10.6)',1,f1(1),df,f1(1)-df
-        df = f0(N-2)*d1l(N) + f0(N-1)*d1m(N) + f0(N)*d1r(N) 
-        print'(I4,2(0pF12.6),0pF10.6)',N,f1(N),df,f1(N)-df
         stop
       endif  
 

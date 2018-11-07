@@ -8,6 +8,7 @@ src*/*.mod
 src*/makefile
 src*/*~
 diffuse
+diffuse4
 out.*
 output*
 gmon.out

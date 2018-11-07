@@ -6,7 +6,7 @@
       use PARAMETERS,ONLY: Hp
       implicit none
       integer :: i
-      real*8 :: k,df,h1, h2, df2
+      real*8 :: k,x,h,df,df2
       real*8,allocatable,dimension(:) :: hl1, hl2, hr1, hr2,f0,f1,f2
       logical :: test=.true.
 
@@ -26,7 +26,11 @@
       enddo
 
       !--- compute 1st and 2nd derivative coefficients ---
-      do i=3,N-2 !needs adjustment
+      do i=3,N-2 
+
+        !d1l(i) = -hr(i)/((hr(i)+hl(i))*hl(i))
+        !d1m(i) =  (hr(i)-hl(i))/(hl(i)*hr(i))
+        !d1r(i) =  hl(i)/((hr(i)+hl(i))*hr(i))
         d1l2(i) = -(hl1(i)*hr1(i)*hr2(i))/((hl1(i)-hl2(i))*hl2(i)*
      >(hl2(i)+hr1(i))*(hl2(i)+hr2(i)))
         d1l1(i) = (hl2(i)*hr1(i)*hr2(i))/(hl1(i)*(hl1(i)-hl2(i))*
@@ -37,9 +41,10 @@
      >(hl2(i)+hr1(i))*(hr2(i)-hr1(i)))
         d1r2(i) = (hl1(i)*hl2(i)*hr1(i))/((hr1(i)-hr2(i))*hr2(i)*
      >(hl1(i)+hr2(i))*(hl2(i)+hr2(i)))
-        !d1l(i) = -hr(i)/((hr(i)+hl(i))*hl(i))
-        !d1m(i) =  (hr(i)-hl(i))/(hl(i)*hr(i))
-        !d1r(i) =  hl(i)/((hr(i)+hl(i))*hr(i))
+
+        !d2l(i) =  2.0/((hr(i)+hl(i))*hl(i))
+        !d2m(i) = - 2.0/(hr(i)*hl(i))
+        !d2r(i) =  2.0/((hr(i)+hl(i))*hr(i))
         d2l2(i) = (-2*hr1(i)*hr2(i)+2*hl1(i)*(hr1(i)+hr2(i)))/
      >((hl1(i)-hl2(i))*hl2(i)*(hl2(i)+hr1(i))*(hl2(i)+hr2(i)))
         d2l1(i) = (2*hr1(i)*hr2(i)-2*hl2(i)*(hr1(i)+hr2(i)))/(hl1(i)*
@@ -51,10 +56,6 @@
         d2r2(i) = (-2*hl1(i)*hl2(i)+2*(hl1(i)+hl2(i))*hr1(i))/((hr1(i)-
      >hr2(i))*hr2(i)*(hl1(i)+hr2(i))*(hl2(i)+hr2(i)))
 
-
-        !d2l(i) =  2.0/((hr(i)+hl(i))*hl(i))
-        !d2m(i) = - 2.0/(hr(i)*hl(i))
-        !d2r(i) =  2.0/((hr(i)+hl(i))*hr(i))
       enddo
 
       !--- compute 1st and 2nd derivative coefficients at inner point of boundaries ---
@@ -75,7 +76,6 @@
      >(hr1(2) - hr2(2))*(hr1(2) - hl2(2)))
       d1r2(2)  =(hl1(2)*hr1(2)*hl2(2))/((hl1(2) - hr2(2))*hr2(2)*
      >(-hr1(2) + hr2(2))*(hr2(2) - hl2(2)))
-
 
       d2l2(2)  =-(2.0*(hr1(2)*hr2(2) + hl1(2)*(hr1(2) + hr2(2))))/
      >((hl1(2) - hl2(2))*hl2(2)*(-hr1(2) + hl2(2))*(-hr2(2) + hl2(2)))
@@ -156,16 +156,19 @@
      >(-hr2(N) + hl1(N))*(-hr2(N) + hl2(N)))
       d1r2(N)  = -(1.0)/(hr2(N))-(1.0)/(hr1(N))-(hl1(N)+hl2(N))/
      >(hl1(N)*hl2(N))
+
+
       if (test) then
-!--- test derivatives ---
+        !--- test derivatives ---
         k = 3.0/Hp
         do i=1,N
           f0(i) = sin(k*zz(i))        ! test function
           f1(i) = cos(k*zz(i))*k
           f2(i) =-sin(k*zz(i))*k**2
-          !f0(i) = 4.0*zz(i)**4+3*zz(i)**3+2.0*zz(i)**2-zz(i)+0.5
-          !f1(i) = 16.0*zz(i)**3+9.0*zz(i)**2+4.0*zz(i)-1.0
-          !f2(i) = 48.0*zz(i)**2+18.0*zz(i)+4.0
+          !x = zz(i)/Hp 
+          !f0(i) =  0.5*x**4 -1.0*x**3 +2.0*x**2 -3.0*x + 4.0
+          !f1(i) = (2.0*x**3 -3.0*x**2 +4.0*x    -3.0)/Hp
+          !f2(i) = (6.0*x**2 -6.0*x    +4.0          )/Hp**2
         enddo
         do i=1,N
           if (i==1) then
@@ -175,40 +178,38 @@
           else if (i==2) then
             df = f0(i-1)*d1l2(i) + f0(i)*d1l1(i) + f0(i+1)*d1m(i) +
      >           f0(i+2)*d1r1(i) + f0(i+3)*d1r2(i)
-            df2 =f0(i-1)*d2l2(i) + f0(i)*d2l1(i) + f0(i+1)*d2m(i) +
+            df2= f0(i-1)*d2l2(i) + f0(i)*d2l1(i) + f0(i+1)*d2m(i) +
      >           f0(i+2)*d2r1(i) + f0(i+3)*d2r2(i)
           else if (i==N-1) then
             df = f0(i-3)*d1l2(i) + f0(i-2)*d1l1(i) + f0(i-1)*d1m(i) +
      >           f0(i)*d1r1(i) + f0(i+1)*d1r2(i)
-            df2 =f0(i-3)*d2l2(i) + f0(i-2)*d2l1(i) + f0(i-1)*d2m(i) +
+            df2= f0(i-3)*d2l2(i) + f0(i-2)*d2l1(i) + f0(i-1)*d2m(i) +
      >           f0(i)*d2r1(i) + f0(i+1)*d2r2(i)
           else if (i==N) then
             df = f0(i-4)*d1l2(i) + f0(i-3)*d1l1(i) + f0(i-2)*d1m(i) +
      >           f0(i-1)*d1r1(i) + f0(i)*d1r2(i)
-            df2 = 0.0
+            df2= 0.0
           else
             df = f0(i-2)*d1l2(i) + f0(i-1)*d1l1(i) + f0(i)*d1m(i) +
      >           f0(i+1)*d1r1(i) + f0(i+2)*d1r2(i)
             df2= f0(i-2)*d2l2(i) + f0(i-1)*d2l1(i) + f0(i)*d2m(i) +
      >           f0(i+1)*d2r1(i) + f0(i+2)*d2r2(i)
           end if
-          if (i == 1) then
-            print'(I4,2(1pE13.4),99(1pE13.4))',
-     >i,f0(i),zz(i),f1(i),df,f1(i)-df,f2(i),df2,f2(i)-df2,zz(i+1)-zz(i)
+          if (i==1) then
+            h = zz(i+1)-zz(i) 
           else
-            print'(I4,2(1pE13.4),99(1pE13.4))',
-     >i,f0(i),zz(i),f1(i),df,f1(i)-df,f2(i),df2,f2(i)-df2,zz(i)-zz(i-1)
-          end if
-        !d2l2(i)*hl1(i)**2,d2l1(i)*hl1(i)**2,d2m(i)*hl1(i)**2,
-        !d2r1(i)*hl1(i)**2,d2r2(i)*hl1(i)**2
+            h = zz(i)-zz(i-1) 
+          endif
+          print'(I4,99(1pE13.4))',i,f0(i),zz(i),
+     >          f1(i),df,f1(i)-df,f2(i),df2,f2(i)-df2
+          !print'(I4,99(1pE20.12))',i,
+     >    !      d1l2(i)*h,d1l1(i)*h,d1m(i)*h,d1r1(i)*h,d1r2(i)*h
 
         enddo
         !check if the calculation in the boundary are correct
-
         !print'(I4,2(0pF12.6),0pF10.6)',2,f1(1),df,f1(1)-df
-
-!f0(i-1)*d2l1(i) +x f0(i)*d2m(i) + f0(i+1)*d2r1(i)
-         ! print'(I4,2(0pF12.6),0pF10.6)',i,f2(i),df,f2(i)-df
+        !f0(i-1)*d2l1(i) +x f0(i)*d2m(i) + f0(i+1)*d2r1(i)
+        !print'(I4,2(0pF12.6),0pF10.6)',i,f2(i),df,f2(i)-df
         !enddo
         !df = f0(1)*d1l1(1) + f0(2)*d1m(1) + f0(3)*d1r1(1)
         !print'(I4,2(0pF12.6),0pF10.6)',1,f1(1),df,f1(1)-df
