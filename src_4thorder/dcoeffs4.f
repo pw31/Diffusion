@@ -2,11 +2,11 @@
       subroutine DCOEFFS
 ************************************************************************
       use GRID,ONLY: N=>Npoints,zz,d1l2,d1l1,d1m,d1r1,d1r2,d2l2,d2l1,
-     >d2m,d2r1,d2r2
+     >               d2m,d2r1,d2r2
       use PARAMETERS,ONLY: Hp
       implicit none
       integer :: i
-      real :: k,x,h,df,df2,hm1,hm2,hp1,hp2
+      real :: k,h,df,df2,hm1,hm2,hp1,hp2
       real,allocatable,dimension(:) :: hl1,hl2,hr1,hr2,f0,f1,f2
       logical :: test=.false.
 
@@ -28,33 +28,27 @@
       !--- compute 1st and 2nd derivative coefficients ---
       do i=3,N-2 
 
-        !d1l(i) = -hr(i)/((hr(i)+hl(i))*hl(i))
-        !d1m(i) =  (hr(i)-hl(i))/(hl(i)*hr(i))
-        !d1r(i) =  hl(i)/((hr(i)+hl(i))*hr(i))
-        d1l2(i) = -(hl1(i)*hr1(i)*hr2(i))/((hl1(i)-hl2(i))*hl2(i)*
-     >(hl2(i)+hr1(i))*(hl2(i)+hr2(i)))
-        d1l1(i) = (hl2(i)*hr1(i)*hr2(i))/(hl1(i)*(hl1(i)-hl2(i))*
-     >(hl1(i)+hr1(i))*(hl1(i)+hr2(i)))
-        d1m(i)  = 1/(hl1(i))+1/(hr2(i))-(hr1(i)+hr2(i))/(hr1(i)*
-     >hr2(i))
-        d1r1(i) = (hl1(i)*hl2(i)*hr2(i))/(hr1(i)*(hl1(i)+hr1(i))*
-     >(hl2(i)+hr1(i))*(hr2(i)-hr1(i)))
-        d1r2(i) = (hl1(i)*hl2(i)*hr1(i))/((hr1(i)-hr2(i))*hr2(i)*
-     >(hl1(i)+hr2(i))*(hl2(i)+hr2(i)))
+        !d1l2(i) = -(hl1(i)*hr1(i)*hr2(i))/((hl1(i)-hl2(i))*hl2(i)*
+     >  !        (hl2(i)+hr1(i))*(hl2(i)+hr2(i)))
+        !d1l1(i) = (hl2(i)*hr1(i)*hr2(i))/(hl1(i)*(hl1(i)-hl2(i))*
+     >  !        (hl1(i)+hr1(i))*(hl1(i)+hr2(i)))
+        !d1m(i)  = 1/(hl1(i))+1/(hr2(i))-(hr1(i)+hr2(i))/(hr1(i)*
+     >  !        hr2(i))
+        !d1r1(i) = (hl1(i)*hl2(i)*hr2(i))/(hr1(i)*(hl1(i)+hr1(i))*
+     >  !        (hl2(i)+hr1(i))*(hr2(i)-hr1(i)))
+        !d1r2(i) = (hl1(i)*hl2(i)*hr1(i))/((hr1(i)-hr2(i))*hr2(i)*
+     >  !        (hl1(i)+hr2(i))*(hl2(i)+hr2(i)))
 
-        !d2l(i) =  2.0/((hr(i)+hl(i))*hl(i))
-        !d2m(i) = - 2.0/(hr(i)*hl(i))
-        !d2r(i) =  2.0/((hr(i)+hl(i))*hr(i))
-        d2l2(i) = (-2*hr1(i)*hr2(i)+2*hl1(i)*(hr1(i)+hr2(i)))/
-     >((hl1(i)-hl2(i))*hl2(i)*(hl2(i)+hr1(i))*(hl2(i)+hr2(i)))
-        d2l1(i) = (2*hr1(i)*hr2(i)-2*hl2(i)*(hr1(i)+hr2(i)))/(hl1(i)*
-     >(hl1(i)-hl2(i))*(hl1(i)+hr1(i))*(hl1(i)+hr2(i)))
-        d2m(i)  = (2*(hl1(i)*(hl2(i)-hr1(i)-hr2(i))+hr1(i)*hr2(i)-
-     >hl2(i)*(hr1(i)+hr2(i))))/(hl1(i)*hl2(i)*hr1(i)*hr2(i))
-        d2r1(i) = (2*hl1(i)*hl2(i)-2*(hl1(i)+hl2(i))*hr2(i))/(hr1(i)*
-     >(hl1(i)+hr1(i))*(hl2(i)+hr1(i))*(hr1(i)-hr2(i)))
-        d2r2(i) = (-2*hl1(i)*hl2(i)+2*(hl1(i)+hl2(i))*hr1(i))/((hr1(i)-
-     >hr2(i))*hr2(i)*(hl1(i)+hr2(i))*(hl2(i)+hr2(i)))
+        !d2l2(i) = (-2*hr1(i)*hr2(i)+2*hl1(i)*(hr1(i)+hr2(i)))/
+     >  !        ((hl1(i)-hl2(i))*hl2(i)*(hl2(i)+hr1(i))*(hl2(i)+hr2(i)))
+        !d2l1(i) = (2*hr1(i)*hr2(i)-2*hl2(i)*(hr1(i)+hr2(i)))/(hl1(i)*
+     >  !        (hl1(i)-hl2(i))*(hl1(i)+hr1(i))*(hl1(i)+hr2(i)))
+        !d2m(i)  = (2*(hl1(i)*(hl2(i)-hr1(i)-hr2(i))+hr1(i)*hr2(i)-
+     >  !        hl2(i)*(hr1(i)+hr2(i))))/(hl1(i)*hl2(i)*hr1(i)*hr2(i))
+        !d2r1(i) = (2*hl1(i)*hl2(i)-2*(hl1(i)+hl2(i))*hr2(i))/(hr1(i)*
+     >  !        (hl1(i)+hr1(i))*(hl2(i)+hr1(i))*(hr1(i)-hr2(i)))
+        !d2r2(i) = (-2*hl1(i)*hl2(i)+2*(hl1(i)+hl2(i))*hr1(i))/((hr1(i)-
+     >  !        hr2(i))*hr2(i)*(hl1(i)+hr2(i))*(hl2(i)+hr2(i)))
 
         hm2 = zz(i)-zz(i-2)
         hm1 = zz(i)-zz(i-1)
@@ -79,13 +73,10 @@
       enddo
 
       !--- compute 1st and 2nd derivative coefficients at inner point of boundaries ---
-      !d1m(1) = -1.0/hr(1)
-      !d1r(1) =  1.0/hr(1)  ! first order
       hl2(2)   = zz(1) - zz(2)
       hl1(2)   = zz(3) - zz(2)
       hr1(2)   = zz(4) - zz(2)
       hr2(2)   = zz(5) - zz(2)
-
       d1l2(2)  =(hl1(2)*hr1(2)*hr2(2))/((hl1(2) - hl2(2))*hl2(2)*
      >(-hr1(2) + hl2(2))*(-hr2(2) + hl2(2)))
       d1l1(2)  =(-1.0)/(hl1(2)) -(1.0)/(hr1(2)) - (hr2(2)+hl2(2))/
@@ -108,8 +99,6 @@
       d2r2(2)  =-(2.0*(hr1(2)*hl2(2) + hl1(2)*(hr1(2) + hl2(2))))/
      >((hl1(2) - hr2(2))*hr2(2)*(-hr1(2) + hr2(2))* (hr2(2) - hl2(2)))
 
-      !d1l(N) = -1.0/hl(N)
-      !d1m(N) =  1.0/hl(N)
       hl2(N-1)   = zz(N-4) - zz(N-1)
       hl1(N-1)   = zz(N-3) - zz(N-1)
       hr1(N-1)   = zz(N-2) - zz(N-1)
@@ -144,8 +133,6 @@
 
 
       !--- compute 1st derivative coefficients at very boundaries ---
-      !d1m(1) = -1.0/hr(1)
-      !d1r(1) =  1.0/hr(1)  ! first order
       hl2(1)   = zz(2) - zz(1)
       hl1(1)   = zz(3) - zz(1)
       hr1(1)   = zz(4) - zz(1)
@@ -160,8 +147,7 @@
      >(-hl1(1) + hr1(1))*(hr1(1) - hr2(1)))
       d1r2(1)  = (hl2(1)*hl1(1)*hr1(1))/((hl2(1) - hr2(1))*hr2(1)*
      >(-hl1(1) + hr2(1))*(-hr1(1) + hr2(1)))
-      !d1l(N) = -1.0/hl(N)
-      !d1m(N) =  1.0/hl(N)
+
       hl2(N)   = zz(N-4) - zz(N)
       hl1(N)   = zz(N-3) - zz(N)
       hr1(N)   = zz(N-2) - zz(N)
@@ -252,17 +238,10 @@
      >          f1(i),df,f1(i)-df,f2(i),df2,f2(i)-df2
           !print'(I4,99(1pE20.12))',i,
      >    !      d1l2(i)*h,d1l1(i)*h,d1m(i)*h,d1r1(i)*h,d1r2(i)*h
-
+          !print'(I4,99(1pE20.12))',i,
+     >    !      d2l2(i)*h**2,d2l1(i)*h**2,d2m(i)*h**2,
+     >    !      d2r1(i)*h**2,d2r2(i)*h**2
         enddo
-        !check if the calculation in the boundary are correct
-        !print'(I4,2(0pF12.6),0pF10.6)',2,f1(1),df,f1(1)-df
-        !f0(i-1)*d2l1(i) +x f0(i)*d2m(i) + f0(i+1)*d2r1(i)
-        !print'(I4,2(0pF12.6),0pF10.6)',i,f2(i),df,f2(i)-df
-        !enddo
-        !df = f0(1)*d1l1(1) + f0(2)*d1m(1) + f0(3)*d1r1(1)
-        !print'(I4,2(0pF12.6),0pF10.6)',1,f1(1),df,f1(1)-df
-        !df = f0(N-2)*d1l1(N) + f0(N-1)*d1m(N) + f0(N)*d1r1(N)
-        !print'(I4,2(0pF12.6),0pF10.6)',N,f1(N),df,f1(N)-df
         stop
       endif  
 

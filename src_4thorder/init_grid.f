@@ -5,18 +5,38 @@
       use STRUCT,ONLY: Diff,nHtot
       use PARAMETERS,ONLY: Hp
       implicit none
-      integer :: i
+      integer :: i,it,Nsave=0
+      real :: zmax
 
       !-----------------------------
       ! ***  set up test problem ***
       !-----------------------------
       allocate(zz(Npoints),Diff(Npoints),nHtot(Npoints))
-      do i=1,Npoints
-        zz(i) = Hp*(REAL(i-1)/REAL(Npoints-1))**1.1
-        nHtot(i) = 1.0                   ! density
-        !nHtot(i) = 100.0*exp(-zz(i)/Hp)
-        Diff(i)  = 1.0                   ! diffusion coefficient
+      do i=1,Npoints-Nsave
+        zz(i) = Hp*(REAL(i-1)/REAL(Npoints-Nsave-1))**1.0
       enddo
+
+      !--------------------------------
+      ! ***  refine inner boundary  ***
+      !--------------------------------
+      !print'(I2,99(1pE11.3))',0,zz(1:Nsave+2)
+      do it=Nsave,1,-1
+        zmax = zz(Nsave-1)
+        do i=Npoints-it,Nsave,-1
+          zz(i+1) = zz(i) 
+        enddo
+        do i=1,Nsave
+          zz(i) = zmax*REAL(i-1)/REAL(Nsave-1)
+        enddo
+        !print'(I2,99(1pE11.3))',it,zz(1:Nsave+2)
+      enddo
+      print'(I2,999(1pE11.3))',it,zz(1:Npoints)
+
+      do i=1,Npoints
+        Diff(i)  = 1.0                   ! diffusion coefficient
+        nHtot(i) = 1.0                   ! density
+        !nHtot(i) = 1.0*exp(-zz(i)/Hp)
+      enddo  
 
       end
 

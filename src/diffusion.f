@@ -21,7 +21,7 @@
       dt = 9.D+99
       do i=2,N
         D  = 0.5*(Diff(i-1)+Diff(i)) 
-        dt = MIN(dt,0.5*(zz(i)-zz(i-1))**2/D)
+        dt = MIN(dt,0.33*(zz(i)-zz(i-1))**2/D)
       enddo  
       dt = dt*(1.d0+1.d-12)
       print'("explicit timestep =",1pE10.2," s")',dt
@@ -85,7 +85,8 @@
           influx = -nD*(d1l(1)*xx(1) + d1m(1)*xx(2) + d1r(1)*xx(3))
         else if (bc_low==2) then   
           xx(1) = (-influx/nD - d1m(1)*xx(2) - d1r(1)*xx(3))/d1l(1) 
-        else if (bc_low==3) then   
+        else if (bc_low==3) then  
+          influx = nHtot(1)*xx(1)*inrate*vin  
           xx(1) = -(d1m(1)*xx(2) + d1r(1)*xx(3))
      >            /(d1l(1) + inrate*vin/Diff(1))
         endif  
@@ -106,6 +107,13 @@
           write(1,'("time[s]=",1pE12.5)') time 
           write(1,'(9999(1pE16.8))') (MAX(xx(i),1.E-99),i=1,N)
           Nout = Nout + 1
+          ntot2 = 0.0
+          do i=1,N-1
+            ntot2 = ntot2 + 0.5*(nHtot(i)*xx(i)+nHtot(i+1)*xx(i+1))
+     >                     *(zz(i+1)-zz(i))
+          enddo  
+          print'("  total=",2(1pE14.6)," , dev=",0pF8.5,"%")',
+     >         ntot,ntot2,(ntot/ntot2-1.0)*100.0
         endif  
 
         if (time>tend) exit
@@ -126,13 +134,6 @@
         jdiff = -nD*d1
         print'(I4,0pF12.5,99(1pE12.4))',i,zz(i)/Hp,xx(i),jdiff
       enddo
-
-      ntot2 = 0.0
-      do i=1,N-1
-        ntot2 = ntot2 + 0.5*(nHtot(i)*xx(i)+nHtot(i+1)*xx(i+1))
-     >                     *(zz(i+1)-zz(i))
-      enddo  
-      print*,ntot,ntot2
 
       end
 

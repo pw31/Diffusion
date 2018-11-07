@@ -27,7 +27,6 @@
           xx(i) = sin(k*(zz(i)-zz(1)))  
         enddo  
       else if (init==4) then
-
         !--- this one has an analytic solution, too ---
         tnull = 0.0002
         ww = 2.d0*SQRT(nHtot(1)*Diff(1)*tnull)
