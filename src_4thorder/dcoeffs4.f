@@ -6,8 +6,8 @@
       use PARAMETERS,ONLY: Hp
       implicit none
       integer :: i
-      real*8 :: k,x,h,df,df2
-      real*8,allocatable,dimension(:) :: hl1, hl2, hr1, hr2,f0,f1,f2
+      real*8 :: k,x,h,df,df2,hm1,hm2,hp1,hp2
+      real*8,allocatable,dimension(:) :: hl1,hl2,hr1,hr2,f0,f1,f2
       logical :: test=.true.
 
       allocate(hl2(1:N),hl1(1:N),hr1(1:N),hr2(1:N))
@@ -56,6 +56,26 @@
         d2r2(i) = (-2*hl1(i)*hl2(i)+2*(hl1(i)+hl2(i))*hr1(i))/((hr1(i)-
      >hr2(i))*hr2(i)*(hl1(i)+hr2(i))*(hl2(i)+hr2(i)))
 
+        hm2 = zz(i)-zz(i-2)
+        hm1 = zz(i)-zz(i-1)
+        hp1 = zz(i+1)-zz(i)
+        hp2 = zz(i+2)-zz(i)
+        d1l2(i) = -(hm1*hp1*hp2)/((hm1-hm2)*hm2*(hm2+hp1)*(hm2+hp2))
+        d1l1(i) = (hm2*hp1*hp2)/(hm1*(hm1-hm2)*(hm1+hp1)*(hm1+hp2))
+        d1m(i)  = 1.0/hm1 + 1.0/hm2 - (hp1+hp2)/(hp1*hp2)
+        d1r1(i) = (hm1*hm2*hp2)/(hp1*(hm1+hp1)*(hm2+hp1)*(-hp1+hp2))
+        d1r2(i) = (hm1*hm2*hp1)/((hp1-hp2)*hp2*(hm1+hp2)*(hm2+hp2))
+        
+        d2l2(i) = (-2.0*hp1*hp2 + 2.0*hm1*(hp1+hp2))
+     >          / ((hm1-hm2)*hm2*(hm2+hp1)*(hm2+hp2))
+        d2l1(i) = ( 2.0*hp1*hp2 - 2.0*hm2*(hp1+hp2))
+     >          / (hm1*(hm1-hm2)*(hm1+hp1)*(hm1+hp2))
+        d2m(i)  = ( 2.0*(hm1*(hm2-hp1-hp2) + hp1*hp2 - hm2*(hp1+hp2)))
+     >          / (hm1*hm2*hp1*hp2)
+        d2r1(i) = ( 2.0*hm1*hm2 - 2.0*(hm1+hm2)*hp2)
+     >          / (hp1*(hm1+hp1)*(hm2+hp1)*(hp1-hp2))
+        d2r2(i) = (-2.0*hm1*hm2 + 2.0*(hm1+hm2)*hp1)
+     >          / ((hp1-hp2)*hp2*(hm1+hp2)*(hm2+hp2))
       enddo
 
       !--- compute 1st and 2nd derivative coefficients at inner point of boundaries ---
@@ -190,8 +210,11 @@
      >           f0(i-1)*d1r1(i) + f0(i)*d1r2(i)
             df2= 0.0
           else
-            df = f0(i-2)*d1l2(i) + f0(i-1)*d1l1(i) + f0(i)*d1m(i) +
-     >           f0(i+1)*d1r1(i) + f0(i+2)*d1r2(i)
+            df = f0(i-2)*d1l2(i)
+     >         + f0(i-1)*d1l1(i)
+     >         + f0(i)  *d1m(i)
+     >         + f0(i+1)*d1r1(i)
+     >         + f0(i+2)*d1r2(i)
             df2= f0(i-2)*d2l2(i) + f0(i-1)*d2l1(i) + f0(i)*d2m(i) +
      >           f0(i+1)*d2r1(i) + f0(i+2)*d2r2(i)
           end if
