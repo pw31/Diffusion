@@ -70,7 +70,7 @@
             df  = f0(i-1)*d1l(i) + f0(i)*d1m(i) + f0(i+1)*d1r(i)
             df2 = f0(i-1)*d2l(i) + f0(i)*d2m(i) + f0(i+1)*d2r(i) 
           endif  
-          print'(I4,99(1pE13.4))',i,f0(i),zz(i),
+          print'(I4,99(1pE12.4))',i,f0(i),zz(i),
      >          f1(i),df,f1(i)-df,f2(i),df2,f2(i)-df2
         enddo
         stop

@@ -66,7 +66,7 @@
      >                  + d1m(1)*xx(3) 
      >                  +d1r1(1)*xx(4)
      >                  +d1r2(1)*xx(5))
-        else if (bc_low==2) then                 ! fixed flux
+        else if (bc_low==2) then                 ! fixed influx
           xx(1) = (-influx/nD -d1l1(1)*xx(2)
      >                        -d1m(1) *xx(3)
      >                        -d1r1(1)*xx(4)
@@ -85,12 +85,12 @@
      >                   +d1m(N) *xx(N-2)
      >                   +d1r1(N)*xx(N-1)
      >                   +d1r2(N)*xx(N)  )
-        else if (bc_high==2) then                ! fixed outrate
+        else if (bc_high==2) then                ! fixed outflux
           xx(N) = (-outflux/nD -d1l2(N)*xx(N-4)
      >                         -d1l1(N)*xx(N-3) 
      >                         -d1m(N) *xx(N-2)
      >                         -d1r1(N)*xx(N-1) )/d1r2(N)
-        else if (bc_high==3) then   
+        else if (bc_high==3) then                ! fixed outrate
           outflux = nHtot(N)*xx(N)*outrate*vout  
           xx(N) = -( d1l2(N)*xx(N-4)
      >              +d1l1(N)*xx(N-3)
