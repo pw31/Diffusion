@@ -5,7 +5,8 @@
       use STRUCT,ONLY: Diff,nHtot
       use PARAMETERS,ONLY: Hp
       implicit none
-      integer :: i,it,Nsave=0
+      integer :: i,it
+      integer :: Nsave=0,Nreach=3  !0,*=off, e.g. 3,3 to refine inner boundary
       real :: zmax
 
       !-----------------------------
@@ -21,17 +22,17 @@
       !--------------------------------
       !print'(I2,99(1pE11.3))',0,zz(1:Nsave+2)
       do it=Nsave,1,-1
-        zmax = zz(Nsave-1)
-        do i=Npoints-it,Nsave,-1
+        zmax = zz(Nreach)
+        do i=Npoints-it,Nreach,-1
           zz(i+1) = zz(i) 
         enddo
-        do i=1,Nsave
-          zz(i) = zmax*REAL(i-1)/REAL(Nsave-1)
+        do i=1,Nreach
+          zz(i) = zmax*REAL(i-1)/REAL(Nreach)
         enddo
         !print'(I2,99(1pE11.3))',it,zz(1:Nsave+2)
       enddo
-      print'(I2,999(1pE11.3))',it,zz(1:Npoints)
-
+      !print'(I2,999(1pE11.3))',it,zz(1:Npoints)
+      
       do i=1,Npoints
         Diff(i)  = 1.0                   ! diffusion coefficient
         nHtot(i) = 1.0                   ! density
