@@ -223,7 +223,7 @@
         ntot = ntot + (influx - outflux)*0.5*dt
         
         if (time>outtime(Nout)) then
-          write(*,'(I8," output t=",1pE11.3," s")') it,time
+          write(*,'(I8," output t=",1pE14.6," s")') it,time
           write(1,'("time[s]=",1pE12.5)') time 
           write(1,'(9999(1pE16.8))') (MAX(xx(i),1.E-99),i=1,N)
           Nout = Nout + 1

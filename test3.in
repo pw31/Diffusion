@@ -2,7 +2,7 @@
 3       ! init
 1       ! bc_low    
 1       ! bc_high    
-.true.  ! implicit
+.false. ! implicit
 6       ! Nout
 0.01,0.025,0.05,0.1,0.2,0.4
 2.0     ! tfac

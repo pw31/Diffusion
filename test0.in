@@ -1,9 +1,10 @@
 101     ! Npoints
 0       ! init
 2       ! bc_low    
-3       ! bc_high    
+2       ! bc_high    
 1.0     ! influx
 5.0     ! outrate
+0.0     ! outflux
 .false. ! tindep
 .false. ! implicit
 8      ! Nout
