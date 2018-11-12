@@ -2,7 +2,7 @@
       subroutine DIFFUSION_EXPLICIT
 ************************************************************************
       use NATURE,ONLY: pi
-      use GRID,ONLY: N=>Npoints,zz,xx,d1l2,d1l1,d1m,d1r1,
+      use GRID,ONLY: N=>Npoints,zz,zweight,xx,d1l2,d1l1,d1m,d1r1,
      >d1r2,d2l2,d2l1,d2m,d2r1,d2r2
       use PARAMETERS,ONLY: Hp,tnull,init,bc_low,bc_high,
      >                     influx,outflux,inrate,outrate,vin,vout,
@@ -29,9 +29,8 @@
       print*
       
       ntot = 0.d0
-      do i=1,N-1
-        ntot = ntot + 0.5*(nHtot(i)*xx(i)+nHtot(i+1)*xx(i+1))
-     >                   *(zz(i+1)-zz(i))
+      do i=1,N
+        ntot = ntot + zweight(i)*nHtot(i)*xx(i)
       enddo  
       
       time = tnull
@@ -228,9 +227,8 @@
           write(1,'(9999(1pE16.8))') (MAX(xx(i),1.E-99),i=1,N)
           Nout = Nout + 1
           ntot2 = 0.0
-          do i=1,N-1
-            ntot2 = ntot2 + 0.5*(nHtot(i)*xx(i)+nHtot(i+1)*xx(i+1))
-     >                         *(zz(i+1)-zz(i))
+          do i=1,N
+            ntot2 = ntot2 + zweight(i)*nHtot(i)*xx(i)
           enddo  
           print'("  total=",2(1pE14.6)," , dev=",0pF8.5,"%")',
      >         ntot,ntot2,(ntot/ntot2-1.0)*100.0

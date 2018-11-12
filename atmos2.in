@@ -11,8 +11,8 @@ Structures/BD_DriftPhoenix/lte_1500_3.5-0.0.2d     ! struc_file
 0.0       ! influx
 1         ! bc_high    
 .false.   ! tindep
-.true.    ! implicit
+.false.    ! implicit
 
-4         ! Nout
-1.E+6,1.E+11,1.E+13,1.E+14
+3         ! Nout
+1.E+5,1.E+6,1.E+7,1.E+11,1.E+13,1.E+14
 3000000.0  ! tfac

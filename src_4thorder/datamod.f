@@ -32,6 +32,7 @@
       real,allocatable :: zz(:)                 ! vertical gridpoints
       real,allocatable :: d1l2(:),d1l1(:),d1m(:),d1r1(:),d1r2(:)  ! first derivatives
       real,allocatable :: d2l2(:),d2l1(:),d2m(:),d2r1(:),d2r2(:)  ! second derivatives
+      real,allocatable :: zweight(:)            ! integration weights
       real,allocatable :: xx(:)                 ! concentration
       end
 ************************************************************************
