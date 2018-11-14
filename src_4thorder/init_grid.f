@@ -127,7 +127,8 @@
       use PARAMETERS,ONLY: Hp,pmin,pmax
       implicit none
       integer :: i,j
-      real :: fac1,fac2,hmin,hmax
+      real :: fac,fac1,fac2,hmin,hmax
+      real :: muH=2.266754410240533d-24
 
       allocate(zz(Npoints),Diff(Npoints),rho(Npoints),nHtot(Npoints),
      >         T(Npoints),press(Npoints),mu(Npoints))
@@ -136,12 +137,18 @@
       hmax = 0.0
       do j=1,Nlayers
         !print*,j,zlay(j),play(j)/bar 
-        if (play(j)>pmin*bar.and.hmax==0.0) hmax=zlay(j) 
-        if (play(j)>pmax*bar.and.hmin==0.0) hmin=zlay(j) 
+        if (play(j)>pmin*bar.and.hmax==0.0) then
+          fac  = LOG(play(j)/(pmin*bar))/LOG(play(j)/play(j-1))
+          hmax = zlay(j)+(zlay(j-1)-zlay(j))*fac 
+        endif  
+        if (play(j)>pmax*bar.and.hmin==0.0) then
+          fac  = LOG(play(j)/(pmax*bar))/LOG(play(j)/play(j-1))
+          hmin = zlay(j)+(zlay(j-1)-zlay(j))*fac 
+        endif  
       enddo   
-      write(*,*) Hp,hmin,hmax
+      !write(*,*) hmin/km,hmax/km
       do i=1,Npoints
-        zz(i) = hmin+(hmax-hmin)*(REAL(i-1)/REAL(Npoints-1))**1.0
+        zz(i) = hmin+(hmax-hmin)*(REAL(i-1)/REAL(Npoints-1))**1.3
       enddo
   
       write(*,*)
@@ -164,7 +171,7 @@
         T(i)     = Tlay(j)*fac1 + Tlay(j-1)*fac2
         press(i) = EXP(LOG(play(j))*fac1 + LOG(play(j-1))*fac2)
         rho(i)   = EXP(LOG(rholay(j))*fac1 + LOG(rholay(j-1))*fac2)
-        nHtot(i) = rho(i)/(1.4*amu)
+        nHtot(i) = rho(i)/muH
         Diff(i)  = EXP(LOG(Difflay(j))*fac1 + LOG(Difflay(j-1))*fac2)
         mu(i)    = rho(i)/press(i)*bk*T(i)
         write(*,1010) i,j,(zz(i)-zz(1))/km,press(i)/bar,T(i),

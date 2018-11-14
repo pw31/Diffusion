@@ -3,13 +3,12 @@
 ************************************************************************
       use GRID,ONLY: N=>Npoints,zz,d1l2,d1l1,d1m,d1r1,d1r2,d2l2,d2l1,
      >               d2m,d2r1,d2r2
-      use PARAMETERS,ONLY: Hp
       use NATURE,ONLY:pi
       implicit none
       integer :: i
-      real :: k,h,df,df2,hm1,hm2,hp1,hp2,x,hl1,hl2,hr1,hr2
+      real :: k,h,df,df2,hm1,hm2,hp1,hp2,x,hl1,hl2,hr1,hr2,delz
       real,allocatable,dimension(:) :: f0,f1,f2
-      logical :: test=.true.
+      logical :: test=.false.
 
       allocate(d1l2(1:N),d1l1(1:N),d1m(1:N),d1r1(1:N),d1r2(1:N))
       allocate(d2l2(1:N),d2l1(1:N),d2m(1:N),d2r1(1:N),d2r2(1:N))
@@ -147,15 +146,16 @@
 
       if (test) then
         !--- test derivatives ---
-        k = 2.0*pi/Hp
+        delz = zz(N)-zz(1)
+        k = 2.0*pi/(0.125*delz)
         do i=1,N
           f0(i) = sin(k*zz(i))        ! test function
           f1(i) = cos(k*zz(i))*k
           f2(i) =-sin(k*zz(i))*k**2
-          !x = zz(i)/Hp 
+          !x = zz(i)/delz 
           !f0(i) =  0.5*x**4 -1.0*x**3 +2.0*x**2 -3.0*x + 4.0
-          !f1(i) = (2.0*x**3 -3.0*x**2 +4.0*x    -3.0)/Hp
-          !f2(i) = (6.0*x**2 -6.0*x    +4.0          )/Hp**2
+          !f1(i) = (2.0*x**3 -3.0*x**2 +4.0*x    -3.0)/delz
+          !f2(i) = (6.0*x**2 -6.0*x    +4.0          )/delz**2
         enddo
         do i=1,N
           if (i==1) then

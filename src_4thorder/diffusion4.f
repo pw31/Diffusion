@@ -10,10 +10,10 @@
       use STRUCT,ONLY: Diff,nHtot
       implicit none
       integer :: i,it
-      real*8,dimension(N) :: rate
+      real*8,dimension(N) :: rate,xold
       real*8 :: D,nD,d1,d2,d1nD,jdiff,time,dt,tend
       real*8 :: ww,AA,z0,x1ana,xNana
-      real*8 :: ntot,ntot2
+      real*8 :: ntot,ntot2,dNcol,influx0
       character :: CR = CHAR(13)
 
       !-------------------
@@ -25,7 +25,7 @@
         dt = MIN(dt,0.33*(zz(i)-zz(i-1))**2/D)
       enddo  
       dt = dt*(1.d0+1.d-12)
-      print'("explicit timestep =",1pE10.2," s")',dt
+      print*,"explicit diffusion timestep[s]=",dt
       print*
       
       ntot = 0.d0
@@ -97,6 +97,7 @@
      >              +d1r1(N)*xx(N-1) )/(d1r2(N) + outrate*vout/Diff(N))
         endif   
         ntot = ntot + (influx - outflux)*0.5*dt
+        influx0 = influx
         
         !-------------------------------------------
         ! ***  d/dt(nH*x) = d/dz(nH*Diff*dx/dz)  ***
@@ -161,6 +162,7 @@
         !----------------------------
         ! ***  explicit timestep  ***
         !----------------------------
+        xold = xx
         do i=2,N-1
           xx(i) = xx(i) + rate(i)*dt/nHtot(i)
         enddo  
@@ -220,8 +222,17 @@
      >              +d1r1(N)*xx(N-1) )/(d1r2(N) + outrate*vout/Diff(N))
         endif   
         ntot = ntot + (influx - outflux)*0.5*dt
-        
-        if (time>outtime(Nout)) then
+
+        !dNcol = 0.d0
+        !do i=1,N
+        !  dNcol = dNcol + zweight(i)*nHtot(i)*(xx(i)-xold(i))
+        !enddo  
+        !print*,dt,bc_low,bc_high
+        !print'(7(1pE12.5))',xold(1:7)
+        !print'(7(1pE12.5))',xx(1:7)
+        !print*,0.5*(influx+influx0),dNcol/dt
+
+        if (.true..or.time>outtime(Nout)) then
           write(*,'(I8," output t=",1pE14.6," s")') it,time
           write(1,'("time[s]=",1pE12.5)') time 
           write(1,'(9999(1pE16.8))') (MAX(xx(i),1.E-99),i=1,N)
