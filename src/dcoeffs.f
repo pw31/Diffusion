@@ -3,6 +3,7 @@
 ************************************************************************
       use GRID,ONLY: N=>Npoints,zz,d1l,d1m,d1r,d2l,d2m,d2r
       use PARAMETERS,ONLY: Hp
+      use NATURE,ONLY: pi
       implicit none
       integer :: i
       real :: k,df,df2,h1,h2,x
@@ -49,15 +50,15 @@
 
       if (test) then
         !--- test derivatives ---
-        k = 3.0/Hp
+        k = 2.0*pi/Hp
         do i=1,N
           f0(i) = sin(k*zz(i))        ! test function
           f1(i) = cos(k*zz(i))*k        
           f2(i) =-sin(k*zz(i))*k**2
-          x = zz(i)/Hp 
-          f0(i) =  0.5*x**4 -1.0*x**3 +2.0*x**2 -3.0*x + 4.0
-          f1(i) = (2.0*x**3 -3.0*x**2 +4.0*x    -3.0)/Hp
-          f2(i) = (6.0*x**2 -6.0*x    +4.0          )/Hp**2
+          !x = zz(i)/Hp 
+          !f0(i) =  0.5*x**4 -1.0*x**3 +2.0*x**2 -3.0*x + 4.0
+          !f1(i) = (2.0*x**3 -3.0*x**2 +4.0*x    -3.0)/Hp
+          !f2(i) = (6.0*x**2 -6.0*x    +4.0          )/Hp**2
         enddo
         do i=1,N
           if (i==1) then

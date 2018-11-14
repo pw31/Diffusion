@@ -84,7 +84,7 @@ c      enddo
 *     -----------------------------------------
 *     ***  calculate Diffusion coefficient  ***
 *     -----------------------------------------
-      if (.true.) then
+      if (.false.) then
         conv = .true.
         do i=Nlayers,1,-1
           Hplay = bk*Tlay(i)/(glay(i)*mulay(i)*amu)
