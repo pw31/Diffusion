@@ -12,8 +12,8 @@
       integer :: i,it
       real*8,dimension(N) :: rate,xold
       real*8 :: D,nD,d1,d2,d1nD,jdiff,time,dt,tend
-      real*8 :: ww,AA,z0,x1ana,xNana
-      real*8 :: ntot,ntot2,dNcol,influx0
+      real*8 :: z0
+      real*8 :: ntot,ntot2,influx0
       character :: CR = CHAR(13)
 
       !-------------------
@@ -232,7 +232,7 @@
         !print'(7(1pE12.5))',xx(1:7)
         !print*,0.5*(influx+influx0),dNcol/dt
 
-        if (.true..or.time>outtime(Nout)) then
+        if (time>outtime(Nout)) then
           write(*,'(I8," output t=",1pE14.6," s")') it,time
           write(1,'("time[s]=",1pE12.5)') time 
           write(1,'(9999(1pE16.8))') (MAX(xx(i),1.E-99),i=1,N)
@@ -295,21 +295,16 @@
 ************************************************************************
       use NATURE,ONLY: pi
       use GRID,ONLY: N=>Npoints,zz,xx,d1l2,d1l1,d1m,d1r1,d1r2,
-     >              d2l2,d2l1,d2m,d2r1,d2r2,zweight
+     >               d2l2,d2l1,d2m,d2r1,d2r2,zweight
       use PARAMETERS,ONLY: Hp,bc_low,bc_high,init,tnull,
      >                     influx,outflux,inrate,outrate,vin,vout,
      >                     Nout,outtime,tfac
       use STRUCT,ONLY: Diff,nHtot
       implicit none
-      integer,parameter :: qp = selected_real_kind ( 33, 4931 )
-      integer :: i,j,k,it,ipvt(N),info
-      real*8,dimension(N,N) :: A,B,sum
-      real(kind=qp),dimension(N,N) :: Awork
-      real(kind=qp) :: det(2),work(N)
-      real*8,dimension(N) :: xnew,rest
-      real*8 :: D,nD,d1,d1nD,jdiff,time,dt,tend
-      real*8 :: z0,ww,AA,x1ana,xNana,ntot,ntot2,err
-      logical :: check=.true.
+      integer :: i,j,it,Nold
+      real*8 :: B(N,N),xnew(N),rest(N)
+      real*8 :: D,nD,d1,jdiff,time,dt,dt_ex,tend
+      real*8 :: z0,ntot,ntot2
       character :: CR = CHAR(13)
 
       !-------------------
@@ -321,153 +316,36 @@
         dt = MIN(dt,0.33*(zz(i)-zz(i-1))**2/D)
       enddo
       print*,"explicit timestep=",dt
-      dt = dt*tfac
-      dt = dt*(1.d0+1.d-12)
-      print*," applied timestep=",dt
-c
-      !-----------------------------
-      ! ***  fill in big matrix  ***
-      !-----------------------------
-      A(:,:) = 0.d0
-      do i=3,N-2
-        nD   = nHtot(i)*Diff(i)
-        d1nD = d1l2(i)*nHtot(i-2)*Diff(i-2)
-     >       + d1l1(i)*nHtot(i-1)*Diff(i-1)
-     >       + d1m(i) *nHtot(i)  *Diff(i)
-     >       + d1r1(i)*nHtot(i+1)*Diff(i+1)
-     >       + d1r2(i)*nHtot(i+2)*Diff(i+2)
-        A(i,i-2) = A(i,i-2) - dt*( d1nD*d1l2(i) + nD*d2l2(i) )
-        A(i,i-1) = A(i,i-1) - dt*( d1nD*d1l1(i) + nD*d2l1(i) )
-        A(i,i)   = A(i,i)   - dt*( d1nD*d1m(i)  + nD*d2m(i) )
-        A(i,i+1) = A(i,i+1) - dt*( d1nD*d1r1(i) + nD*d2r1(i) )
-        A(i,i+2) = A(i,i+2) - dt*( d1nD*d1r2(i) + nD*d2r2(i) )
-      enddo
+      dt_ex = dt
 
-      !--- i=2 ---
-      d1nD = d1l2(2)*nHtot(1)*Diff(1)
-     >       + d1l1(2)*nHtot(2)*Diff(2)
-     >       + d1m(2) *nHtot(3)*Diff(3)
-     >       + d1r1(2)*nHtot(4)*Diff(4)
-     >       + d1r2(2)*nHtot(5)*Diff(5)
-      A(2,1) = A(2,1) - dt*( d1nD*d1l2(2) + nD*d2l2(2) )
-      A(2,2) = A(2,2) - dt*( d1nD*d1l1(2) + nD*d2l1(2) )
-      A(2,3) = A(2,3) - dt*( d1nD*d1m(2)  + nD*d2m(2)  )
-      A(2,4) = A(2,4) - dt*( d1nD*d1r1(2) + nD*d2r1(2) )
-      A(2,5) = A(2,5) - dt*( d1nD*d1r2(2) + nD*d2r2(2) )
-      !--- i=N-1 ---
-      d1nD = d1l2(N-1)*nHtot(N-4)*Diff(N-4)
-     >     + d1l1(N-1)*nHtot(N-3)*Diff(N-3)
-     >     + d1m(N-1) *nHtot(N-2)*Diff(N-2)
-     >     + d1r1(N-1)*nHtot(N-1)*Diff(N-1)
-     >     + d1r2(N-1)*nHtot(N)  *Diff(N)
-      A(N-1,N-4) = A(N-1,N-4) - dt*( d1nD*d1l2(N-1) + nD*d2l2(N-1) )
-      A(N-1,N-3) = A(N-1,N-3) - dt*( d1nD*d1l1(N-1) + nD*d2l1(N-1) )
-      A(N-1,N-2) = A(N-1,N-2) - dt*( d1nD*d1m(N-1)  + nD*d2m(N-1)  )
-      A(N-1,N-1) = A(N-1,N-1) - dt*( d1nD*d1r1(N-1) + nD*d2r1(N-1) )
-      A(N-1,N)   = A(N-1,N)   - dt*( d1nD*d1r2(N-1) + nD*d2r2(N-1) )
-
-c no entry yet for i = 1,N
-      do i=1,N
-        A(i,:) = A(i,:)/nHtot(i)    ! unitless
-      enddo
-      !--------------------------
-      ! ***  add unit matrix  ***
-      !--------------------------
-      do i=1,N
-        A(i,i) = A(i,i) + 1.d0
-      enddo
-      !------------------------------
-      ! ***  boundary conditions  ***
-      !------------------------------
-      if (bc_low==1) then                   !fiexed concentration
-        !--- nothing to do
-      else if (bc_low==2) then              !fixed flux
-        A(1,1) = 1.d0
-        A(1,2) = d1l1(1)/d1l2(1)
-        A(1,3) = d1m(1)/d1l2(1)
-        A(1,4) = d1r1(1)/d1l2(1)
-        A(1,5) = d1r2(1)/d1l2(1)
-      else if (bc_low==3) then              !fixed outflow rate
-        A(1,1) = 1.d0+inrate*vin/Diff(1)/d1l2(1)
-        A(1,2) = d1l1(1)/d1l2(1)
-        A(1,3) = d1m(1)/d1l2(1)
-        A(1,4) = d1r1(1)/d1l2(1)
-        A(1,5) = d1r2(1)/d1l2(1)
-      endif
-      if (bc_high==1) then                  !fixed concentration
-        !--- nothing to do
-      else if (bc_high==2) then             !fixed flux
-        A(N,N-4) = d1l2(N)/d1r2(N)
-        A(N,N-4) = d1l1(N)/d1r2(N)
-        A(N,N-2) = d1m(N)/d1r2(N)
-        A(N,N-1) = d1r1(N)/d1r2(N)
-        A(N,N)   = 1.d0
-      else if (bc_high==3) then             !fixed outflow rare
-        A(N,N-4) = d1l2(N)/d1r2(N)
-        A(N,N-4) = d1l1(N)/d1r2(N)
-        A(N,N-2) = d1m(N)/d1r2(N)
-        A(N,N-1) = d1r1(N)/d1r2(N)
-        A(N,N)   = 1.d0+outrate*vout/Diff(N)/d1r2(N)
-      endif
-
-      !------------------------
-      ! ***  invert matrix  ***
-      !------------------------
-      Awork = A
-      call QGEFA ( Awork, N, N, ipvt, info )
-      call QGEDI ( Awork, N, N, ipvt, det, work, 1 )
-      B = Awork
-      if (info.ne.0) then
-        print*,"*** singular matrix in QGEFA: info=",info
-        stop
-      endif
-      if (check) then
-        do i=1,N
-          write(99,'(9999(1pE11.3))') (A(i,j),j=1,N)
-        enddo
-        write(99,*)
-        do i=1,N
-          write(99,'(9999(1pE11.3))') (B(i,j),j=1,N)
-        enddo
-        !--- test A*B=1 ---
-        err = 0.d0
-        write(99,*)
-        do i=1,N
-          do j=1,N
-            sum(i,j) = 0.d0
-            do k=1,N
-              sum(i,j) = sum(i,j) + A(i,k)*B(k,j)
-            enddo
-            if (i==j) then
-              err = max(err,ABS(sum(i,j)-1.d0))
-            else
-              err = max(err,ABS(sum(i,j)))
-            endif
-          enddo
-          write(99,'(9999(1pE11.3))') (sum(i,j),j=1,N)
-        enddo
-        write(99,*) "maximum error=",err
-        print*,"matrix inversion error=",err
-      endif
-c
       ntot = 0.0
-      do i=1,N-1
-        ntot = ntot + 0.5*(nHtot(i)*xx(i)+nHtot(i+1)*xx(i+1))
-     >                   *(zz(i+1)-zz(i))
+      do i=1,N
+        ntot = ntot + zweight(i)*nHtot(i)*xx(i)
       enddo
-c
+
       time = tnull
       tend = outtime(Nout)
-      Nout  = 1
+      Nout = 1
+      Nold = 0
       print*
       open(unit=1,file='out.dat',status='replace')
       write(1,*) N,init
       write(1,'(9999(1pE16.8))') zz
       write(1,'("time[s]=",1pE12.5)') time
       write(1,'(9999(1pE16.8))') (MAX(xx(i),1.E-99),i=1,N)
-c
+
       do it=1,9999999
-c
+
+        !------------------------
+        ! ***  time stepsize  ***
+        !------------------------
+        if (Nout>Nold) then 
+          dt = (outtime(Nout)-time)/20.0*(1.d0+1.d-12)
+          dt = MAX(dt_ex,dt)
+          call INIT_BMATRIX(N,bc_low,bc_high,dt,B)
+          Nold = Nout
+        endif  
+
         !------------------------------
         ! ***  boundary conditions  ***
         !------------------------------
@@ -485,90 +363,106 @@ c
         rest = xx
         nD = nHtot(1)*Diff(1)
         if (bc_low==1) then                     !fixed concentration
-          influx  = -nD*(d1l2(1)*xx(1)
-     >                 + d1l1(1)*xx(2)
-     >                 + d1m (1)*xx(3)
-     >                 + d1r1(1)*xx(4)
-     >                 + d1r2(1)*xx(5))
+          !influx = -nD*( d1l2(1)*xx(1)
+     >    !              +d1l1(1)*xx(2)
+     >    !              + d1m(1)*xx(3)
+     >    !              +d1r1(1)*xx(4)
+     >    !              +d1r2(1)*xx(5))
         else if (bc_low==2) then                !fixed flux
           rest(1) = -influx/nD/d1l2(1)
+          !xx(1) = (-influx/nD -d1l1(1)*xx(2)
+     >    !                    - d1m(1)*xx(3)
+     >    !                    -d1r1(1)*xx(4)
+     >    !                    -d1r2(1)*xx(5) )/d1l2(1)
         else if (bc_low==3) then                !fixed outflow rate
-          influx  = inrate*nHtot(1)*xx(1)*vin
           rest(1) = 0.d0
+          !xx(1) = -( d1l1(1)*xx(2)
+     >    !          + d1m(1)*xx(3) 
+     >    !          +d1r1(1)*xx(4)
+     >    !          +d1r2(1)*xx(5) )/(d1l2(1) + inrate*vin/Diff(1))
+          !influx  = nHtot(1)*xx(1)*inrate*vin
         endif
         nD = nHtot(N)*Diff(N)
         if (bc_high==1) then                    !fixed concentration
-          outflux = -nD*(d1l2(N)*xx(N-4)
-     >                 + d1l1(N)*xx(N-3)
-     >                 + d1m(N) *xx(N-2)
-     >                 + d1r1(N)*xx(N-1)
-     >                 + d1r2(N)*xx(N))
+          !outflux = -nD*( d1l2(N)*xx(N-4)
+     >    !               +d1l1(N)*xx(N-3)
+     >    !               + d1m(N)*xx(N-2)
+     >    !               +d1r1(N)*xx(N-1)
+     >    !               +d1r2(N)*xx(N))
         else if (bc_high==2) then               !fixed flux
           rest(N) = -outflux/nD/d1r2(N)
+          !xx(N) = (-outflux/nD -d1l2(N)*xx(N-4)
+     >    !                     -d1l1(N)*xx(N-3) 
+     >    !                     -d1m(N) *xx(N-2)
+     >    !                     -d1r1(N)*xx(N-1) )/d1r2(N)
         else if (bc_high==3) then               !fixed outflow rate
-          outflux = outrate*nHtot(N)*xx(N)*vout
           rest(N) = 0.d0
+          !xx(N) = -( d1l2(N)*xx(N-4)
+     >    !          +d1l1(N)*xx(N-3)
+     >    !          +d1m(N) *xx(N-2) 
+     >    !          +d1r1(N)*xx(N-1) )/(d1r2(N) + outrate*vout/Diff(N))
+          !outflux = nHtot(N)*xx(N)*outrate*vout  
         endif
-        !ntot = ntot + (influx-outflux)*dt
-c
-        !-----------------------
-        ! ***  source terms  ***
-        !-----------------------
-        !rest(N/3) = rest(N/3) + 500.0*dt
-c
+        !ntot = ntot + 0.5*(influx-outflux)*dt
+
         !----------------------------
         ! ***  implicit timestep  ***
         !----------------------------
+        xnew = 0.d0
         do i=1,N
-          xnew(i) = 0.d0
           do j=1,N
             xnew(i) = xnew(i) + B(i,j)*rest(j)
           enddo
         enddo
         xx(:) = xnew(:)
+        
+        !--------------------------------------------
+        ! ***  measure fluxes through boundaries  ***
+        !--------------------------------------------
         nD = nHtot(1)*Diff(1)
         if (bc_low==1) then
-          influx  = -nD*(d1l2(1)*xx(1)
-     >                 + d1l1(1)*xx(2)
-     >                 + d1m(1) *xx(3)
-     >                 + d1r1(1)*xx(4)
-     >                 + d1r2(1)*xx(5))
+          influx = -nD*( d1l2(1)*xx(1)
+     >                  +d1l1(1)*xx(2)
+     >                  + d1m(1)*xx(3)
+     >                  +d1r1(1)*xx(4)
+     >                  +d1r2(1)*xx(5))
         else if (bc_low==3) then
-          influx  = inrate*nHtot(1)*xx(1)*vin
+          influx = inrate*nHtot(1)*xx(1)*vin
         endif
         nD = nHtot(N)*Diff(N)
         if (bc_high==1) then
           outflux = -nD*(d1l2(N)*xx(N-4)
-     >                 + d1l1(N)*xx(N-3)
-     >                 + d1m(N) *xx(N-2)
-     >                 + d1r1(N)*xx(N-1)
-     >                 + d1r2(N)*xx(N))
+     >                  +d1l1(N)*xx(N-3)
+     >                  + d1m(N)*xx(N-2)
+     >                  +d1r1(N)*xx(N-1)
+     >                  +d1r2(N)*xx(N))
         else if (bc_high==3) then
           outflux = outrate*nHtot(N)*xx(N)*vout
         endif
         ntot = ntot + (influx-outflux)*dt
         time = time + dt
         write(*,'(TL10,I8,A,$)') it,CR
-c
+
         !if (time>outtime(Nout)) then
         !  write(*,'(I8," output t=",1pE11.3," s")') it,time
         !  write(1,'("time[s]=",1pE12.5)') time
         !  write(1,'(9999(1pE16.8))') (MAX(xx(i),1.E-99),i=1,N)
         !  Nout = Nout + 1
         !endif
+
         if (time>outtime(Nout)) then
-            write(*,'(I8," output t=",1pE14.6," s")') it,time
-            write(1,'("time[s]=",1pE12.5)') time
-            write(1,'(9999(1pE16.8))') (MAX(xx(i),1.E-99),i=1,N)
-            Nout = Nout + 1
-            ntot2 = 0.0
-            do i=1,N
-                ntot2 = ntot2 + zweight(i)*nHtot(i)*xx(i)
-            enddo
-            print'("  total=",2(1pE14.6)," , dev=",0pF8.5,"%")',
+          write(*,'(I8," output t=",1pE14.6," s")') it,time
+          write(1,'("time[s]=",1pE12.5)') time
+          write(1,'(9999(1pE16.8))') (MAX(xx(i),1.E-99),i=1,N)
+          Nout = Nout + 1
+          ntot2 = 0.0
+          do i=1,N
+            ntot2 = ntot2 + zweight(i)*nHtot(i)*xx(i)
+          enddo
+          print'("  total=",2(1pE14.6)," , dev=",0pF11.5,"%")',
      >         ntot,ntot2,(ntot/ntot2-1.0)*100.0
         endif
-c
+
         if (time>tend) exit
 
       enddo
@@ -580,46 +474,38 @@ c
         if (i==1) then
           d1 = d1l2(1)*xx(1)
      >       + d1l1(1)*xx(2)
-     >       + d1m(1) *xx(3)
+     >       +  d1m(1)*xx(3)
      >       + d1r1(1)*xx(4)
      >       + d1r2(1)*xx(5)
         else if (i==2) then
           d1 = d1l2(2)*xx(1)
      >       + d1l1(2)*xx(2)
-     >       + d1m(2)*xx(3)
+     >       +  d1m(2)*xx(3)
      >       + d1r1(2)*xx(4)
      >       + d1r2(2)*xx(5)
         else if (i==N-1) then
-          d1 = d1l1(N-1)*xx(N-4)
+          d1 = d1l2(N-1)*xx(N-4)
      >       + d1l1(N-1)*xx(N-3)
-     >       + d1m(N-1) *xx(N-2)
+     >       +  d1m(N-1)*xx(N-2)
      >       + d1r1(N-1)*xx(N-1)
      >       + d1r2(N-1)*xx(N)
         else if (i==N) then
-          d1 = d1l1(N)*xx(N-4)
+          d1 = d1l2(N)*xx(N-4)
      >       + d1l1(N)*xx(N-3)
-     >       + d1m(N) *xx(N-2)
+     >       +  d1m(N)*xx(N-2)
      >       + d1r1(N)*xx(N-1)
      >       + d1r2(N)*xx(N)
         else
           d1 = d1l2(i)*xx(i-2)
      >       + d1l1(i)*xx(i-1)
-     >       + d1m(i) *xx(i)
+     >       +  d1m(i)*xx(i)
      >       + d1r1(i)*xx(i+1)
      >       + d1r2(i)*xx(i+2)
         endif
         jdiff = -nD*d1
         print'(I4,0pF12.5,99(1pE12.4))',i,zz(i)/Hp,xx(i),jdiff
       enddo
-c
-      !ntot2 = 0.0
-      !do i=1,N-1
-      !  ntot2 = ntot2 + 0.5*(nHtot(i)*xx(i)+nHtot(i+1)*xx(i+1))
-      !>                     *(zz(i+1)-zz(i))
-      !enddo
-      !print*,ntot,ntot2
-      print'("  total=",2(1pE14.6)," , dev=",0pF8.5,"%")',
-     >         ntot,ntot2,(ntot/ntot2-1.0)*100.0
+
       end
 
 

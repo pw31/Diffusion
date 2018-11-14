@@ -152,10 +152,10 @@
           f0(i) = sin(k*zz(i))        ! test function
           f1(i) = cos(k*zz(i))*k
           f2(i) =-sin(k*zz(i))*k**2
-          !x = zz(i)/delz 
-          !f0(i) =  0.5*x**4 -1.0*x**3 +2.0*x**2 -3.0*x + 4.0
-          !f1(i) = (2.0*x**3 -3.0*x**2 +4.0*x    -3.0)/delz
-          !f2(i) = (6.0*x**2 -6.0*x    +4.0          )/delz**2
+          x = zz(i)/delz 
+          f0(i) =  0.5*x**4 -1.0*x**3 +2.0*x**2 -3.0*x + 4.0
+          f1(i) = (2.0*x**3 -3.0*x**2 +4.0*x    -3.0)/delz
+          f2(i) = (6.0*x**2 -6.0*x    +4.0          )/delz**2
         enddo
         do i=1,N
           if (i==1) then

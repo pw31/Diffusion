@@ -6,8 +6,8 @@ F90LINKER    = ifort
 # for IFORT-Compiler
 #===================
 DEFS      = -D IFORT -diag-disable 8290,8291 
-#FFLAGS   = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -warn all
-FFLAGS    = -r8 -g -traceback -O3 -xHOST -prec-div -fp-model source
+FFLAGS   = -r8 -g -traceback -fpe0 -check all,noarg_temp_created -warn all
+#FFLAGS    = -r8 -g -traceback -O3 -xHOST -prec-div -fp-model source
 INCLUDES  = 
 LFLAGS    = $(FFLAGS)
 
@@ -26,10 +26,12 @@ OBJECTS  = datamod.o \
 	   read_parameter.o \
 	   read_structure.o \
            init_grid.o \
+	   init_diffusion.o \
            dcoeffs4.o \
            initial_conditions.o \
            diffusion4.o \
 	   gauss8.o \
+	   linpack_q.o \
            main.o
 
 .SUFFIXES : .o .f .F .f90

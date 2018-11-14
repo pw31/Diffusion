@@ -5,6 +5,7 @@ logfile*
 GIT.commands
 src*/*.o
 src*/*.mod
+src*/*_genmod*
 src*/makefile
 src*/*~
 diffuse
