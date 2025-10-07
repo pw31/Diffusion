@@ -127,7 +127,7 @@
           xx(1) = -(d1m(1)*xx(2) + d1r(1)*xx(3))
      >            /(d1l(1) + inrate*vin/Diff(1))
         endif  
-        nD = nHtot(N)*Diff(N)  
+        nD = nHtot(N)*Diff(N)
         if (bc_high==1) then
           outflux = -nD*(d1l(N)*xx(N-2) + d1m(N)*xx(N-1) + d1r(N)*xx(N)) 
         else if (bc_high==2) then   
@@ -157,20 +157,20 @@
 
       enddo  
 
-      print*
-      print'(A4,99(A12))','grid','zz/Hp','eps','jdiff'
-      do i=1,N
-        nD = nHtot(i)*Diff(i)
-        if (i==1) then 
-          d1 = d1l(1)*xx(1)+d1m(1)*xx(2)+d1r(1)*xx(3) 
-        else if (i==N) then 
-          d1 = d1l(N)*xx(N-2)+d1m(N)*xx(N-1)+d1r(N)*xx(N)
-        else
-          d1 = d1l(i)*xx(i-1)+d1m(i)*xx(i)+d1r(i)*xx(i+1)
-        endif   
-        jdiff = -nD*d1
-        print'(I4,0pF12.5,99(1pE12.4))',i,zz(i)/Hp,xx(i),jdiff
-      enddo
+      !print*
+      !print'(A4,99(A12))','grid','zz/Hp','eps','jdiff'
+      !do i=1,N
+      !  nD = nHtot(i)*Diff(i)
+      !  if (i==1) then 
+      !    d1 = d1l(1)*xx(1)+d1m(1)*xx(2)+d1r(1)*xx(3) 
+      !  else if (i==N) then 
+      !    d1 = d1l(N)*xx(N-2)+d1m(N)*xx(N-1)+d1r(N)*xx(N)
+      !  else
+      !    d1 = d1l(i)*xx(i-1)+d1m(i)*xx(i)+d1r(i)*xx(i+1)
+      !  endif   
+      !  jdiff = -nD*d1
+      !  print'(I4,0pF12.5,99(1pE12.4))',i,zz(i)/Hp,xx(i),jdiff
+      !enddo
 
       end
 
@@ -186,117 +186,27 @@
       use STRUCT,ONLY: Diff,nHtot
       implicit none
       integer,parameter :: qp = selected_real_kind ( 33, 4931 )
+      integer,parameter :: Ndiv = 5
       integer :: i,j,k,it,ipvt(N),info
       real*8,dimension(N,N) :: A,B,sum
       real(kind=qp),dimension(N,N) :: Awork
       real(kind=qp) :: det(2),work(N)
       real*8,dimension(N) :: xnew,rest
-      real*8 :: D,nD,d1,d1nD,jdiff,time,dt,tend
+      real*8 :: D,nD,d1,d1nD,jdiff,time,dt,dtexp,tend,dtmatrix
       real*8 :: z0,ww,AA,x1ana,xNana,ntot,ntot2,err
       logical :: check=.true.
       character :: CR = CHAR(13)
 
-      !-------------------
-      ! ***  timestep  ***
-      !-------------------
-      dt = 9.D+99
+      !---------------------------
+      ! ***  maximum timestep  ***
+      !---------------------------
+      dtexp = 9.D+99
       do i=2,N
-        D  = 0.5*(Diff(i-1)+Diff(i)) 
-        dt = MIN(dt,0.5*(zz(i)-zz(i-1))**2/D)
+        D     = 0.5*(Diff(i-1)+Diff(i)) 
+        dtexp = MIN(dtexp,0.33*(zz(i)-zz(i-1))**2/D)
       enddo
-      print*,"explicit timestep=",dt
-      dt = dt*tfac
-      dt = dt*(1.d0+1.d-12)
-      print*," applied timestep=",dt
-
-      !-----------------------------
-      ! ***  fill in big matrix  ***
-      !-----------------------------
-      A(:,:) = 0.d0
-      do i=2,N-1
-        nD   = nHtot(i)*Diff(i)  
-        d1nD = d1l(i)*nHtot(i-1)*Diff(i-1) 
-     >       + d1m(i)*nHtot(i)  *Diff(i) 
-     >       + d1r(i)*nHtot(i+1)*Diff(i+1) 
-        A(i,i-1) = A(i,i-1) - dt*( d1nD*d1l(i) + nD*d2l(i) )
-        A(i,i)   = A(i,i)   - dt*( d1nD*d1m(i) + nD*d2m(i) )
-        A(i,i+1) = A(i,i+1) - dt*( d1nD*d1r(i) + nD*d2r(i) )
-      enddo
-      do i=1,N
-        A(i,:) = A(i,:)/nHtot(i)    ! unitless
-      enddo  
-      !--------------------------
-      ! ***  add unit matrix  ***
-      !--------------------------
-      do i=1,N
-        A(i,i) = A(i,i) + 1.d0
-      enddo 
-      !------------------------------
-      ! ***  boundary conditions  ***
-      !------------------------------
-      if (bc_low==1) then
-        !--- nothing to do 
-      else if (bc_low==2) then
-        A(1,1) = 1.d0
-        A(1,2) = d1m(1)/d1l(1)
-        A(1,3) = d1r(1)/d1l(1)
-      else if (bc_low==3) then
-        A(1,1) = 1.d0+inrate*vin/Diff(1)/d1l(1) 
-        A(1,2) = d1m(1)/d1l(1)
-        A(1,3) = d1r(1)/d1l(1)
-      endif  
-      if (bc_high==1) then
-        !--- nothing to do 
-      else if (bc_high==2) then   
-        A(N,N-2) = d1l(N)/d1r(N)
-        A(N,N-1) = d1m(N)/d1r(N)
-        A(N,N)   = 1.d0
-      else if (bc_high==3) then   
-        A(N,N-2) = d1l(N)/d1r(N)
-        A(N,N-1) = d1m(N)/d1r(N)
-        A(N,N)   = 1.d0+outrate*vout/Diff(N)/d1r(N) 
-      endif   
-
-      !------------------------
-      ! ***  invert matrix  ***
-      !------------------------
-      Awork = A
-      call QGEFA ( Awork, N, N, ipvt, info )
-      call QGEDI ( Awork, N, N, ipvt, det, work, 1 )
-      B = Awork
-      if (info.ne.0) then
-        print*,"*** singular matrix in QGEFA: info=",info
-        stop
-      endif   
-      if (check) then
-        do i=1,N
-          write(99,'(9999(1pE11.3))') (A(i,j),j=1,N)
-        enddo
-        write(99,*)
-        do i=1,N
-          write(99,'(9999(1pE11.3))') (B(i,j),j=1,N)
-        enddo
-        !--- test A*B=1 ---
-        err = 0.d0
-        write(99,*)
-        do i=1,N
-          do j=1,N
-            sum(i,j) = 0.d0
-            do k=1,N
-              sum(i,j) = sum(i,j) + A(i,k)*B(k,j)
-            enddo 
-            if (i==j) then
-              err = max(err,ABS(sum(i,j)-1.d0)) 
-            else  
-              err = max(err,ABS(sum(i,j))) 
-            endif  
-          enddo  
-          write(99,'(9999(1pE11.3))') (sum(i,j),j=1,N)
-        enddo  
-        write(99,*) "maximum error=",err
-        print*,"matrix inversion error=",err
-      endif  
-
+      print*,"explicit timestep=",dtexp
+      
       ntot = 0.0
       do i=1,N-1
         ntot = ntot + 0.5*(nHtot(i)*xx(i)+nHtot(i+1)*xx(i+1))
@@ -304,8 +214,10 @@
       enddo  
 
       time = tnull
-      tend = outtime(Nout)
-      Nout  = 1
+      tend = outtime(Nout)*(1.d0-1.d-12)
+      Nout = 1
+      dt   = MIN(dtexp*tfac,(outtime(Nout)-time)/Ndiv)
+      dtmatrix = 0.0
       print*
       open(unit=1,file='out.dat',status='replace')
       write(1,*) N,init 
@@ -313,8 +225,101 @@
       write(1,'("time[s]=",1pE12.5)') time 
       write(1,'(9999(1pE16.8))') (MAX(xx(i),1.E-99),i=1,N)
 
-      do it=1,9999999
+      do it=1,99999999
 
+        dt = MIN(dt,(outtime(Nout)-time))
+
+        if (dt.ne.dtmatrix) then
+          print'("    applied timestep=",1pE11.3," s")',dt
+          dtmatrix = dt
+          !-----------------------------
+          ! ***  fill in big matrix  ***
+          !-----------------------------
+          A(:,:) = 0.d0
+          do i=2,N-1
+            nD   = nHtot(i)*Diff(i)  
+            d1nD = d1l(i)*nHtot(i-1)*Diff(i-1) 
+     >           + d1m(i)*nHtot(i)  *Diff(i) 
+     >           + d1r(i)*nHtot(i+1)*Diff(i+1) 
+            A(i,i-1) = A(i,i-1) - dt*( d1nD*d1l(i) + nD*d2l(i) )
+            A(i,i)   = A(i,i)   - dt*( d1nD*d1m(i) + nD*d2m(i) )
+            A(i,i+1) = A(i,i+1) - dt*( d1nD*d1r(i) + nD*d2r(i) )
+          enddo
+          do i=1,N
+            A(i,:) = A(i,:)/nHtot(i)    ! unitless
+          enddo  
+          !--------------------------
+          ! ***  add unit matrix  ***
+          !--------------------------
+          do i=1,N
+            A(i,i) = A(i,i) + 1.d0
+          enddo 
+          !------------------------------
+          ! ***  boundary conditions  ***
+          !------------------------------
+          if (bc_low==1) then
+            !--- nothing to do 
+          else if (bc_low==2) then
+            A(1,1) = 1.d0
+            A(1,2) = d1m(1)/d1l(1)
+            A(1,3) = d1r(1)/d1l(1)
+          else if (bc_low==3) then
+            A(1,1) = 1.d0+inrate*vin/Diff(1)/d1l(1) 
+            A(1,2) = d1m(1)/d1l(1)
+            A(1,3) = d1r(1)/d1l(1)
+          endif  
+          if (bc_high==1) then
+            !--- nothing to do 
+          else if (bc_high==2) then   
+            A(N,N-2) = d1l(N)/d1r(N)
+            A(N,N-1) = d1m(N)/d1r(N)
+            A(N,N)   = 1.d0
+          else if (bc_high==3) then   
+            A(N,N-2) = d1l(N)/d1r(N)
+            A(N,N-1) = d1m(N)/d1r(N)
+            A(N,N)   = 1.d0+outrate*vout/Diff(N)/d1r(N) 
+          endif   
+          !------------------------
+          ! ***  invert matrix  ***
+          !------------------------
+          Awork = A
+          call QGEFA ( Awork, N, N, ipvt, info )
+          call QGEDI ( Awork, N, N, ipvt, det, work, 1 )
+          B = Awork
+          if (info.ne.0) then
+            print*,"*** singular matrix in QGEFA: info=",info
+            stop
+          endif   
+          if (check) then
+            do i=1,N
+              write(99,'(9999(1pE11.3))') (A(i,j),j=1,N)
+            enddo
+            write(99,*)
+            do i=1,N
+              write(99,'(9999(1pE11.3))') (B(i,j),j=1,N)
+            enddo
+            !--- test A*B=1 ---
+            err = 0.d0
+            write(99,*)
+            do i=1,N
+              do j=1,N
+                sum(i,j) = 0.d0
+                do k=1,N
+                  sum(i,j) = sum(i,j) + A(i,k)*B(k,j)
+                enddo 
+                if (i==j) then
+                  err = max(err,ABS(sum(i,j)-1.d0)) 
+                else  
+                  err = max(err,ABS(sum(i,j))) 
+                endif  
+              enddo  
+              write(99,'(9999(1pE11.3))') (sum(i,j),j=1,N)
+            enddo  
+            write(99,*) "maximum error=",err
+            print'(" matrix inversion err=",1pE10.3)',err
+          endif  
+        endif
+        
         !------------------------------
         ! ***  boundary conditions  ***
         !------------------------------
@@ -381,8 +386,8 @@
         time = time + dt
         write(*,'(TL10,I8,A,$)') it,CR
 
-        if (time>outtime(Nout)) then
-          write(*,'(I8," output t=",1pE11.3," s")') it,time
+        if (time>outtime(Nout)*(1.d0-1.d-12)) then
+          write(*,'(I8," output t=",1pE10.3," s")') it,time
           write(1,'("time[s]=",1pE12.5)') time 
           write(1,'(9999(1pE16.8))') (MAX(xx(i),1.E-99),i=1,N)
           Nout = Nout + 1
@@ -393,26 +398,29 @@
           enddo  
           print'("  total=",2(1pE14.6)," , dev=",0pF8.5,"%")',
      >         ntot,ntot2,(ntot/ntot2-1.0)*100.0
+          if (time<tend) then
+            dt = MIN(dtexp*tfac,(outtime(Nout)-time)/Ndiv)
+          endif  
         endif  
 
         if (time>tend) exit
 
-      enddo  
-
-      print*
-      print'(A4,99(A12))','grid','zz/Hp','eps','jdiff'
-      do i=1,N
-        nD = nHtot(i)*Diff(i)
-        if (i==1) then 
-          d1 = d1l(1)*xx(1)+d1m(1)*xx(2)+d1r(1)*xx(3) 
-        else if (i==N) then 
-          d1 = d1l(N)*xx(N-2)+d1m(N)*xx(N-1)+d1r(N)*xx(N)
-        else
-          d1 = d1l(i)*xx(i-1)+d1m(i)*xx(i)+d1r(i)*xx(i+1)
-        endif   
-        jdiff = -nD*d1
-        print'(I4,0pF12.5,99(1pE12.4))',i,zz(i)/Hp,xx(i),jdiff
       enddo
+
+      !print*
+      !print'(A4,99(A12))','grid','zz/Hp','eps','jdiff'
+      !do i=1,N
+      !  nD = nHtot(i)*Diff(i)
+      !  if (i==1) then 
+      !    d1 = d1l(1)*xx(1)+d1m(1)*xx(2)+d1r(1)*xx(3) 
+      !  else if (i==N) then 
+      !    d1 = d1l(N)*xx(N-2)+d1m(N)*xx(N-1)+d1r(N)*xx(N)
+      !  else
+      !    d1 = d1l(i)*xx(i-1)+d1m(i)*xx(i)+d1r(i)*xx(i+1)
+      !  endif   
+      !  jdiff = -nD*d1
+      !  print'(I4,0pF12.5,99(1pE12.4))',i,zz(i)/Hp,xx(i),jdiff
+      !enddo
 
       end
 
