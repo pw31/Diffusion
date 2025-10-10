@@ -50,7 +50,7 @@ for i in range(0,999):
   if (tunit=='s'): titel = r'$t\rm = %9.2E$ s' % (tt)
   if (tunit=='yr'): titel = r'$t\rm = %9.2E$ yr' % (tt/yr)
   if (tt/yr>1.E+10): titel = 't-independent'
-  plt.plot(zz,xx,lw=4,label=titel,c=colo[i])
+  plt.plot(zz,xx,lw=3,label=titel,c=colo[i])
   #--- analytic solution ---
   if (init==3):
     x0 = np.exp(-w*tt) * np.sin(k*zz)
@@ -62,11 +62,13 @@ for i in range(0,999):
     x0 = AA*np.exp(-((zz-0.5)/ww)**2)
     plt.plot(zz,x0,lw=1,c='black')
 
-plt.ylim(0.0,xmax+0.05)
+xmin = xmax*1.E-10    
+plt.ylim(xmin,xmax*2)
 if (zunit=='cm'): plt.xlabel(r'$z\ \mathrm{[cm]}$')
 if (zunit=='km'): plt.xlabel(r'$z\ \mathrm{[km]}$')
+plt.yscale('log')
 plt.ylabel(r'$\mathrm{concentration}$')
-plt.legend(loc='lower left',fontsize=9,fancybox=True)
+plt.legend(loc='best',fontsize=9,fancybox=True)
 plt.tight_layout()
 plt.savefig(pp,format='pdf')
 data.close()

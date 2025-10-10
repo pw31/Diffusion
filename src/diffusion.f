@@ -149,7 +149,7 @@
             ntot2 = ntot2 + 0.5*(nHtot(i)*xx(i)+nHtot(i+1)*xx(i+1))
      >                     *(zz(i+1)-zz(i))
           enddo  
-          print'("  total=",2(1pE14.6)," , dev=",0pF8.5,"%")',
+          print'("  total=",2(1pE14.6)," , dev=",0pF9.5,"%")',
      >         ntot,ntot2,(ntot/ntot2-1.0)*100.0
         endif  
 
@@ -396,7 +396,7 @@
             ntot2 = ntot2 + 0.5*(nHtot(i)*xx(i)+nHtot(i+1)*xx(i+1))
      >                     *(zz(i+1)-zz(i))
           enddo  
-          print'("  total=",2(1pE14.6)," , dev=",0pF8.5,"%")',
+          print'("  total=",2(1pE14.6)," , dev=",0pF9.5,"%")',
      >         ntot,ntot2,(ntot/ntot2-1.0)*100.0
           if (time<tend) then
             dt = MIN(dtexp*tfac,(outtime(Nout)-time)/Ndiv)
