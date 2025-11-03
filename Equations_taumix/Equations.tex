@@ -21,6 +21,7 @@
 \def\pdiff#1#2{\frac{\partial #1}{\partial #2}}
 \def\rhogr{\rho_{\rm gr}}
 \def\Dd{D_{\!d}}
+\def\tmix{\tau_{\rm mix}}
 \def\apj{ApJ}
 \def\pasp{PASP}
 \def\pasj{PASJ}
@@ -273,8 +274,105 @@ This result makes a lot of sense to me:
   there might be a point where $v$ is very close to zero.
 \item If $v=\rm const$, Eq.~(\ref{tmix3}) agrees with the 2-box result
   (Eq.~\ref{tmix1}) and the 3-box result (Eq.~\ref{tmix2}), namely
-  $\tau_{\rm mix}(z)=z/v\quad(\beta=1$).
+  $\tau_{\rm mix}(z)=z/v$.
 \end{itemize}
+
+\section{A relation between $D(p)$ and $\tmix(p)$\,?}
+
+\cite{Ludwig2002} have derived an expression for the ``mass exchange
+timescale'' from time-dependent 3D numerical models for late M-dwarf
+atmosphere, using passive tracer particles, as
+\begin{equation}
+  \ln \tmix(p) = \ln \tmix(p_0) +\beta\ln\Big(\frac{p_0}{p}\Big)
+  \label{eq:Ludwig}
+\end{equation}
+with $\beta\approx 2.2$. The question is the following is: Can we
+find an expression for the diffusion coefficient $D(p)$ that would
+agree with Eq.\,(\ref{eq:Ludwig})?  One approach to prescribe
+the diffusion coefficient in astrochemical models is
+\begin{equation}
+  D(p) = D_0\Big(\frac{p}{p_0}\Big)^\alpha  
+  \label{eq:Dpower}
+\end{equation}
+where $\alpha=0$ (constant diffusion coefficient) and $\alpha=-0.5$
+(diffusion coefficient increases with height) are popular choices.
+What would such a diffusion coefficient mean for the mass exchange timescale?
+
+A problem with our Eq.\,(\ref{final}) is that $\tmix\to 0$ at $z=0$.
+If the reservoir is assumed to be located at $z=0$, well then it would
+exchange itself extremely rapidly, but what we are looking for is
+rather how the mass exchange timescale increases from a given value
+\begin{equation}
+  \tmix(p) = \tmix(p_0) + \int_{\ln p_0}^{\ln p}
+  \frac{1}{v(p)}\;(-H\,d\ln p)
+  \label{eq:approach}
+\end{equation}
+where I have used hydrostatic equilibrium $d\ln p=-dz/H$ to substitute
+from $z$ to $\ln p$, H is the scale height assumed to be constant
+here. Equation (\ref{eq:approach}) considers the reservoir to exchange
+with is situated deeper than $z=0$, and assumes that we know it at $p_0$.
+With the ansatz Eq.\,(\ref{final}) and $D(p)=H\,v(p)$ we get
+\begin{eqnarray}
+  \tmix(p) &=& \tmix(p_0) ~-~ \frac{H^2}{D_0} \int_{\ln p_0}^{\ln p}
+               \Big(\frac{p}{p_0}\Big)^{-\alpha} d\ln p \\
+           &=& \tmix(p_0) ~-~ \frac{H^2}{D_0} \int_{\ln p_0}^{\ln p}
+               \exp\left(-\alpha\,\ln\Big(\frac{p}{p_0}\Big)\right) d\ln p 
+  \label{eq:tauint}\\
+           &=& \tmix(p_0) ~+~ \frac{H^2}{\alpha\,D_0}
+               \left(\Big(\frac{p}{p_0}\Big)^{-\alpha}-1\right) \\
+           &=& \tmix(p_0) ~+~ \frac{H^2}{\alpha}
+               \left(\frac{1}{D(p)}-\frac{1}{D_0}\right) .
+\end{eqnarray}
+There is no simple way to use Eq.\,(\ref{eq:Ludwig}) to determine $\alpha$
+from $\beta$. However, there are some interesting limiting cases for
+$p\ll p_0$. When $\alpha<0$, i.e. $D(p)\gg D_0$, then $\tmix(p)$
+eventually becomes constant
+\begin{equation}
+  \mbox{$\alpha<0$}\quad\Rightarrow\quad\quad
+  \tmix(p) ~\to~ \tmix(p_0) ~+~ \frac{H^2}{\alpha\,D_0}
+\end{equation}
+which makes sense. As the diffusion gets faster and faster, $\tmix$ is
+given by the time the matter needs to diffuse through the low bottleneck.
+For $\alpha=0$, we use Eq.\,(\ref{eq:tauint}) to find the solution
+\begin{equation}
+  \mbox{$\alpha=0$}\quad\Rightarrow\quad\quad
+  \tmix(p) ~=~ \tmix(p_0) ~+~ \frac{H^2}{D_0} \ln\Big(\frac{p_0}{p}\Big)
+  \label{eq:alphanull}
+\end{equation}
+Both cases do not have a shape that would allow us to determine
+$\alpha$ from $\beta$ in Eq.\,(\ref{eq:Ludwig}), not even in the
+limiting case $p\ll p_0$.  However, when $\alpha>0$ then $\tmix(p_0)$
+becomes unimportant for $p\ll p_0$ and we find
+\begin{equation}
+  \mbox{$\alpha>0$}\quad\Rightarrow\quad\quad
+  \tmix(p) ~\to~ \frac{H^2}{\alpha\,D_0} \Big(\frac{p_0}{p}\Big)^{\alpha}
+  \label{eq:tmixLimit}
+\end{equation}
+from which we can conclude
+\begin{equation}
+  \mbox{$\alpha>0$}\quad\Rightarrow\quad\quad
+  \ln\tmix(p) ~\to~ {\rm const} ~+~\alpha\,\ln\Big(\frac{p_0}{p}\Big)
+  \ .
+\end{equation}
+Compared to Eq.\,(\ref{eq:Ludwig}) for $p\ll p_0$ we find $\alpha=\beta$.
+
+But anyway, if we want to assume a powerlaw for the diffusion const
+(Eq.\,\ref{eq:Dpower}), it would be consequent to compute the mass
+exchange timescale in {\tt StaticWeather} as
+\begin{equation}
+  \boxed{\tmix(p) ~=~ \tmix(p_0) ~+~ \frac{H^2}{\alpha}
+             \left(\frac{1}{D(p)}-\frac{1}{D_0}\right)} 
+\end{equation}
+(when $\alpha\!=\!0$, then Eq.\,(\ref{eq:alphanull}) should be used instead).
+
+
+
+
+
+
+
+
+
 
 \bibliographystyle{chicagon}
 \bibliography{references}
